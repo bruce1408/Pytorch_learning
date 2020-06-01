@@ -36,12 +36,12 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
 # Training loop
 for epoch in range(500):
-        # Forward pass: Compute predicted y by passing x to the model
+    # Forward pass: Compute predicted y by passing x to the model
     y_pred = model(x_data)
 
     # Compute and print loss
     loss = criterion(y_pred, y_data)
-    print(epoch, loss.data[0])
+    print(epoch, loss.data)
 
     # Zero gradients, perform a backward pass, and update the weights.
     optimizer.zero_grad()

@@ -26,7 +26,7 @@ print("predict (before training)",  4, forward(4).data[0])
 for epoch in range(10):
     for x_val, y_val in zip(x_data, y_data):
         l = loss(x_val, y_val)
-        l.backward()
+        l.backward() # 可以自动求梯度
         print("\tgrad: ", x_val, y_val, w.grad.data[0])
         w.data = w.data - 0.01 * w.grad.data
 

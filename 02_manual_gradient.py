@@ -20,6 +20,7 @@ def loss(x, y):
 def gradient(x, y):  # d_loss/d_w
     return 2 * x * (x * w - y)
 
+
 # Before training
 print("predict (before training)",  4, forward(4))
 
@@ -34,4 +35,4 @@ for epoch in range(10):
     print("progress:", epoch, "w=", round(w, 2), "loss=", round(l, 2))
 
 # After training
-print("predict (after training)",  "4 hours", forward(4))
+print("predict (after training)",  "if input is 4, the result is:", forward(4))
