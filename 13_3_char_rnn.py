@@ -80,6 +80,7 @@ def generate(decoder, prime_str='A', predict_len=100, temperature=0.8):
 
     return predicted
 
+
 # Train for a given src and target
 # It feeds single string to demonstrate seq2seq
 # It's extremely slow, and we need to use (1) batch and (2) data parallelism
@@ -109,7 +110,7 @@ def train(line):
     target = str2tensor(line[1:])
 
     hidden = decoder.init_hidden()
-    decoder_in = input[0]
+    decoder_in = input
     loss = 0
 
     for c in range(len(input)):
@@ -121,7 +122,8 @@ def train(line):
     loss.backward()
     decoder_optimizer.step()
 
-    return loss.data[0] / len(input)
+    return loss.data / len(input)
+
 
 if __name__ == '__main__':
 

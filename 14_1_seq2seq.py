@@ -14,19 +14,19 @@ N_CHARS = 128  # ASCII
 
 
 # Simple test to show how our network works
-def test():
-    encoder_hidden = encoder.init_hidden()
-    word_input = str2tensor('hello')
-    encoder_outputs, encoder_hidden = encoder(word_input, encoder_hidden)
-    print(encoder_outputs)
-
-    decoder_hidden = encoder_hidden
-
-    word_target = str2tensor('pytorch')
-    for c in range(len(word_target)):
-        decoder_output, decoder_hidden = decoder(
-            word_target[c], decoder_hidden)
-        print(decoder_output.size(), decoder_hidden.size())
+# def test():
+#     encoder_hidden = encoder.init_hidden()
+#     word_input = str2tensor('hello')
+#     encoder_outputs, encoder_hidden = encoder(word_input, encoder_hidden)
+#     print(encoder_outputs)
+#
+#     decoder_hidden = encoder_hidden
+#
+#     word_target = str2tensor('pytorch')
+#     for c in range(len(word_target)):
+#         decoder_output, decoder_hidden = decoder(
+#             word_target[c], decoder_hidden)
+#         print(decoder_output.size(), decoder_hidden.size())
 
 
 # Train for a given src and target
@@ -96,7 +96,7 @@ if torch.cuda.is_available():
     decoder.cuda()
     encoder.cuda()
 print(encoder, decoder)
-test()
+# test()
 
 params = list(encoder.parameters()) + list(decoder.parameters())
 optimizer = torch.optim.Adam(params, lr=0.001)
@@ -119,3 +119,11 @@ for epoch in range(1, N_EPOCH + 1):
                   (epoch, epoch / N_EPOCH * 100, train_loss))
             print(translate(srcs[0]), '\n')
             print(translate(), '\n')
+
+
+
+
+
+
+
+

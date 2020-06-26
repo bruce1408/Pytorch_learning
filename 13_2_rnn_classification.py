@@ -1,4 +1,5 @@
 # Original code is from https://github.com/spro/practical-pytorch
+import os
 import time
 import math
 import torch
@@ -8,7 +9,7 @@ from torch.utils.data import DataLoader
 
 from name_dataset import NameDataset
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 # Parameters and DataLoaders
 HIDDEN_SIZE = 100
 N_LAYERS = 2
@@ -141,14 +142,14 @@ def train():
         output = classifier(input, seq_lengths)
 
         loss = criterion(output, target)
-        total_loss += loss.data[0]
+        total_loss += loss.data
 
         classifier.zero_grad()
         loss.backward()
         optimizer.step()
 
         if i % 10 == 0:
-            print('[{}] Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.2f}'.format(
+            print('[{}] Train Epoch: {} [{}/{} ({:.0f}%)], Loss: {:.2f}'.format(
                 time_since(start), epoch,  i *
                 len(names), len(train_loader.dataset),
                 100. * i * len(names) / len(train_loader.dataset),
@@ -158,28 +159,28 @@ def train():
 
 
 # Testing cycle
-def test(name=None):
-    # Predict for a given name
-    if name:
-        input, seq_lengths, target = make_variables([name], [])
-        output = classifier(input, seq_lengths)
-        pred = output.data.max(1, keepdim=True)[1]
-        country_id = pred.cpu().numpy()[0][0]
-        print(name, "is", train_dataset.get_country(country_id))
-        return
-
-    print("evaluating trained model ...")
-    correct = 0
-    train_data_size = len(test_loader.dataset)
-
-    for names, countries in test_loader:
-        input, seq_lengths, target = make_variables(names, countries)
-        output = classifier(input, seq_lengths)
-        pred = output.data.max(1, keepdim=True)[1]
-        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
-
-    print('\nTest set: Accuracy: {}/{} ({:.0f}%)\n'.format(
-        correct, train_data_size, 100. * correct / train_data_size))
+# def test(name=None):
+#     # Predict for a given name
+#     if name:
+#         input, seq_lengths, target = make_variables([name], [])
+#         output = classifier(input, seq_lengths)
+#         pred = output.data.max(1, keepdim=True)[1]
+#         country_id = pred.cpu().numpy()[0][0]
+#         print(name, "is", train_dataset.get_country(country_id))
+#         return
+#
+#     print("evaluating trained model ...")
+#     correct = 0
+#     train_data_size = len(test_loader.dataset)
+#
+#     for names, countries in test_loader:
+#         input, seq_lengths, target = make_variables(names, countries)
+#         output = classifier(input, seq_lengths)
+#         pred = output.data.max(1, keepdim=True)[1]
+#         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+#
+#     print('\nTest set: Accuracy: {}/{} ({:.0f}%)\n'.format(
+#         correct, train_data_size, 100. * correct / train_data_size))
 
 
 if __name__ == '__main__':
@@ -203,10 +204,10 @@ if __name__ == '__main__':
         train()
 
         # Testing
-        test()
-
-        # Testing several samples
-        test("Sung")
-        test("Jungwoo")
-        test("Soojin")
-        test("Nako")
+        # test()
+        #
+        # # Testing several samples
+        # test("Sung")
+        # test("Jungwoo")
+        # test("Soojin")
+        # test("Nako")

@@ -20,29 +20,29 @@ HIDDEN_SIZE = N_CHARS
 
 
 # Simple test to show how our train works
-def test():
-    encoder_test = sm.EncoderRNN(10, 10, 2)
-    decoder_test = sm.AttnDecoderRNN(10, 10, 2)
-
-    if torch.cuda.is_available():
-        encoder_test.cuda()
-        decoder_test.cuda()
-
-    encoder_hidden = encoder_test.init_hidden()
-    word_input = cuda_variable(torch.LongTensor([1, 2, 3]))
-    encoder_outputs, encoder_hidden = encoder_test(word_input, encoder_hidden)
-    print(encoder_outputs.size())
-
-    word_target = cuda_variable(torch.LongTensor([1, 2, 3]))
-    decoder_attns = torch.zeros(1, 3, 3)
-    decoder_hidden = encoder_hidden
-
-    for c in range(len(word_target)):
-        decoder_output, decoder_hidden, decoder_attn = \
-            decoder_test(word_target[c],
-                         decoder_hidden, encoder_outputs)
-        print(decoder_output.size(), decoder_hidden.size(), decoder_attn.size())
-        decoder_attns[0, c] = decoder_attn.squeeze(0).cpu().data
+# def test():
+#     encoder_test = sm.EncoderRNN(10, 10, 2)
+#     decoder_test = sm.AttnDecoderRNN(10, 10, 2)
+#
+#     if torch.cuda.is_available():
+#         encoder_test.cuda()
+#         decoder_test.cuda()
+#
+#     encoder_hidden = encoder_test.init_hidden()
+#     word_input = cuda_variable(torch.LongTensor([1, 2, 3]))
+#     encoder_outputs, encoder_hidden = encoder_test(word_input, encoder_hidden)
+#     print(encoder_outputs.size())
+#
+#     word_target = cuda_variable(torch.LongTensor([1, 2, 3]))
+#     decoder_attns = torch.zeros(1, 3, 3)
+#     decoder_hidden = encoder_hidden
+#
+#     for c in range(len(word_target)):
+#         decoder_output, decoder_hidden, decoder_attn = \
+#             decoder_test(word_target[c],
+#                          decoder_hidden, encoder_outputs)
+#         print(decoder_output.size(), decoder_hidden.size(), decoder_attn.size())
+#         decoder_attns[0, c] = decoder_attn.squeeze(0).cpu().data
 
 
 # Train for a given src and target
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     for epoch in range(1, N_EPOCH + 1):
         # Get srcs and targets from data loader
         for i, (srcs, targets) in enumerate(train_loader):
-            train_loss = train(srcs[0], targets[0])
+            train_loss = train(srcs, targets)
 
             if i % 1000 is 0:
                 print('[(%d/%d %d%%) %.4f]' %

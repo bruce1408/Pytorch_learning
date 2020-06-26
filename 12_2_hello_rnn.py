@@ -35,8 +35,7 @@ class Model(nn.Module):
 
     def __init__(self):
         super(Model, self).__init__()
-        self.rnn = nn.RNN(input_size=input_size,
-                          hidden_size=hidden_size, batch_first=True)
+        self.rnn = nn.RNN(input_size=input_size, hidden_size=hidden_size, batch_first=True)
 
     def forward(self, hidden, x):
         # Reshape input (batch first)
@@ -75,9 +74,9 @@ for epoch in range(100):
         hidden, output = model(hidden, input)
         val, idx = output.max(1)
         sys.stdout.write(idx2char[idx.data[0]])
-        loss += criterion(output, label)
+        loss += criterion(output, label.unsqueeze(0))
 
-    print(", epoch: %d, loss: %1.3f" % (epoch + 1, loss.data[0]))
+    print(", epoch: %d, loss: %1.3f" % (epoch + 1, loss.data))
 
     loss.backward()
     optimizer.step()
