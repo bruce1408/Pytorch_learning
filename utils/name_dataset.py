@@ -14,7 +14,7 @@ class NameDataset(Dataset):
 
     # Initialize your data, download, etc.
     def __init__(self, is_train_set=False):
-        filename = './data/names_train.csv.gz' if is_train_set else './data/names_test.csv.gz'
+        filename = '../data/names_train.csv.gz' if is_train_set else '../data/names_test.csv.gz'
         with gzip.open(filename, "rt") as f:
             reader = csv.reader(f)
             rows = list(reader)
@@ -39,6 +39,7 @@ class NameDataset(Dataset):
 
     def get_country_id(self, country):
         return self.country_list.index(country)
+
 
 # Test the loader
 if __name__ == "__main__":
