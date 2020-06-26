@@ -1,5 +1,7 @@
 import torch
-
+"""
+使用torch.nn.RNNCell实现输入hello，输出ohlol功能
+"""
 batch_size = 1
 input_size = 4
 hidden_size = 4
@@ -50,6 +52,7 @@ for epoch in range(15):
         hidden = net(input, hidden)
         loss += criterion(hidden, label)
         _, idx = hidden.max(dim=1)
+        print(idx)
         print(idx2char[idx.item()], end='')
     loss.backward()  # 反向传播
     optimizer.step()  # 参数更新
