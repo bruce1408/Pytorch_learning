@@ -9,7 +9,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from text_loader import TextDataset
 import seq2seq_models as sm
-from seq2seq_models import cuda_variable, str2tensor, EOS_token, SOS_token
+from seq2seq_models import str2tensor, EOS_token, SOS_token
 
 
 N_LAYERS = 1

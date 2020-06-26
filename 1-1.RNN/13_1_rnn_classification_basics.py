@@ -1,13 +1,7 @@
 # Original code is from https://github.com/spro/practical-pytorch
-import time
-import math
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-from torch.utils.data import DataLoader
-
-from name_dataset import NameDataset
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 # Parameters and DataLoaders
 HIDDEN_SIZE = 100
