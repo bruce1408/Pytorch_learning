@@ -12,23 +12,12 @@ num_class = 5
 embedding_size = 10
 
 idx2char = ['h', 'i', 'e', 'l', 'o']  # - > 0, 1, 2, 3, 4
-x_data = [[0, 1, 0, 2, 3, 3]]  # hihell input sequence
-y_data = [1, 0, 2, 3, 3, 4]  # ihello output sequence
+x_data = [[0, 1, 0, 2, 3, 3]]  # hihell [input sequence]
+y_data = [1, 0, 2, 3, 3, 4]  # ihello [output sequence]
 inputs = torch.LongTensor(x_data)
-# one_hot_lookup = [[1, 0, 0, 0, 0],
-#                   [0, 1, 0, 0, 0],
-#                   [0, 0, 1, 0, 0],
-#                   [0, 0, 0, 1, 0],
-#                   [0, 0, 0, 0, 1]]
-
-# x_one_hot = [one_hot_lookup[x] for x in x_data]
-# input = torch.Tensor(x_one_hot).view(-1, seq_len, input_size)
 labels = torch.LongTensor(y_data)
-# embed = torch.nn.Embedding(input_size, embedding_size)
-# print(embed(inputs).shape)
 
-#
-#
+
 class LSTM(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, seq_len, num_class, batch_size):
         super(LSTM, self).__init__()

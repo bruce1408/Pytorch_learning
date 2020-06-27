@@ -64,9 +64,7 @@ def pad_sequences(vectorized_seqs, seq_lengths, countries):
 
     # Return variables
     # DataParallel requires everything to be a Variable
-    return create_variable(seq_tensor), \
-        create_variable(seq_lengths), \
-        create_variable(target)
+    return create_variable(seq_tensor), create_variable(seq_lengths), create_variable(target)
 
 
 # Create necessary variables, lengths, and target
@@ -160,28 +158,27 @@ def train():
 
 
 # Testing cycle
-# def test(name=None):
-#     # Predict for a given name
-#     if name:
-#         input, seq_lengths, target = make_variables([name], [])
-#         output = classifier(input, seq_lengths)
-#         pred = output.data.max(1, keepdim=True)[1]
-#         country_id = pred.cpu().numpy()[0][0]
-#         print(name, "is", train_dataset.get_country(country_id))
-#         return
-#
-#     print("evaluating trained model ...")
-#     correct = 0
-#     train_data_size = len(test_loader.dataset)
-#
-#     for names, countries in test_loader:
-#         input, seq_lengths, target = make_variables(names, countries)
-#         output = classifier(input, seq_lengths)
-#         pred = output.data.max(1, keepdim=True)[1]
-#         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
-#
-#     print('\nTest set: Accuracy: {}/{} ({:.0f}%)\n'.format(
-#         correct, train_data_size, 100. * correct / train_data_size))
+def test(name=None):
+    # Predict for a given name
+    if name:
+        input, seq_lengths, target = make_variables([name], [])
+        output = classifier(input, seq_lengths)
+        pred = output.data.max(1, keepdim=True)[1]
+        country_id = pred.cpu().numpy()[0][0]
+        print(name, "is", train_dataset.get_country(country_id))
+        return
+
+    print("evaluating trained model ...")
+    correct = 0
+    train_data_size = len(test_loader.dataset)
+
+    for names, countries in test_loader:
+        input, seq_lengths, target = make_variables(names, countries)
+        output = classifier(input, seq_lengths)
+        pred = output.data.max(1, keepdim=True)[1]
+        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+
+    print('\nTest set: Accuracy: {}/{} ({:.0f}%)\n'.format(correct, train_data_size, 100. * correct / train_data_size))
 
 
 if __name__ == '__main__':
@@ -205,10 +202,10 @@ if __name__ == '__main__':
         train()
 
         # Testing
-        # test()
+        test()
         #
         # # Testing several samples
-        # test("Sung")
-        # test("Jungwoo")
-        # test("Soojin")
-        # test("Nako")
+        test("Sung")
+        test("Jungwoo")
+        test("Soojin")
+        test("Nako")

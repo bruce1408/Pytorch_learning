@@ -5,9 +5,9 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 
-
 # Cross entropy example
 import numpy as np
+
 # One hot
 # 0: 1 0 0
 # 1: 0 1 0
@@ -51,7 +51,6 @@ Y_pred1 = Variable(torch.Tensor([[0.1, 0.2, 0.9],
                                  [1.1, 0.1, 0.2],
                                  [0.2, 2.1, 0.1]]))
 
-
 Y_pred2 = Variable(torch.Tensor([[0.8, 0.2, 0.3],
                                  [0.2, 0.3, 0.5],
                                  [0.2, 0.2, 0.5]]))
@@ -60,3 +59,6 @@ l1 = loss(Y_pred1, Y)
 l2 = loss(Y_pred2, Y)
 
 print("Batch Loss1 = ", l1.data, "\nBatch Loss2=", l2.data)
+a = np.array([[1, 2, 3], [2, 4, 5]])
+b = torch.from_numpy(a)
+print(b.max(1))

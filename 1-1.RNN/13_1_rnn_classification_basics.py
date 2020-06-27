@@ -49,6 +49,7 @@ class RNNClassifier(nn.Module):
         hidden = torch.zeros(self.n_layers, batch_size, self.hidden_size)
         return Variable(hidden)
 
+
 # Help functions
 
 
@@ -56,12 +57,14 @@ def str2ascii_arr(msg):
     arr = [ord(c) for c in msg]
     return arr, len(arr)
 
+
 # pad sequences and sort the tensor
 def pad_sequences(vectorized_seqs, seq_lengths):
     seq_tensor = torch.zeros((len(vectorized_seqs), seq_lengths.max())).long()
     for idx, (seq, seq_len) in enumerate(zip(vectorized_seqs, seq_lengths)):
         seq_tensor[idx, :seq_len] = torch.LongTensor(seq)
     return seq_tensor
+
 
 # Create necessary variables, lengths, and target
 def make_variables(names):
@@ -81,9 +84,6 @@ if __name__ == '__main__':
         out = classifier(inp)
         print("in", inp.size(), "out", out.size())
 
-
     inputs = make_variables(names)
     out = classifier(inputs)
     print("batch in", inputs.size(), "batch out", out.size())
-
-

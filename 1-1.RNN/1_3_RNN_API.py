@@ -96,10 +96,10 @@ x_one_hot_1 = [one_hot_lookup[x] for x in x_data[0]]
 y_data = [1, 0, 2, 3, 3, 4]    # ihello
 
 # As we have one batch of samples, we will change them to variables only once
-inputs_1 = torch.Tensor(x_one_hot_1).view(-1, sequence_length, input_size)
+inputs = torch.Tensor(x_one_hot_1).view(-1, sequence_length, input_size)
 
-inputs = Variable(torch.Tensor(x_one_hot))
-labels = Variable(torch.LongTensor(y_data))
+# inputs = Variable(torch.Tensor(x_one_hot))
+labels = torch.LongTensor(y_data)
 
 
 class RNN(nn.Module):

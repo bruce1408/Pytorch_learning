@@ -13,8 +13,7 @@ dtype = torch.FloatTensor
 sentence = (
     'Lorem ipsum dolor sit amet consectetur adipisicing elit '
     'sed do eiusmod tempor incididunt ut labore et dolore magna '
-    'aliqua Ut enim ad minim veniam quis nostrud exercitation'
-)
+    'aliqua Ut enim ad minim veniam quis nostrud exercitation')
 
 word_dict = {w: i for i, w in enumerate(list(set(sentence.split())))}
 number_dict = {i: w for i, w in enumerate(list(set(sentence.split())))}
@@ -49,10 +48,8 @@ class BiLSTM(nn.Module):
     def forward(self, X):
         input = X.transpose(0, 1)  # input : [n_step, batch_size, n_class]
 
-        hidden_state = Variable(
-            torch.zeros(1 * 2, len(X), n_hidden))  # [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
-        cell_state = Variable(
-            torch.zeros(1 * 2, len(X), n_hidden))  # [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
+        hidden_state = Variable(torch.zeros(1 * 2, len(X), n_hidden))  # [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
+        cell_state = Variable(torch.zeros(1 * 2, len(X), n_hidden))  # [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
 
         outputs, (_, _) = self.lstm(input, (hidden_state, cell_state))
         outputs = outputs[-1]  # [batch_size, n_hidden]
