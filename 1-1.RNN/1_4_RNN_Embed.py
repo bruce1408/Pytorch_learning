@@ -27,11 +27,12 @@ num_layers = 1  # one-layer rnn
 
 class Model(nn.Module):
 
-    def __init__(self):
+    def __init__(self, num_layers, hidden_size):
         super(Model, self).__init__()
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
         self.embedding = nn.Embedding(input_size, embedding_size)
-        self.rnn = nn.RNN(input_size=embedding_size,
-                          hidden_size=5, batch_first=True)
+        self.rnn = nn.RNN(input_size=embedding_size, hidden_size=5, batch_first=True)
         self.fc = nn.Linear(hidden_size, num_classes)
 
     def forward(self, x):
@@ -46,11 +47,13 @@ class Model(nn.Module):
         # Input: (batch, seq_len, embedding_size)
         # h_0: (num_layers * num_directions, batch, hidden_size)
         out, _ = self.rnn(emb, h_0)
-        return self.fc(out.view(-1, num_classes))
+        # print(out.shape)
+        a = out.view(-1, hidden_size)
+        return self.fc(out.view(-1, hidden_size))
 
 
 # Instantiate RNN model
-model = Model()
+model = Model(num_layers, hidden_size)
 print(model)
 
 # Set loss and optimizer function
@@ -68,7 +71,7 @@ for epoch in range(100):
     _, idx = outputs.max(1)
     idx = idx.data.numpy()
     result_str = [idx2char[c] for c in idx.squeeze()]
-    print("epoch: %d, loss: %1.3f" % (epoch + 1, loss.data[0]))
-    print("Predicted string: ", ''.join(result_str))
+    print("epoch: %d, loss: %1.3f" % (epoch + 1, loss.item()), end='')
+    print(" Predicted string: ", ''.join(result_str))
 
 print("Learning finished!")
