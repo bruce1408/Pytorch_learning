@@ -4,9 +4,10 @@ import torch.utils.data
 import torch.nn.functional as F
 from torchsummary import summary
 
-class Net(nn.Module):
+
+class AlexNet(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
+        super(AlexNet, self).__init__()
         self.conv = nn.Sequential(
             nn.Conv2d(3, 96, 11, 4),
             nn.ReLU(),
@@ -40,7 +41,7 @@ class Net(nn.Module):
 
 
 if __name__ == '__main__':
-    net = Net()
+    net = AlexNet()
     summary(net, (3, 224, 224))
     # input = torch.randn(6, 3, 224, 224)
     # nn.Conv2d(3, 96, 11, 4),  # 54 x 54
