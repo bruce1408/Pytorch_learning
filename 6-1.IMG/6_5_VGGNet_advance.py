@@ -43,18 +43,18 @@ class VGG(nn.Module):
 def make_layers(cfg, batch_norm=False):
     layers = []
     input_channel = 3
-    for l in cfg:
-        if l == 'M':
+    for layerType in cfg:
+        if layerType == 'M':
             layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
             continue
 
-        layers += [nn.Conv2d(input_channel, l, kernel_size=3, padding=1)]
+        layers += [nn.Conv2d(input_channel, layerType, kernel_size=3, padding=1)]
 
         if batch_norm:
-            layers += [nn.BatchNorm2d(l)]
+            layers += [nn.BatchNorm2d(layerType)]
 
         layers += [nn.ReLU(inplace=True)]
-        input_channel = l
+        input_channel = layerType
 
     return nn.Sequential(*layers)
 
