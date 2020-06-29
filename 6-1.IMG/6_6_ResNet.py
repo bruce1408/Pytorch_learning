@@ -61,7 +61,7 @@ class ResNet50(nn.Module):
         self.fc = nn.Linear(2048, num_classes)
 
     def make_layer(self, in_channel, out_channel, block_num, stride=1):
-        layers = []
+        layers = list()
         layers.append(Bottleneck(in_channel, out_channel, stride, downsampling=True))
         for i in range(1, block_num):
             layers.append(Bottleneck(out_channel*4, out_channel))

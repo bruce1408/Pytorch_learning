@@ -85,7 +85,7 @@ class ResNet(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def make_layer(self, in_places, places, block, stride):
-        layers = []
+        layers = list()
         # 第1个
         layers.append(Bottleneck(in_places, places, stride, downsampling=True))
         for i in range(1, block):
