@@ -5,12 +5,12 @@ import torchvision.transforms as transforms
 import os
 from torch.autograd import Variable
 import argparse
-import numpy as np 
+import numpy as np
 from torch.optim.lr_scheduler import *
 import csv
 
 from model.resnet import resnet101
-from dataset.Custom import DogCat
+from dataset.Custom import CustomData
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--num_workers', type=int, default=2)
@@ -28,30 +28,29 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
 ])
 
-testset=DogCat('./data/test1',transform=transform_test,train=False,test=True)
-testloader=torch.utils.data.DataLoader(testset,batch_size=opt.batchSize,shuffle=False,num_workers=opt.num_workers)
-model=resnet101(pretrained=True)
-model.fc=nn.Linear(2048,2)
+testset = CustomData('./data/test1', transform=transform_test, train=False, test=True)
+testloader = torch.utils.data.DataLoader(testset, batch_size=opt.batchSize, shuffle=False, num_workers=opt.num_workers)
+model = resnet101(pretrained=True)
+model.fc = nn.Linear(2048, 2)
 model.load_state_dict(torch.load('ckp/model.pth'))
 model.cuda()
 model.eval()
-results=[]
+results = []
 
 with torch.no_grad():
-    for image,label in testloader:
-        image=Variable(image.cuda())
-        out=model(image)
-        label=label.numpy().tolist()
-        _,predicted=torch.max(out.data,1)
-        predicted=predicted.data.cpu().numpy().tolist()
-        results.extend([[i,";".join(str(j))] for (i,j) in zip(label,predicted)])
+    for image, label in testloader:
+        image = image.cuda()
+        out = model(image)
+        label = label.numpy().tolist()
+        _, predicted = torch.max(out.data, 1)
+        predicted = predicted.data.cpu().numpy().tolist()
+        results.extend([[i, ";".join(str(j))] for (i, j) in zip(label, predicted)])
 
+eval_csv = os.path.join(os.path.expanduser('.'), 'deploy', 'eval.csv')
 
-eval_csv=os.path.join(os.path.expanduser('.'),'deploy','eval.csv')
-
-with open(eval_csv,'w',newline='') as f:
-    writer=csv.writer(f,delimiter=',')
-    q=("id","label")
+with open(eval_csv, 'w', newline='') as f:
+    writer = csv.writer(f, delimiter=',')
+    q = ("id", "label")
     writer.writerow(q)
     for x in results:
         writer.writerow(x)

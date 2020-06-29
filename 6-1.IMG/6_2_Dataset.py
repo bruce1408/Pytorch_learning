@@ -49,6 +49,7 @@ class Custom(data.Dataset):
             img = Image.open(self.list_img[item])
             label = self.list_label[item]
             return self.transform(img), torch.Tensor([label])
+
         elif self.mode == 'test':
             img = Image.open(self.list_img[item])
             return self.transform(img)

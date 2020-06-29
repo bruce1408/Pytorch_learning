@@ -6,20 +6,15 @@ from torch.optim.lr_scheduler import *
 import torchvision.transforms as transforms
 import numpy as np
 import os
-import argparse
-
 from model.resnet import resnet101
 from dataset.Custom import CustomData
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--num_workers', type=int, default=2)
-parser.add_argument('--batchSize', type=int, default=64)
-parser.add_argument('--nepoch', type=int, default=21)
-parser.add_argument('--lr', type=float, default=0.001)
-parser.add_argument('--gpu', type=str, default='2')
-opt = parser.parse_args()
-print(opt)
-os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu
+# parameters
+num_workers = 2
+batchsize = 64
+epochs = 20
+lr = 0.001
+os.environ["CUDA_VISIBLE_DEVICES"] = '1'
 
 transform_train = transforms.Compose([
     transforms.Resize((256, 256)),
@@ -37,13 +32,13 @@ transform_val = transforms.Compose([
 
 trainset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_train)
 valset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_val)
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=opt.batchSize, shuffle=True, num_workers=opt.num_workers)
-valloader = torch.utils.data.DataLoader(valset, batch_size=opt.batchSize, shuffle=False, num_workers=opt.num_workers)
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchsize, shuffle=True, num_workers=num_workers)
+valloader = torch.utils.data.DataLoader(valset, batch_size=batchsize, shuffle=False, num_workers=num_workers)
 
 model = resnet101(pretrained=True)
 model.fc = nn.Linear(2048, 2)
 model.cuda()
-optimizer = torch.optim.SGD(model.parameters(), lr=opt.lr, momentum=0.9, weight_decay=5e-4)
+optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4)
 scheduler = StepLR(optimizer, step_size=3)
 criterion = nn.CrossEntropyLoss()
 criterion.cuda()
@@ -80,7 +75,7 @@ def val(epoch):
     print("Acc: %f " % ((1.0 * correct.numpy()) / total))
 
 
-for epoch in range(opt.nepoch):
+for epoch in range(epochs):
     train(epoch)
     val(epoch)
 torch.save(model.state_dict(), 'ckp/model.pth')
