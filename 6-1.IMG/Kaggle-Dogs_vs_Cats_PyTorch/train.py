@@ -54,8 +54,8 @@ def train(epoch):
     scheduler.step()
     model.train()
     for batch_idx, (img, label) in enumerate(trainloader):
-        image = Variable(img.cuda())
-        label = Variable(label.cuda())
+        image = img.cuda()
+        label = label.cuda()
         optimizer.zero_grad()
         out = model(image)
         loss = criterion(out, label)
@@ -71,8 +71,8 @@ def val(epoch):
     correct = 0
     with torch.no_grad():
         for batch_idx, (img, label) in enumerate(valloader):
-            image = Variable(img.cuda())
-            label = Variable(label.cuda())
+            image = img.cuda()
+            label = label.cuda()
             out = model(image)
             _, predicted = torch.max(out.data, 1)
             total += image.size(0)

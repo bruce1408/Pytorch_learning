@@ -37,6 +37,9 @@ class inception_block(nn.Module):
 
 
 class aux_logits(nn.Module):
+    """
+    辅助损失函数模块
+    """
     def __init__(self, in_channel, out_channel):
         super(aux_logits, self).__init__()
         self.conv2d = nn.Sequential(
@@ -60,6 +63,9 @@ class aux_logits(nn.Module):
 
 
 class Inception_v1(nn.Module):
+    """
+    inception v1 代码块
+    """
     def __init__(self, num_classes=10, mode="train"):
         super(Inception_v1, self).__init__()
         self.mode = mode
