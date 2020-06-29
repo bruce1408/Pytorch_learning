@@ -7,18 +7,18 @@ import torchvision.transforms as transforms
 
 
 class CustomData(data.dataset):
-    def __init__(self, imgFolder, train=True, val=False, test=False, transform=None, splitnum=0.8):
+    def __init__(self, imgFolder, transform=None, train=True, val=False):
         self.train = train
         self.val = val
-        self.test = test
+        # self.test = test
         self.transform = transform
         imgs = [os.path.join(imgFolder, imgFile) for imgFile in os.listdir(imgFolder)]
         self.imgnum = len(imgs)
         self.imgs = sorted(imgs, key=lambda x: int(x.split('.')[-2]))
         if train:
-            self.imgs = imgs[:, int(splitnum * self.imgnum)]
+            self.imgs = imgs[:, int(0.8 * self.imgnum)]
         elif val:
-            self.imgs = imgs[int(splitnum * self.imgnum):]
+            self.imgs = imgs[int(0.8 * self.imgnum):]
         else:
             self.imgs = imgs
 

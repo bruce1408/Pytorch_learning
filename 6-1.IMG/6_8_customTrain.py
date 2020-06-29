@@ -2,7 +2,9 @@ import os
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
-from utils.DataSet_train_val_test import CustomData
+# from utils.DataSet_train_val_test import CustomData
+from utils.Custom import CustomData
+
 from utils.Inception_v1 import Inception_v1
 import torch.utils.data as data
 
@@ -35,12 +37,12 @@ transform_test = transforms.Compose([
 ])
 
 trainData = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transforms_train)
-valData = CustomData("/raid/bruce/datasets/dogs_cats/train", train=False, val=True, transform=transforms_val)
-testData = CustomData("/raid/bruce/datasets/dogs_cats/train", train=False, val=False, test=True, transform=transform_test)
+valData = CustomData("/raid/bruce/datasets/dogs_cats/train", transform=transforms_val, train=False, test=True)
+# testData = CustomData("/raid/bruce/datasets/dogs_cats/train", transform=transform_test, train=False, val=False)
 
 trainloader = torch.utils.data.DataLoader(trainData, batch_size=batchsize, shuffle=True, num_workers=num_works)
 valloader = torch.utils.data.DataLoader(valData, batch_size=batchsize, shuffle=False, num_workers=num_works)
-testloader = torch.utils.data.DataLoader(testData, batch_size=batchsize, shuffle=False, num_workers=num_works)
+# testloader = torch.utils.data.DataLoader(testData, batch_size=batchsize, shuffle=False, num_workers=num_works)
 
 
 def get_acc(pred, label):
@@ -53,13 +55,16 @@ def get_acc(pred, label):
 def train(epoch):
     print("start training the models ")
     print(trainloader)
-    model.train()
+    modeltrain.train()
     for index, (img, label) in enumerate(trainloader):
         img = img.to(device)
         label = label.to(device)
         optimizer.zero_grad()
-        out = model(img)
-        loss = criterion(out, label)
+        aux1, aux2, out = modeltrain(img)
+        loss1 = criterion(out, label)
+        loss2 = criterion(out, label)
+        loss3 = criterion(out, label)
+        loss = loss1 + loss2 + loss3
         loss.backward()
         optimizer.step()
         train_acc = get_acc(out, label)
@@ -78,14 +83,21 @@ def val(epoch):
             out = model(img)
             _, pred = torch.max(out.data, 1)
             total += img.shape[0]
-            correct +
+            correct += pred.data.eq(label.data).cpu().sum()
+            print("Epoch:%d [%d|%d] total:%d correct:%d" % (epoch, index, len(valloader), total, correct.numpy()))
+    print("Acc: %f " % ((1.0 * correct.numpy()) / total))
+
+
 if __name__ == '__main__':
-    model = Inception_v1(2, mode='train')
+    modeltrain = Inception_v1(2, mode='train')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = model.to(device)
-    optimizer = torch.optim.Adam(lr=0.001)
+    modeltrain = modeltrain.to(device)
+    optimizer = torch.optim.Adam(modeltrain.parameters(), lr=0.0001, weight_decay=0.9)
     criterion = nn.CrossEntropyLoss()
     for epoch in range(epochs):
         train(epoch)
+        model = Inception_v1(2, mode='val')
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model = model.to(device)
         val(epoch)
-    torch.save(model, 'model_cat_dog.pt')
+    torch.save(modeltrain, 'model_cat_dog.pt')
