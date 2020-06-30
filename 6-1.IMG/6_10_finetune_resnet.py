@@ -59,9 +59,6 @@ def get_acc(pred, label):
     return num_correct/total
 
 
-# device = torch.device('cuda:' if torch.cuda.is_available() else 'cpu')
-
-
 def train(model, epoch, lr):
     print("start training the models ")
     model.train()

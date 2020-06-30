@@ -5,9 +5,6 @@ import torch.nn as nn
 import random
 from PIL import Image
 import torch.utils.data as data
-import numpy as np
-import torch.optim as optim
-from torch.optim.lr_scheduler import *
 import torchvision.transforms as transforms
 """
 https://cloud.tencent.com/developer/article/1435646
@@ -78,20 +75,6 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchsize, shuffl
 valloader = torch.utils.data.DataLoader(valset, batch_size=batchsize, shuffle=False, num_workers=num_workers)
 
 
-class Net(nn.Module):
-    def __init__(self, model):
-        super(Net, self).__init__()
-        # 去掉model的最后1层
-        self.resnet_layer = nn.Sequential(*list(model.children())[:-1])
-        self.Linear_layer = nn.Linear(512, 2)  # 加上一层参数修改好的全连接层
-
-    def forward(self, x):
-        x = self.resnet_layer(x)
-        x = x.view(x.size(0), -1)
-        x = self.Linear_layer(x)
-        return x
-
-
 def get_acc(output, label):
     total = output.shape[0]
     _, pred_label = output.max(1)
@@ -136,11 +119,17 @@ def val(epoch):
 
 
 if __name__ == '__main__':
-    resnet = resnet18(pretrained=True)  # 直接用 resnet 在 ImageNet 上训练好的参数
+
+    # 除了最后一层的全连接层，其他都是冻层之后，只更新最后一层参数
+    model = resnet18(pretrained=True)  # 直接用 resnet 在 ImageNet 上训练好的参数
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # 若能使用cuda，则使用cuda
-    model = Net(resnet)  # 修改全连接层
+    for param in model.parameters():
+        param.requires_grad = False
+    num_features = model.fc.in_features
+    model.fc = nn.Linear(num_features, 2)
+    # 只更新fc参数
     model = model.to(device)  # 放到 GPU 上跑
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)  # 设置训练细节
+    optimizer = torch.optim.SGD(model.fc.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)  # 设置训练细节
     criterion = nn.CrossEntropyLoss()  # 分类问题用交叉熵普遍
     for epoch in range(20):
         train(epoch)

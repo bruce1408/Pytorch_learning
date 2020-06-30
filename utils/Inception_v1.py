@@ -61,7 +61,8 @@ class aux_logits(nn.Module):
             nn.Linear(128 * 4 * 4, 1024),
             nn.ReLU(),
             nn.Dropout(0.7),
-            nn.Linear(1024, out_channel)
+            nn.Linear(1024, out_channel),
+            nn.Softmax(dim=1)
         )
 
     def forward(self, input):
@@ -118,6 +119,7 @@ class Inception_v1(nn.Module):
         )
 
         self.linear = nn.Linear(1024, num_classes)
+        self.sofmax = nn.Softmax(dim=1)
 
     def forward(self, x):
         x = self.layer1(x)
@@ -126,7 +128,7 @@ class Inception_v1(nn.Module):
         aux2 = x = self.layer3_2(x)
         x = self.layer3_3(x)
         x = x.view(x.shape[0], -1)
-        out = self.linear(x)
+        out = self.sofmax(self.linear(x))
         aux1 = self.aux_logits1(aux1)
         aux2 = self.aux_logits2(aux2)
         return aux1, aux2, out

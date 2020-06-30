@@ -78,7 +78,6 @@ criterion = nn.MSELoss()
 # see https://github.com/pytorch/pytorch/issues/679
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, net.parameters()), lr=0.1)
 # this raises ValueError: optimizing a parameter that doesn't require gradients
-#optimizer = optim.Adam(net.parameters(), lr=0.1)
 
 for i in range(100):
     net.zero_grad()
