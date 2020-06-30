@@ -134,7 +134,7 @@ if __name__ == '__main__':
     model = Inception_v1(num_classes=2)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.9)
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=0.9)
     lr = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
     criterion = nn.CrossEntropyLoss()
     for epoch in range(epochs):

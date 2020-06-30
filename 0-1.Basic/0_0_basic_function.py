@@ -6,7 +6,9 @@ in_dim = 1
 n_hidden_1 = 1
 n_hidden_2 = 1
 out_dim = 1
-
+"""
+module 和 childern区别
+"""
 
 class Net(nn.Module):
     def __init__(self, in_dim, n_hidden_1, n_hidden_2, out_dim):
@@ -25,7 +27,7 @@ class Net(nn.Module):
         print("children")
         for i, module in enumerate(self.children()):
             print(i, module)
-            
+
         print("modules")
         for i, module in enumerate(self.modules()):
             print(i, module)

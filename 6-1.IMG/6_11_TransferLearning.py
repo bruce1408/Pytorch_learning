@@ -9,7 +9,9 @@ import numpy as np
 import torch.optim as optim
 from torch.optim.lr_scheduler import *
 import torchvision.transforms as transforms
-
+"""
+https://cloud.tencent.com/developer/article/1435646
+"""
 # parameters
 os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 batchsize = 32
@@ -114,9 +116,8 @@ def train(epoch):
 
 
 def val(epoch):
-    print("\nValidation Epoch: %d" % epoch)
+    print("\n Validation Epoch: %d" % epoch)
     print(len(valloader))
-    print(len(trainloader))
     model.eval()
     total = 0
     correct = 0

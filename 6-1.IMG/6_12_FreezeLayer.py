@@ -30,7 +30,7 @@ random_target = torch.randn(1,)
 
 # define net
 net = Net()
-
+print()
 # print fc2 weight
 print('fc2 weight before train:')
 print(net.fc2.weight)
