@@ -120,7 +120,7 @@ def val(epoch):
 
 if __name__ == '__main__':
 
-    # 除了最后一层的全连接层，其他都是冻层之后，只更新最后一层参数
+    # 除了最后一层的全连接层，其他都是冻层之后，只更新最后一层参数，而不是全部参数都更新
     model = resnet18(pretrained=True)  # 直接用 resnet 在 ImageNet 上训练好的参数
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # 若能使用cuda，则使用cuda
     for param in model.parameters():

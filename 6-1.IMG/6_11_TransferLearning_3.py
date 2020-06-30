@@ -82,6 +82,9 @@ valloader = torch.utils.data.DataLoader(valset, batch_size=batchsize, shuffle=Fa
 
 
 class Net(nn.Module):
+    """
+    最后几层重新训练，将前面几层冻结参数，然后只训练最后的几层，也可以加层。
+    """
     def __init__(self, model):
         super(Net, self).__init__()
         self.model = model

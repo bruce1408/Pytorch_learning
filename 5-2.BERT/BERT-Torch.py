@@ -1,8 +1,8 @@
-'''
+"""
   code by Tae Hwan Jung(Jeff Jung) @graykode
   Reference : https://github.com/jadore801120/attention-is-all-you-need-pytorch
               https://github.com/JayParks/transformer, https://github.com/dhlee347/pytorchic-bert
-'''
+"""
 import math
 import re
 from random import *
@@ -146,8 +146,7 @@ class MultiHeadAttention(nn.Module):
         # q: [batch_size x len_q x d_model], k: [batch_size x len_k x d_model], v: [batch_size x len_k x d_model]
         residual, batch_size = Q, Q.size(0)
         # (B, S, D) -proj-> (B, S, D) -split-> (B, S, H, W) -trans-> (B, H, S, W)
-        q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1,
-                                                                       2)  # q_s: [batch_size x n_heads x len_q x d_k]
+        q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1, 2)  # q_s:[batch_size x n_heads x len_q x d_k]
         k_s = self.W_K(K).view(batch_size, -1, n_heads, d_k).transpose(1,
                                                                        2)  # k_s: [batch_size x n_heads x len_k x d_k]
         v_s = self.W_V(V).view(batch_size, -1, n_heads, d_v).transpose(1,

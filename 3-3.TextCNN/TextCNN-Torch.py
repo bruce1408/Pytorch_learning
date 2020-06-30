@@ -11,10 +11,10 @@ import torch.nn.functional as F
 dtype = torch.FloatTensor
 
 # Text-CNN Parameter
-embedding_size = 2 # n-gram
+embedding_size = 2  # n-gram
 sequence_length = 3
 num_classes = 2  # 0 or 1
-filter_sizes = [2, 2, 2] # n-gram window
+filter_sizes = [2, 2, 2]  # n-gram window
 num_filters = 3
 
 # 3 words sentences (=sequence_length is 3)
@@ -32,7 +32,7 @@ for sen in sentences:
 
 targets = []
 for out in labels:
-    targets.append(out) # To using Torch Softmax Loss function
+    targets.append(out)  # To using Torch Softmax Loss function
 
 input_batch = Variable(torch.LongTensor(inputs))
 target_batch = Variable(torch.LongTensor(targets))
@@ -48,8 +48,9 @@ class TextCNN(nn.Module):
         self.Bias = nn.Parameter(0.1 * torch.ones([num_classes])).type(dtype)
 
     def forward(self, X):
-        embedded_chars = self.W[X] # [batch_size, sequence_length, sequence_length]
-        embedded_chars = embedded_chars.unsqueeze(1) # add channel(=1) [batch, channel(=1), sequence_length, embedding_size]
+        embedded_chars = self.W[X]  # [batch_size, sequence_length, sequence_length]
+        embedded_chars = embedded_chars.unsqueeze(
+            1)  # add channel(=1) [batch, channel(=1), sequence_length, embedding_size]
 
         pooled_outputs = []
         for filter_size in filter_sizes:
@@ -62,11 +63,14 @@ class TextCNN(nn.Module):
             pooled = mp(h).permute(0, 3, 2, 1)
             pooled_outputs.append(pooled)
 
-        h_pool = torch.cat(pooled_outputs, len(filter_sizes)) # [batch_size(=6), output_height(=1), output_width(=1), output_channel(=3) * 3]
-        h_pool_flat = torch.reshape(h_pool, [-1, self.num_filters_total]) # [batch_size(=6), output_height * output_width * (output_channel * 3)]
+        h_pool = torch.cat(pooled_outputs, len(
+            filter_sizes))  # [batch_size(=6), output_height(=1), output_width(=1), output_channel(=3) * 3]
+        h_pool_flat = torch.reshape(h_pool, [-1,
+                                             self.num_filters_total])  # [batch_size(=6), output_height * output_width * (output_channel * 3)]
 
-        model = torch.mm(h_pool_flat, self.Weight) + self.Bias # [batch_size, num_classes]
+        model = torch.mm(h_pool_flat, self.Weight) + self.Bias  # [batch_size, num_classes]
         return model
+
 
 model = TextCNN()
 
@@ -94,6 +98,6 @@ test_batch = Variable(torch.LongTensor(tests))
 # Predict
 predict = model(test_batch).data.max(1, keepdim=True)[1]
 if predict[0][0] == 0:
-    print(test_text,"is Bad Mean...")
+    print(test_text, "is Bad Mean...")
 else:
-    print(test_text,"is Good Mean!!")
+    print(test_text, "is Good Mean!!")

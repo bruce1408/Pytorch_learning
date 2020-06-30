@@ -9,7 +9,7 @@ from torch.autograd import Variable
 
 dtype = torch.FloatTensor
 
-sentences = [ "i like dog", "i love coffee", "i hate milk"]
+sentences = ["i like dog", "i love coffee", "i hate milk"]
 
 word_list = " ".join(sentences).split()
 word_list = list(set(word_list))
@@ -19,8 +19,9 @@ n_class = len(word_dict)
 
 # TextRNN Parameter
 batch_size = len(sentences)
-n_step = 2 # number of cells(= number of Step)
-n_hidden = 5 # number of hidden units in one cell
+n_step = 2  # number of cells(= number of Step)
+n_hidden = 5  # number of hidden units in one cell
+
 
 def make_batch(sentences):
     input_batch = []
@@ -36,10 +37,12 @@ def make_batch(sentences):
 
     return input_batch, target_batch
 
+
 # to Torch.Tensor
 input_batch, target_batch = make_batch(sentences)
 input_batch = Variable(torch.Tensor(input_batch))
 target_batch = Variable(torch.LongTensor(target_batch))
+
 
 class TextRNN(nn.Module):
     def __init__(self):
@@ -50,13 +53,14 @@ class TextRNN(nn.Module):
         self.b = nn.Parameter(torch.randn([n_class]).type(dtype))
 
     def forward(self, hidden, X):
-        X = X.transpose(0, 1) # X : [n_step, batch_size, n_class]
+        X = X.transpose(0, 1)  # X : [n_step, batch_size, n_class]
         outputs, hidden = self.rnn(X, hidden)
         # outputs : [n_step, batch_size, num_directions(=1) * n_hidden]
         # hidden : [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
-        outputs = outputs[-1] # [batch_size, num_directions(=1) * n_hidden]
-        model = torch.mm(outputs, self.W) + self.b # model : [batch_size, n_class]
+        outputs = outputs[-1]  # [batch_size, num_directions(=1) * n_hidden]
+        model = torch.mm(outputs, self.W) + self.b  # model : [batch_size, n_class]
         return model
+
 
 model = TextRNN()
 

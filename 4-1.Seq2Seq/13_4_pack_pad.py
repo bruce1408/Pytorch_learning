@@ -13,6 +13,7 @@ import itertools
 def flatten(l):
     return list(itertools.chain.from_iterable(l))
 
+
 seqs = ['ghatmasala', 'nicela', 'chutpakodas']
 
 # make <pad> idx 0
@@ -23,7 +24,7 @@ embedding_size = 3
 embed = nn.Embedding(len(vocab), embedding_size)
 lstm = nn.LSTM(embedding_size, 5)
 
-vectorized_seqs = [[vocab.index(tok) for tok in seq]for seq in seqs]
+vectorized_seqs = [[vocab.index(tok) for tok in seq] for seq in seqs]
 print("vectorized_seqs", vectorized_seqs)
 
 print([x for x in map(len, vectorized_seqs)])

@@ -104,6 +104,7 @@ def val(model, epoch):
 
 
 if __name__ == '__main__':
+    # 所有参数全部更新
     model = VGGNet16(num_classes=2)
     device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)

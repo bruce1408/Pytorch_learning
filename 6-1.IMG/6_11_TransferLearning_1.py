@@ -133,8 +133,8 @@ def val(epoch):
 
 
 if __name__ == '__main__':
+    # 修改最后一全连接层输出维度，但是参数全部要更新训练
     resnet = resnet18(pretrained=True)  # 直接用 resnet 在 ImageNet 上训练好的参数
-    print(resnet)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # 若能使用cuda，则使用cuda
     model = Net(resnet)  # 修改全连接层
     model = model.to(device)  # 放到 GPU 上跑
