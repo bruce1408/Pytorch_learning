@@ -29,6 +29,8 @@ class CustomData(data.Dataset):
         else:
             # 根据图片的num排序，如 cat.11.jpg -> 11
             imgs = sorted(imgs, key=lambda x: int(x.split('.')[-2]))  # 所有图片排序
+        # imgs = sorted(imgs, key=lambda x: int(x.split('.')[-2]))  # 所有图片排序
+
         imgs_num = len(imgs)
         if self.train:
             self.imgs = imgs[:int(0.7 * imgs_num)]
@@ -141,7 +143,7 @@ if __name__ == '__main__':
     model = model.to(device)  # 放到 GPU 上跑
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)  # 设置训练细节
     criterion = nn.CrossEntropyLoss()  # 分类问题用交叉熵普遍
-    for epoch in range(2):
+    for epoch in range(20):
         train(epoch)
         val(epoch)
     torch.save(model, 'modelcatdog.pt')  # 保存模型

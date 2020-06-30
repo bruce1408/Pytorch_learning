@@ -19,7 +19,6 @@ parser.add_argument('--nepoch', type=int, default=1, help='number of epochs to t
 parser.add_argument('--lr', type=float, default=0.0002, help='learning rate, default=0.0002')
 parser.add_argument('--gpu', type=str, default='7', help='gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU')
 opt = parser.parse_args()
-print(opt)
 os.environ["CUDA_VISIBLE_DEVICES"] = opt.gpu
 
 transform_test = transforms.Compose([

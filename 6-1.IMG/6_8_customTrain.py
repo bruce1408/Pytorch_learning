@@ -15,10 +15,11 @@ from utils.VGGNet_advance import vgg16_bn
 
 # parameters
 os.environ['CUDA_VISIBLES_DEVICES'] = '1'
-batchsize = 32
+batchsize = 64
 num_works = 2
 epochs = 2000
 learning_rate = 2e-5
+gamma = 0.96
 
 transforms_train = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -58,13 +59,15 @@ def get_acc(pred, label):
     return num_correct/total
 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
 
 # model = Inception_v1(2).to(device)
 model = VGGNet16().to(device)
 # model = vgg16_bn().to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
+
 # optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.5)
 
 

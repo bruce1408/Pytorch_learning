@@ -8,22 +8,22 @@ import torchvision.transforms as transforms
 
 
 class CustomData(data.Dataset):
-    def __init__(self, root, transform=None, train=True, val=False):
+    def __init__(self, imgFolder, transform=None, train=True, val=False, test=False, splitnum=0.8):
         self.train = train
         self.val = val
         self.test = test
         self.transform = transform
-        imgs = [os.path.join(root, imgFile) for imgFile in os.listdir(root)]
+        imgs = [os.path.join(imgFolder, imgFile) for imgFile in os.listdir(imgFolder)]
         self.imgnum = len(imgs)
         self.imgs = sorted(imgs, key=lambda x: int(x.split('.')[-2]))
-        if self.test:
+        if train:
+            self.imgs = imgs[:int(splitnum * self.imgnum)]
+        elif val:
+            self.imgs = imgs[int(splitnum * self.imgnum):]
+        else:
             self.imgs = imgs
-        else:  # 训练集的话还要还分验证集和测试集
-            random.shuffle(imgs)
-            if self.train:
-                self.imgs = imgs[:int(0.7 * self.imgnum)]
-            else:
-                self.imgs = imgs[int(0.7 * self.imgnum):]
+
+        random.shuffle(self.imgs)
 
     def __getitem__(self, index):
         img_path = self.imgs[index]
@@ -33,10 +33,12 @@ class CustomData(data.Dataset):
         return imgdata, label
 
     def __len__(self):
-        return self.imgnum
+        return len(self.imgs)
 
 
-if __name__ =='__main__':
-    CustomData('/raid/bruce/datasets/dogs_cats/train')
 
+
+
+if __name__ == '__main__':
+    data = CustomData('/raid/bruce/datasets/dogs_cats/train')
 
