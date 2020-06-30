@@ -11,7 +11,9 @@ import torch.utils.data as data
 # from utils.inception_advance import Inception_v1
 from utils.VGGNet import VGGNet16
 from utils.VGGNet_advance import vgg16_bn
-
+seed = 0
+torch.manual_seed(seed)
+torch.cuda.manual_seed_all(seed)
 
 # parameters
 os.environ['CUDA_VISIBLES_DEVICES'] = '1'

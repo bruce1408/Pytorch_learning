@@ -101,7 +101,6 @@ def train(epoch):
     print('\nEpoch: %d' % epoch)
     #     scheduler.step()
     model.train()
-    train_acc = 0.0
     for batch_idx, (img, label) in enumerate(trainloader):  # 迭代器，一次迭代 batch_size 个数据进去
         image = img.to(device)
         label = label.to(device)

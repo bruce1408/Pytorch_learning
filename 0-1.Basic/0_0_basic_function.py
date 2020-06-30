@@ -21,11 +21,11 @@ class Net(nn.Module):
             nn.ReLU(True),
         )
         self.layer3 = nn.Linear(n_hidden_2, out_dim)
-        # print(self.modules())
-        print("children")
 
+        print("children")
         for i, module in enumerate(self.children()):
             print(i, module)
+            
         print("modules")
         for i, module in enumerate(self.modules()):
             print(i, module)
