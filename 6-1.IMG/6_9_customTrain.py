@@ -18,7 +18,7 @@ os.environ['CUDA_VISIBLES_DEVICES'] = '1'
 batchsize = 64
 num_works = 2
 epochs = 2000
-learning_rate = 0.0001
+learning_rate = 0.001
 gamma = 0.96
 
 transforms_train = transforms.Compose([
@@ -59,7 +59,7 @@ def get_acc(pred, label):
     return num_correct/total
 
 
-device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # model = Inception_v1(2).to(device)
 # model = VGGNet16().to(device)
@@ -104,10 +104,7 @@ def train(model, epoch, lr):
         label = label.to(device)
         optimizer.zero_grad()
         aux1, aux2, out = model(img)
-        loss1 = criterion(aux1, label)
-        loss2 = criterion(aux2, label)
-        loss3 = criterion(out, label)
-        loss = loss1 + loss2 + loss3
+        loss = criterion(out, label)
         loss.backward()
         optimizer.step()
         train_acc = get_acc(out, label)

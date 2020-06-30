@@ -5,7 +5,10 @@ from torchsummary import summary
 
 
 class VGGNet16(nn.Module):
-    def __init__(self):
+    """
+    自己实现VGG网络,和官网不同的是,这里加入了初始化权重参数的函数.
+    """
+    def __init__(self, num_classes=2, init_weights=True):
         super(VGGNet16, self).__init__()
         self.conv = nn.Sequential(
             nn.Conv2d(3, 64, 3, 1, 1),
@@ -48,18 +51,34 @@ class VGGNet16(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear(512 * 7 * 7, 4096),
             nn.ReLU(),
-            nn.Dropout(0.15),
+            nn.Dropout(),
             nn.Linear(4096, 4096),
             nn.ReLU(),
-            nn.Dropout(0.15),
-            nn.Linear(4096, 2)
-            # nn.LogSoftmax()
+            nn.Dropout(),
+            nn.Linear(4096, num_classes),
+            nn.LogSoftmax()
         )
+
+        if init_weights:
+            self._initialize_weights()
 
     def forward(self, img):
         feature = self.conv(img)  # batch_size, 517 * 7 * 7
         output = self.fc(feature.view(img.shape[0], -1))
         return output
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.constant_(m.bias, 0)
 
 
 if __name__ == '__main__':

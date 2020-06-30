@@ -60,7 +60,7 @@ class aux_logits(nn.Module):
         self.aux_logits = nn.Sequential(
             nn.Linear(128 * 4 * 4, 1024),
             nn.ReLU(),
-            nn.Dropout(0.5),
+            nn.Dropout(0.7),
             nn.Linear(1024, out_channel)
         )
 
@@ -114,7 +114,7 @@ class Inception_v1(nn.Module):
             inception_block(832, [256, 160, 320, 32, 128, 128]),
             inception_block(832, [384, 192, 384, 48, 128, 128]),
             nn.AvgPool2d(7, 1),
-            nn.Dropout(0.3),
+            nn.Dropout(0.2),
         )
 
         self.linear = nn.Linear(1024, num_classes)

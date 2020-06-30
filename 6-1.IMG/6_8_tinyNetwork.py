@@ -1,23 +1,22 @@
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import *
 import torchvision.transforms as transforms
-import numpy as np
 from torchsummary import summary
-import os
-# from model.resnet import resnet101
 # from dataset.Custom import CustomData
 from utils.DataSet_train_val_test import CustomData
 # from utils.Custom import CustomData
 
 
 # parameters
+save_path = "./model.pt"
 gamma = 0.96
 num_workers = 2
 batchsize = 128
-epochs = 2000
+epochs = 2
 learning_rate = 0.001
 os.environ["CUDA_VISIBLE_DEVICES"] = '2'
 
@@ -43,6 +42,9 @@ valloader = torch.utils.data.DataLoader(valset, batch_size=batchsize, shuffle=Fa
 
 
 class Net(nn.Module):
+    """
+    实现一个简单的只有三层卷积的神经网络来做训练.
+    """
     def __init__(self):
         super(Net, self).__init__()
         self.net = nn.Sequential(
@@ -70,12 +72,6 @@ class Net(nn.Module):
         output = self.drop(output)
         output = self.fc3(output)
         return output
-
-
-# if torch.cuda.is_available():
-#     torch.set_default_tensor_type('torch.cuda.FloatTensor')
-#     net = Net()
-#     summary(net, (3, 224, 224))
 
 model = Net()
 model.cuda()
@@ -123,10 +119,17 @@ def val(epoch):
     print("Acc: %f " % ((1.0 * correct.numpy()) / total))
 
 
+# if torch.cuda.is_available():
+#     torch.set_default_tensor_type('torch.cuda.FloatTensor')
+#     net = Net()
+#     summary(net, (3, 224, 224))
+if os.path.exists(save_path):
+    model.load_state_dict(torch.load(save_path))
+    print("======== load the model from %s ========" % save_path)
+else:
+    print("======== train the net from srcatch ==========")
 for epoch in range(epochs):
-
     train(epoch)
     val(epoch)
-    # if epoch % 20 == 0 and epoch is not 0:
-    #     val(epoch)
-torch.save(model.state_dict(), 'ckp/model.pth')
+torch.save(model.state_dict(), save_path)
+

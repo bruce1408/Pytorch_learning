@@ -9,19 +9,17 @@ from utils.dog_cat import DogCat
 from utils.Inception_v1 import Inception_v1
 import torch.utils.data as data
 # from utils.inception_advance import Inception_v1
-from utils.VGGNet import VGGNet16
+from utils.ResNet import ResNet50
 from utils.VGGNet_advance import vgg16_bn
 
-torch.backends.cudnn.benchmark = True
 
 # parameters
-os.environ['CUDA_VISIBLES_DEVICES'] = '1'
+os.environ['CUDA_VISIBLES_DEVICES'] = '3'
 batchsize = 64
 num_works = 4
 epochs = 2000
 learning_rate = 0.0001
 gamma = 0.96
-save_path = "./model_cat_dog.pt"
 
 transforms_train = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -67,7 +65,6 @@ def get_acc(pred, label):
 def train(model, epoch, lr):
     print("start training the models ")
     model.train()
-    # lr = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
 
     # lr_ = lr.get_lr()[0]
     for index, (img, label) in enumerate(trainloader):
@@ -102,8 +99,8 @@ def val(model, epoch):
 
 
 if __name__ == '__main__':
-    model = VGGNet16(num_classes=2)
-    device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+    model = ResNet50([3, 4, 6, 3], num_classes=2)
+    device = torch.device('cuda:3' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.9)
     lr = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
@@ -112,4 +109,4 @@ if __name__ == '__main__':
         train(model, epoch, lr)
         # val(model, epoch)
         # lr.step()
-    torch.save(model.state_dict(), save_path)
+    torch.save(model, 'model_cat_dog.pt')
