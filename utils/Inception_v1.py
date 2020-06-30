@@ -68,7 +68,7 @@ class Inception_v1(nn.Module):
     """
     def __init__(self, num_classes=10):
         super(Inception_v1, self).__init__()
-        # self.mode = mode
+        self.mode = 'train'
         self.layer1 = nn.Sequential(
             nn.Conv2d(3, 64, 7, 2, 3),
             nn.MaxPool2d(3, 2, padding=1),
@@ -88,8 +88,7 @@ class Inception_v1(nn.Module):
             inception_block(480, [192, 96, 208, 16, 48, 64])     # 512
         )
 
-        # if mode == 'train':
-        #     self.aux_logits1 = aux_logits(512, num_classes)
+        self.aux_logits1 = aux_logits(512, num_classes)
 
         self.layer3_2 = nn.Sequential(
             inception_block(512, [160, 112, 224, 24, 64, 64]),
@@ -97,8 +96,7 @@ class Inception_v1(nn.Module):
             inception_block(512, [112, 144, 288, 32, 64, 64]),
         )
 
-        # if mode == 'train':
-        #     self.aux_logits2 = aux_logits(528, num_classes)
+        self.aux_logits2 = aux_logits(528, num_classes)
 
         self.layer3_3 = nn.Sequential(
             inception_block(528, [256, 160, 320, 32, 128, 128]),  # 832
@@ -119,18 +117,12 @@ class Inception_v1(nn.Module):
         x = self.layer3_3(x)
         x = x.view(x.shape[0], -1)
         out = self.linear(x)
-
-        # if self.mode == 'train':
-        #     aux1 = self.aux_logits1(aux1)
-        #     aux2 = self.aux_logits2(aux2)
-        #     return aux1, aux2, out
-        # else:
-        #     return out
-
-        return out
+        aux1 = self.aux_logits1(aux1)
+        aux2 = self.aux_logits2(aux2)
+        return aux1, aux2, out
 
 
 if __name__ == '__main__':
 
-    net = Inception_v1(2, 'train')
+    net = Inception_v1(2)
     summary(net, (3, 224, 224))
