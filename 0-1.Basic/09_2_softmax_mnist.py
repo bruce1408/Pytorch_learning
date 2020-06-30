@@ -69,25 +69,25 @@ def train(epoch):
                 100. * batch_idx / len(train_loader), loss.data))
 
 
-def test():
-    model.eval()
-    test_loss = 0
-    correct = 0
-    for data, target in test_loader:
-        data, target = Variable(data, volatile=True), Variable(target)
-        output = model(data)
-        # sum up batch loss
-        test_loss += criterion(output, target).data
-        # get the index of the max
-        pred = output.data.max(1, keepdim=True)[1]
-        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
-
-    test_loss /= len(test_loader.dataset)
-    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+# def test():
+#     model.eval()
+#     test_loss = 0
+#     correct = 0
+#     for data, target in test_loader:
+#         data, target = Variable(data, volatile=True), Variable(target)
+#         output = model(data)
+#         # sum up batch loss
+#         test_loss += criterion(output, target).data
+#         # get the index of the max
+#         pred = output.data.max(1, keepdim=True)[1]
+#         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+#
+#     test_loss /= len(test_loader.dataset)
+#     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+#         test_loss, correct, len(test_loader.dataset),
+#         100. * correct / len(test_loader.dataset)))
 
 
 for epoch in range(1, 10):
     train(epoch)
-    test()
+    # test()

@@ -48,11 +48,12 @@ class VGGNet16(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear(512 * 7 * 7, 4096),
             nn.ReLU(),
-            nn.Dropout(0.5),
+            nn.Dropout(0.15),
             nn.Linear(4096, 4096),
             nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(4096, 10)
+            nn.Dropout(0.15),
+            nn.Linear(4096, 2)
+            # nn.LogSoftmax()
         )
 
     def forward(self, img):
@@ -62,6 +63,8 @@ class VGGNet16(nn.Module):
 
 
 if __name__ == '__main__':
-    net = VGGNet16()
-    summary(net, (3, 224, 224))
+    if torch.cuda.is_available():
+        torch.set_default_tensor_type('torch.cuda.FloatTensor')
+        net = VGGNet16()
+        summary(net, (3, 224, 224))
 

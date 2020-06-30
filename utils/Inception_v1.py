@@ -66,9 +66,9 @@ class Inception_v1(nn.Module):
     """
     inception v1 代码块
     """
-    def __init__(self, num_classes=10, mode="train"):
+    def __init__(self, num_classes=10):
         super(Inception_v1, self).__init__()
-        self.mode = mode
+        # self.mode = mode
         self.layer1 = nn.Sequential(
             nn.Conv2d(3, 64, 7, 2, 3),
             nn.MaxPool2d(3, 2, padding=1),
@@ -88,8 +88,8 @@ class Inception_v1(nn.Module):
             inception_block(480, [192, 96, 208, 16, 48, 64])     # 512
         )
 
-        if mode == 'train':
-            self.aux_logits1 = aux_logits(512, num_classes)
+        # if mode == 'train':
+        #     self.aux_logits1 = aux_logits(512, num_classes)
 
         self.layer3_2 = nn.Sequential(
             inception_block(512, [160, 112, 224, 24, 64, 64]),
@@ -97,8 +97,8 @@ class Inception_v1(nn.Module):
             inception_block(512, [112, 144, 288, 32, 64, 64]),
         )
 
-        if mode == 'train':
-            self.aux_logits2 = aux_logits(528, num_classes)
+        # if mode == 'train':
+        #     self.aux_logits2 = aux_logits(528, num_classes)
 
         self.layer3_3 = nn.Sequential(
             inception_block(528, [256, 160, 320, 32, 128, 128]),  # 832
@@ -106,7 +106,7 @@ class Inception_v1(nn.Module):
             inception_block(832, [256, 160, 320, 32, 128, 128]),
             inception_block(832, [384, 192, 384, 48, 128, 128]),
             nn.AvgPool2d(7, 1),
-            nn.Dropout(),
+            nn.Dropout(0.3),
         )
 
         self.linear = nn.Linear(1024, num_classes)
@@ -120,15 +120,17 @@ class Inception_v1(nn.Module):
         x = x.view(x.shape[0], -1)
         out = self.linear(x)
 
-        if self.mode == 'train':
-            aux1 = self.aux_logits1(aux1)
-            aux2 = self.aux_logits2(aux2)
-            return aux1, aux2, out
-        else:
-            return out
+        # if self.mode == 'train':
+        #     aux1 = self.aux_logits1(aux1)
+        #     aux2 = self.aux_logits2(aux2)
+        #     return aux1, aux2, out
+        # else:
+        #     return out
+
+        return out
 
 
 if __name__ == '__main__':
 
-    net = Inception_v1(10, 'train')
+    net = Inception_v1(2, 'train')
     summary(net, (3, 224, 224))
