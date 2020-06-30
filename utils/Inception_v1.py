@@ -3,6 +3,15 @@ import torch.nn as nn
 from torchsummary import summary
 
 
+def weights_init(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        m.weight.data.normal_(0.0, 0.02)
+    elif classname.find('BatchNorm') != -1:
+        m.weight.data.normal_(1.0, 0.02)
+        m.bias.data.fill_(0)
+
+
 class inception_block(nn.Module):
     """
     残差模块
@@ -26,6 +35,7 @@ class inception_block(nn.Module):
             nn.MaxPool2d(3, 1),
             nn.Conv2d(in_channel, out_channel[5], 1, 1, 1)
         )
+        self.apply(weights_init)
 
     def forward(self, input):
         out1 = self.conv1(input)

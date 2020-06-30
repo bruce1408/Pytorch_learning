@@ -16,7 +16,7 @@ from utils.DataSet_train_val_test import CustomData
 # parameters
 gamma = 0.96
 num_workers = 2
-batchsize = 64
+batchsize = 128
 epochs = 2000
 learning_rate = 0.001
 os.environ["CUDA_VISIBLE_DEVICES"] = '2'
@@ -80,7 +80,6 @@ class Net(nn.Module):
 model = Net()
 model.cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
-# scheduler = StepLR(optimizer, step_size=3)
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
 
 criterion = nn.CrossEntropyLoss()
@@ -120,12 +119,14 @@ def val(epoch):
             _, predicted = torch.max(out.data, 1)
             total += image.size(0)
             correct += predicted.data.eq(label.data).cpu().sum()
+            print("Epoch:%d [%d|%d] total:%d correct:%d" % (epoch, batch_idx, len(valloader), total, correct.numpy()))
     print("Acc: %f " % ((1.0 * correct.numpy()) / total))
 
 
 for epoch in range(epochs):
 
     train(epoch)
-    if epoch % 20 == 0 and epoch is not 0:
-        val(epoch)
+    val(epoch)
+    # if epoch % 20 == 0 and epoch is not 0:
+    #     val(epoch)
 torch.save(model.state_dict(), 'ckp/model.pth')

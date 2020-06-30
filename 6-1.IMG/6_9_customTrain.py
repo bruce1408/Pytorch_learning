@@ -18,7 +18,7 @@ os.environ['CUDA_VISIBLES_DEVICES'] = '1'
 batchsize = 64
 num_works = 2
 epochs = 2000
-learning_rate = 0.001
+learning_rate = 0.0001
 gamma = 0.96
 
 transforms_train = transforms.Compose([
@@ -97,7 +97,8 @@ def update_lr(optimizer, lr):
 def train(model, epoch, lr):
     print("start training the models ")
     model.train()
-    lr = lr.get_lr()[0]
+
+    lr_ = lr.get_lr()[0]
     for index, (img, label) in enumerate(trainloader):
         img = img.to(device)
         label = label.to(device)
@@ -110,10 +111,11 @@ def train(model, epoch, lr):
         loss.backward()
         optimizer.step()
         train_acc = get_acc(out, label)
-        print("Epoch:%d [%d|%d] loss:%f acc:%f, lr:%f" % (epoch, index, len(trainloader), loss.mean(), train_acc, lr))
+        print("Epoch:%d [%d|%d] loss:%f acc:%f, lr:%f" % (epoch, index, len(trainloader), loss.mean(), train_acc, lr_))
 
 
 def val(model, epoch):
+    print('begin to eval')
     model.eval()
     total = 0
     correct = 0
@@ -124,13 +126,13 @@ def val(model, epoch):
             aux1, aux2, out = model(img)
             _, pred = torch.max(out.data, 1)
             total += img.shape[0]
-            correct += pred.data.eq(label.data).cpu().sum()
+            correct += pred.item().eq(label.data).cpu().sum()
             print("Epoch:%d [%d|%d] total:%d correct:%d" % (epoch, index, len(valloader), total, correct.numpy()))
     print("Acc: %f " % ((1.0 * correct.numpy()) / total))
 
 
 if __name__ == '__main__':
-    model = Inception_v1(2)
+    model = Inception_v1(num_classes=2)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.9)
@@ -138,6 +140,6 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     for epoch in range(epochs):
         train(model, epoch, lr)
-        val(model, epoch)
-        lr = lr.step()
+        # val(model, epoch)
+        lr.step()
     torch.save(model, 'model_cat_dog.pt')
