@@ -17,6 +17,7 @@ class ImageRename():
                 os.rename(src, dst)
                 i = i + 1
 
+
 if __name__ == '__main__':
     newname = ImageRename()
     newname.rename()

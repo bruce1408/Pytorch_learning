@@ -8,6 +8,7 @@ import torchvision.transforms as transforms
 from torchsummary import summary
 # from dataset.Custom import CustomData
 from utils.DataSet_train_val_test import CustomData
+from torchvision.models import vgg11
 # from utils.Custom import CustomData
 
 
@@ -73,6 +74,9 @@ class Net(nn.Module):
         output = self.fc3(output)
         return output
 
+
+pretrain_model = vgg11()
+print(vgg11)
 model = Net()
 model.cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)

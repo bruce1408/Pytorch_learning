@@ -7,6 +7,7 @@ from PIL import Image
 import torch.utils.data as data
 import torchvision.transforms as transforms
 """
+冻结所有层,只训练自己定制的全连接层
 https://cloud.tencent.com/developer/article/1435646
 """
 # parameters

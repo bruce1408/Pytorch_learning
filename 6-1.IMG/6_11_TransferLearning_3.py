@@ -12,8 +12,8 @@ from PIL import Image
 import torch.utils.data as data
 import torchvision.transforms as transforms
 """
+冻结预训练部分卷积层(靠近输入的多数卷积层),然后训练剩下的卷积层(靠近输出的部分)和全连接层
 https://cloud.tencent.com/developer/article/1435646
-直接更新后面几层
 """
 # parameters
 os.environ['CUDA_VISIBLE_DEVICES'] = '3'
