@@ -41,3 +41,19 @@ class Net(nn.Module):
 
 
 model = Net(in_dim, n_hidden_1, n_hidden_2, out_dim)
+
+"""
+embedding vector
+"""
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.autograd import Variable
+
+word_to_ix = {'hello': 0, 'world': 1}
+embeds = nn.Embedding(2, 5, padding_idx=0)
+hello_idx = torch.LongTensor([word_to_ix['hello']])
+hello_idx = Variable(hello_idx)
+hello_embed = embeds(hello_idx)
+print(hello_embed)
