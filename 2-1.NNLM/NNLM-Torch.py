@@ -61,8 +61,8 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 input_batch, target_batch = make_batch(sentences)
-input_batch = Variable(torch.LongTensor(input_batch))
-target_batch = Variable(torch.LongTensor(target_batch))
+input_batch = torch.LongTensor(input_batch)
+target_batch = torch.LongTensor(target_batch)
 
 # Training
 for epoch in range(5000):

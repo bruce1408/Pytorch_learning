@@ -34,8 +34,8 @@ targets = []
 for out in labels:
     targets.append(out)  # To using Torch Softmax Loss function
 
-input_batch = Variable(torch.LongTensor(inputs))
-target_batch = Variable(torch.LongTensor(targets))
+input_batch = torch.LongTensor(inputs)
+target_batch = torch.LongTensor(targets)
 
 
 class BiLSTM_Attention(nn.Module):
