@@ -92,8 +92,6 @@ class bilstm_attn(torch.nn.Module):
 
 
 if __name__ == "__main__":
-    lr = 0.001
-    epochs = 1000
     batch_size = 16
     seed = 1111
     cuda_able = True
@@ -103,7 +101,6 @@ if __name__ == "__main__":
     embed_dim = 64
     hidden_size = 32
     bidirectional = True
-    weight_decay = 0.001
     attention_size = 16
     sequence_length = 16
     output_size = 6
