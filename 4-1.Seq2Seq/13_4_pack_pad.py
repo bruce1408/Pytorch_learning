@@ -1,6 +1,6 @@
 # Original source from
 # https://gist.github.com/Tushar-N/dfca335e370a2bc3bc79876e6270099e
-# torch
+
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
@@ -11,7 +11,7 @@ import itertools
 
 
 def flatten(l):
-    return list(itertools.chain.from_iterable(l))
+    return list(itertools.chain.from_iterable(l))  # 每一个单词分成字母, 并且排序
 
 
 seqs = ['ghatmasala', 'nicela', 'chutpakodas']
@@ -27,14 +27,13 @@ lstm = nn.LSTM(embedding_size, 5)
 vectorized_seqs = [[vocab.index(tok) for tok in seq] for seq in seqs]
 print("vectorized_seqs", vectorized_seqs)
 
-print([x for x in map(len, vectorized_seqs)])
+print([x for x in map(len, vectorized_seqs)])  # 输出每个字符长度
 # get the length of each seq in your batch
 seq_lengths = torch.LongTensor([x for x in map(len, vectorized_seqs)])
 
 # dump padding everywhere, and place seqs on the left.
 # NOTE: you only need a tensor as big as your longest sequence
-seq_tensor = Variable(torch.zeros(
-    (len(vectorized_seqs), seq_lengths.max()))).long()
+seq_tensor = Variable(torch.zeros((len(vectorized_seqs), seq_lengths.max()))).long()
 for idx, (seq, seqlen) in enumerate(zip(vectorized_seqs, seq_lengths)):
     seq_tensor[idx, :seqlen] = torch.LongTensor(seq)
 
@@ -56,9 +55,8 @@ embeded_seq_tensor = embed(seq_tensor)
 print("seq_tensor after embeding", embeded_seq_tensor.size(), seq_tensor.data)
 
 # pack them up nicely
-packed_input = pack_padded_sequence(
-    embeded_seq_tensor, seq_lengths.cpu().numpy())
-
+packed_input = pack_padded_sequence(embeded_seq_tensor, seq_lengths.cpu().numpy())
+print(packed_input)
 # throw them through your LSTM (remember to give batch_first=True here if
 # you packed with it)
 packed_output, (ht, ct) = lstm(packed_input)

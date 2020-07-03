@@ -4,7 +4,8 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import os
-os.environ['CUDA_VISIBLE_DEVICES']='1'
+
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 dtype = torch.FloatTensor
 # S: Symbol that shows starting of decoding input
 # E: Symbol that shows starting of decoding output
@@ -21,6 +22,7 @@ n_hidden = 128
 n_class = len(num_dic)
 batch_size = len(seq_data)
 
+
 def make_batch(seq_data):
     input_batch, output_batch, target_batch = [], [], []
 
@@ -34,10 +36,11 @@ def make_batch(seq_data):
 
         input_batch.append(np.eye(n_class)[input])
         output_batch.append(np.eye(n_class)[output])
-        target_batch.append(target) # not one-hot
+        target_batch.append(target)  # not one-hot
 
     # make tensor
-    return Variable(torch.Tensor(input_batch)), Variable(torch.Tensor(output_batch)), Variable(torch.LongTensor(target_batch))
+    return torch.Tensor(input_batch), torch.Tensor(output_batch), torch.LongTensor(target_batch)
+
 
 # Model
 class Seq2Seq(nn.Module):
@@ -49,15 +52,15 @@ class Seq2Seq(nn.Module):
         self.fc = nn.Linear(n_hidden, n_class)
 
     def forward(self, enc_input, enc_hidden, dec_input):
-        enc_input = enc_input.transpose(0, 1) # enc_input: [max_len(=n_step, time step), batch_size, n_class]
-        dec_input = dec_input.transpose(0, 1) # dec_input: [max_len(=n_step, time step), batch_size, n_class]
+        enc_input = enc_input.transpose(0, 1)  # enc_input: [max_len(=n_step, time step), batch_size, n_class]
+        dec_input = dec_input.transpose(0, 1)  # dec_input: [max_len(=n_step, time step), batch_size, n_class]
 
         # enc_states : [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
         _, enc_states = self.enc_cell(enc_input, enc_hidden)
         # outputs : [max_len+1(=6), batch_size, num_directions(=1) * n_hidden(=128)]
         outputs, _ = self.dec_cell(dec_input, enc_states)
 
-        model = self.fc(outputs) # model : [max_len+1(=6), batch_size, n_class]
+        model = self.fc(outputs)  # model : [max_len+1(=6), batch_size, n_class]
         return model
 
 
@@ -69,7 +72,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 for epoch in range(5000):
     # make hidden shape [num_layers * num_directions, batch_size, n_hidden]
-    hidden = Variable(torch.zeros(1, batch_size, n_hidden))
+    hidden = torch.zeros(1, batch_size, n_hidden)
 
     optimizer.zero_grad()
     # input_batch : [batch_size, max_len(=n_step, time step), n_class]
@@ -77,7 +80,7 @@ for epoch in range(5000):
     # target_batch : [batch_size, max_len+1(=n_step, time step)], not one-hot
     output = model(input_batch, hidden, output_batch)
     # output : [max_len+1, batch_size, n_class]
-    output = output.transpose(0, 1) # [batch_size, max_len+1(=6), n_class]
+    output = output.transpose(0, 1)  # [batch_size, max_len+1(=6), n_class]
     loss = 0
     for i in range(0, len(target_batch)):
         # output[i] : [max_len+1, n_class, target_batch[i] : max_len+1]
@@ -97,12 +100,13 @@ def translate(word):
     output = model(input_batch, hidden, output_batch)
     # output : [max_len+1(=6), batch_size(=1), n_class]
 
-    predict = output.data.max(2, keepdim=True)[1] # select n_class dimension
+    predict = output.data.max(2, keepdim=True)[1]  # select n_class dimension
     decoded = [char_arr[i] for i in predict]
     end = decoded.index('E')
     translated = ''.join(decoded[:end])
 
     return translated.replace('P', '')
+
 
 print('test')
 print('man ->', translate('man'))

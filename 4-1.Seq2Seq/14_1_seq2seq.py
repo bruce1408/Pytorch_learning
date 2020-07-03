@@ -2,7 +2,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from text_loader import TextDataset
+from utils.text_loader import TextDataset
 import seq2seq_models as sm
 from seq2seq_models import str2tensor, EOS_token, SOS_token
 
@@ -43,21 +43,22 @@ def train(src, target):
     encoder_outputs, encoder_hidden = encoder(src_var, encoder_hidden)
 
     hidden = encoder_hidden
-    loss = 0
+    totalloss = 0
 
     for c in range(len(target_var)):
         # First, we feed SOS
         # Others, we use teacher forcing
         token = target_var[c - 1] if c else str2tensor(SOS_token)
         output, hidden = decoder(token, hidden)
-        loss += criterion(output, target_var[c])
+        loss = criterion(output, target_var[c])
+        totalloss += loss.item()
 
-    encoder.zero_grad()
-    decoder.zero_grad()
-    loss.backward()
-    optimizer.step()
+        encoder.zero_grad()
+        decoder.zero_grad()
+        loss.backward()
+        optimizer.step()
 
-    return loss.data[0] / len(target_var)
+    return totalloss / len(target_var)
 
 
 # Translate the given input
