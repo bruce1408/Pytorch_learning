@@ -51,9 +51,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-word_to_ix = {'hello': 0, 'world': 1}
-embeds = nn.Embedding(2, 5, padding_idx=0)
+word_to_ix = {'hello': 1, 'world': 2}
+embeds = nn.Embedding(7, 5, padding_idx=0)
 hello_idx = torch.LongTensor([word_to_ix['hello']])
-hello_idx = Variable(hello_idx)
+hello_idx = hello_idx
 hello_embed = embeds(hello_idx)
 print(hello_embed)
+
+inputs = torch.randint(1, 7, (3, 3))
+print(embeds(inputs).shape)
+print(embeds(inputs))

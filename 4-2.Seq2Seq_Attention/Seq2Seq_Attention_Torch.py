@@ -22,6 +22,7 @@ n_class = len(word_dict)  # vocab list
 # Parameter
 n_hidden = 128
 
+
 def make_batch(sentences):
     input_batch = [np.eye(n_class)[[word_dict[n] for n in sentences[0].split()]]]
     output_batch = [np.eye(n_class)[[word_dict[n] for n in sentences[1].split()]]]
@@ -29,6 +30,7 @@ def make_batch(sentences):
 
     # make tensor
     return Variable(torch.Tensor(input_batch)), Variable(torch.Tensor(output_batch)), Variable(torch.LongTensor(target_batch))
+
 
 class Attention(nn.Module):
     def __init__(self):
@@ -82,6 +84,7 @@ class Attention(nn.Module):
     def get_att_score(self, dec_output, enc_output):  # enc_outputs [batch_size, num_directions(=1) * n_hidden]
         score = self.attn(enc_output)  # score : [batch_size, n_hidden]
         return torch.dot(dec_output.view(-1), score.view(-1))  # inner product make scalar value
+
 
 input_batch, output_batch, target_batch = make_batch(sentences)
 

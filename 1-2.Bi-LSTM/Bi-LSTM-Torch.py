@@ -41,6 +41,11 @@ def make_batch(sentence):
 
 
 class BiLSTM(nn.Module):
+    """
+    h_n 和 c_n表示保存的是每层最后一个time step的状态
+    output表示的是最后一层的每个时间步的输出
+
+    """
     def __init__(self):
         super(BiLSTM, self).__init__()
 

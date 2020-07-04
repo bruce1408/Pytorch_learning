@@ -35,23 +35,24 @@ class bilstm_attn(torch.nn.Module):
 
         self.attention_size = attention_size
         if self.use_cuda:
-            self.w_omega = torch.zeros(self.hidden_size * self.layer_size, self.attention_size).cuda()
-            self.u_omega = torch.zeros(self.attention_size).cuda()
+            self.w_omega = torch.randn(self.hidden_size * self.layer_size, self.attention_size).cuda()
+            self.u_omega = torch.randn(self.attention_size).cuda()
         else:
-            self.w_omega = torch.zeros(self.hidden_size * self.layer_size, self.attention_size)
-            self.u_omega = torch.zeros(self.attention_size)
+            self.w_omega = torch.randn(self.hidden_size * self.layer_size, self.attention_size)  # 32 * 16
+            self.u_omega = torch.randn(self.attention_size)  # 16
 
         self.label = nn.Linear(hidden_size * self.layer_size, output_size)
 
     # self.attn_fc_layer = nn.Linear()
 
     def attention_net(self, lstm_output):
-        # print(lstm_output.size()) = (squence_length, batch_size, hidden_size*layer_size)
+        # print(lstm_output.size()) = (squence_length, batch_size, hidden_size*layer_size) - > 16 , 16 , 32 * 2
 
+        # -> 16 * 16, 32 * 2
         output_reshape = torch.Tensor.reshape(lstm_output, [-1, self.hidden_size * self.layer_size])
         # print(output_reshape.size()) = (squence_length * batch_size, hidden_size*layer_size)
 
-        attn_tanh = torch.tanh(torch.mm(output_reshape, self.w_omega))
+        attn_tanh = torch.tanh(torch.mm(output_reshape, self.w_omega))  # [16 * 16 , 16]
         # print(attn_tanh.size()) = (squence_length * batch_size, attention_size)
 
         attn_hidden_layer = torch.mm(attn_tanh, torch.Tensor.reshape(self.u_omega, [-1, 1]))
@@ -71,12 +72,12 @@ class bilstm_attn(torch.nn.Module):
 
         attn_output = torch.sum(state * alphas_reshape, 1)
         # print(attn_output.size()) = (batch_size, hidden_size*layer_size)
-
+        print('the w_omega is: ', self.w_omega)
         return attn_output
 
     def forward(self, input_sentences, batch_size=None):
-        input = self.lookup_table(input_sentences)
-        input = input.permute(1, 0, 2)
+        input = self.lookup_table(input_sentences)  # 16 * 16 * 64
+        input = input.permute(1, 0, 2)  # [16, 16 ,64] -> seq_len, batch_size, embedding_size
 
         if self.use_cuda:
             h_0 = torch.zeros(self.layer_size, self.batch_size, self.hidden_size).cuda()
@@ -84,8 +85,12 @@ class bilstm_attn(torch.nn.Module):
         else:
             h_0 = torch.zeros(self.layer_size, self.batch_size, self.hidden_size)
             c_0 = torch.zeros(self.layer_size, self.batch_size, self.hidden_size)
+        # print(h_0.shape, c_0.shape)  # torch.Size([2, 16, 32]) torch.Size([2, 16, 32])
 
         lstm_output, (final_hidden_state, final_cell_state) = self.lstm(input, (h_0, c_0))
+        # print(lstm_output.shape)  # torch.Size([16, 16, 64])
+        # print(final_cell_state.shape)  # torch.Size([2, 16, 32])
+        # print(final_hidden_state.shape)  # torch.Size([2, 16, 32])
         attn_output = self.attention_net(lstm_output)
         logits = self.label(attn_output)
         return logits

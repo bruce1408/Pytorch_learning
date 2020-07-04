@@ -73,7 +73,7 @@ def train():
     total_loss = 0
     for data, label in tqdm(training_data, mininterval=1, desc='Train Processing', leave=False):
         optimizer.zero_grad()
-        print(data.shape)
+        # print(data.shape)
         target = lstm_attn(data)
         loss = criterion(target, label)
 
