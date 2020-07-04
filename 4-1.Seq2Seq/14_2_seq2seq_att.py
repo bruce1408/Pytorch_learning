@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 
 from torch.utils.data import DataLoader
-from text_loader import TextDataset
+from utils.text_loader import TextDataset
 import seq2seq_models as sm
 from seq2seq_models import str2tensor, EOS_token, SOS_token
 
@@ -73,7 +73,7 @@ def train(src, target):
     loss.backward()
     optimizer.step()
 
-    return loss.data[0] / len(target_var)
+    return loss.data / len(target_var)
 
 
 # Translate the given input
