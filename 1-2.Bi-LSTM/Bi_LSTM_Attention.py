@@ -3,6 +3,7 @@ import torch.nn as nn
 from torch.functional import F
 from torchsummary import summary
 
+
 class BiLSTM_Attention(nn.Module):
     def __init__(self, vocab_size, embedding_dim, n_hidden, num_classes):
         super(BiLSTM_Attention, self).__init__()
@@ -17,7 +18,8 @@ class BiLSTM_Attention(nn.Module):
                                   1)  # hidden : [batch_size, n_hidden * num_directions(=2), 1(=n_layer)]
         attn_weights = torch.bmm(lstm_output, hidden).squeeze(2)  # attn_weights : [batch_size, n_step]
         soft_attn_weights = F.softmax(attn_weights, 1)
-        # [batch_size, n_hidden * num_directions(=2), n_step] * [batch_size, n_step, 1] = [batch_size, n_hidden * num_directions(=2), 1]
+        # [batch_size, n_hidden * num_directions(=2), n_step] * [batch_size, n_step, 1] =
+        # [batch_size, n_hidden * num_directions(=2), 1]
         context = torch.bmm(lstm_output.transpose(1, 2), soft_attn_weights.unsqueeze(2)).squeeze(2)
         return context, soft_attn_weights.data.numpy()  # context : [batch_size, n_hidden * num_directions(=2)]
 
@@ -38,5 +40,9 @@ class BiLSTM_Attention(nn.Module):
 
 
 if __name__ == "__main__":
+    inputs = torch.randn((5, 10))
     net = BiLSTM_Attention(100, 10, 6, 2)
     print(net)
+
+
+
