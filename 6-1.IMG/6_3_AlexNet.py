@@ -6,6 +6,7 @@ from torchsummary import summary
 """
 pytorch 官方实现分类模型代码汇总
 https://pytorch.org/docs/stable/torchvision/models.html
+https://github.com/weiaicunzai/pytorch-cifar100/tree/master/models
 """
 
 class AlexNet(nn.Module):

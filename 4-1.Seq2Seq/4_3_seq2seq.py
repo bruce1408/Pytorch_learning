@@ -11,7 +11,9 @@ N_LAYERS = 1
 BATCH_SIZE = 1
 N_EPOCH = 100
 N_CHARS = 128  # ASCII
-
+"""
+有问题
+"""
 
 # Simple test to show how our network works
 # def test():

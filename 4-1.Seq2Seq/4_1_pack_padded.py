@@ -6,15 +6,16 @@ import torchvision.transforms as transforms
 对于序列长度可变的情况，介绍使用pad_sequence函数的用法
 对于序列不等长的情况，使用填充0来进行等长序列的操作，0的填充可能需要知道所有数据的最大长度，然后开始填充，这样不是很合理，因为
 按照批次进行的话，我们希望得到每个批次里面最大的长度即可，然后开始进行填充。使用pad_sequence 函数里面的collate_fn函数来进行操作即可
+https://www.cnblogs.com/sbj123456789/p/9834018.html
 """
-train_x = [torch.tensor([1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=torch.float32),
-           torch.tensor([1, 2, 3, 4, 5, 6, 7], dtype=torch.float32),
-           torch.tensor([2, 3, 4, 5, 6, 7], dtype=torch.float32),
-           torch.tensor([3, 4, 5, 6, 7], dtype=torch.float32),
-           torch.tensor([4, 5, 6, 7], dtype=torch.float32),
-           torch.tensor([5, 6, 7], dtype=torch.float32),
-           torch.tensor([6, 7], dtype=torch.float32),
-           torch.tensor([7], dtype=torch.float32)]  # 数据类型是浮点型
+train_x = [torch.FloatTensor([1, 2, 3, 4, 5, 6, 7, 8, 9]),
+           torch.FloatTensor([1, 2, 3, 4, 5, 6, 7]),
+           torch.FloatTensor([2, 3, 4, 5, 6, 7]),
+           torch.FloatTensor([3, 4, 5, 6, 7]),
+           torch.FloatTensor([4, 5, 6, 7]),
+           torch.FloatTensor([5, 6, 7]),
+           torch.FloatTensor([6, 7]),
+           torch.FloatTensor([7])]  # 数据类型是浮点型
 
 
 class MyData(data.Dataset):
@@ -59,4 +60,5 @@ for data, length in train_dataloader:
     # 预算结果再解压缩补0然后提取结果
     output_, _ = torch.nn.utils.rnn.pad_packed_sequence(output)
     print(output_.shape)
+
 
