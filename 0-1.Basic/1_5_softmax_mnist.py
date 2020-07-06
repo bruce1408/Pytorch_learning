@@ -61,6 +61,8 @@ def train(epoch):
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
+        print(output.shape)
+        print(target.shape)
         loss.backward()
         optimizer.step()
         if batch_idx % 10 == 0:

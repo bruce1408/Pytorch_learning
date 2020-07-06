@@ -37,7 +37,7 @@ N_CHARS = 128  # ASCII
 # http://pytorch.org/tutorials/beginner/former_torchies/parallelism_tutorial.html.
 def train(src, target):
     src_var = str2tensor(src)
-    target_var = str2tensor(target, eos=True)  # Add the EOS token
+    target_var = str2tensor(target, eos=True).unsqueeze(-1)  # Add the EOS token
 
     encoder_hidden = encoder.init_hidden()
     encoder_outputs, encoder_hidden = encoder(src_var, encoder_hidden)
@@ -45,17 +45,22 @@ def train(src, target):
     hidden = encoder_hidden
     totalloss = 0
 
-    for c in range(len(target_var)):
+    for c in range(1, len(target_var)):
         # First, we feed SOS
         # Others, we use teacher forcing
-        token = target_var[c - 1] if c else str2tensor(SOS_token)
+        if c == 0:
+            token = str2tensor(SOS_token)
+        else:
+            token = target_var[c] if c else str2tensor(SOS_token)
         output, hidden = decoder(token, hidden)
+        # print('output is: ', output.shape)
+        # print('target_var is: ', target_var[c])
         loss = criterion(output, target_var[c])
-        totalloss += loss.item()
-
         encoder.zero_grad()
         decoder.zero_grad()
-        loss.backward()
+        loss.backward(retain_graph=True)
+
+        totalloss += loss.item()
         optimizer.step()
 
     return totalloss / len(target_var)
@@ -114,7 +119,6 @@ for epoch in range(1, N_EPOCH + 1):
     # Get srcs and targets from data loader
     for i, (srcs, targets) in enumerate(train_loader):
         train_loss = train(srcs[0], targets[0])  # Batch is 1
-
         if i % 100 is 0:
             print('[(%d %d%%) %.4f]' %
                   (epoch, epoch / N_EPOCH * 100, train_loss))

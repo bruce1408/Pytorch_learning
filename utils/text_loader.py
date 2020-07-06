@@ -32,4 +32,8 @@ if __name__ == "__main__":
                               num_workers=2)
 
     for i, (src, target) in enumerate(train_loader):
-        print(i, "data", src)
+        print('the index :', i)
+        print('the src is: ', src)
+        print('the target is: ', target)
+        if i == 300:
+            break

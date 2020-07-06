@@ -28,8 +28,9 @@ def str2tensor(msg, eos=False):
     if eos:
         tensor.append(EOS_token)
 
-    return cuda_variable(torch.LongTensor(tensor))
-
+    if torch.cuda.is_available():
+        return cuda_variable(torch.LongTensor(tensor))
+    return torch.LongTensor(tensor)
 
 # To demonstrate seq2seq, We don't handle batch in the code,
 # and our encoder runs this one step at a time

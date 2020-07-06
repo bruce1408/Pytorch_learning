@@ -1,5 +1,8 @@
 # Original source from
 # https://gist.github.com/Tushar-N/dfca335e370a2bc3bc79876e6270099e
+"""
+主要介绍 pack_padded_sequence 函数 和 pad_packed_sequence 函数的用法
+"""
 
 import torch
 import torch.nn as nn
@@ -37,7 +40,7 @@ seq_tensor = Variable(torch.zeros((len(vectorized_seqs), seq_lengths.max()))).lo
 for idx, (seq, seqlen) in enumerate(zip(vectorized_seqs, seq_lengths)):
     seq_tensor[idx, :seqlen] = torch.LongTensor(seq)
 
-print("seq_tensor", seq_tensor)
+print("seq_tensor", seq_tensor.type)
 
 # SORT YOUR TENSORS BY LENGTH!
 seq_lengths, perm_idx = seq_lengths.sort(0, descending=True)
@@ -50,13 +53,14 @@ print("seq_tensor after sorting", seq_tensor)
 seq_tensor = seq_tensor.transpose(0, 1)  # (B,L,D) -> (L,B,D)
 print("seq_tensor after transposing", seq_tensor.size(), seq_tensor.data)
 
-# embed your sequences
+# embed your sequences 加入embedding
 embeded_seq_tensor = embed(seq_tensor)  # 11 x 3 x 3
 print("seq_tensor after embeding", embeded_seq_tensor.size(), seq_tensor.data)
 
-# pack them up nicely (compress the data)
+# pack them up nicely (compress the data) 输入的是按照长度从长到短的序列和长度列表
 packed_input = pack_padded_sequence(embeded_seq_tensor, seq_lengths.cpu().numpy())  # seq_lenth需要从大到小排列才可以
-print(packed_input.data.size())  # 27 x 3
+print('packed input is: ', packed_input.data.size())  # 27 x 3
+print(packed_input)
 
 # throw them through your LSTM (remember to give batch_first=True here if you packed with it)
 packed_output, (ht, ct) = lstm(packed_input)
