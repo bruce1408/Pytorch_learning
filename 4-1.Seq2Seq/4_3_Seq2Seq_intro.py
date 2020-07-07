@@ -56,7 +56,7 @@ class Seq2Seq(nn.Module):
         dec_input = dec_input.transpose(0, 1)  # dec_input: [max_len(=n_step, time step), batch_size, n_class]
 
         # enc_states : [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
-        _, enc_states = self.enc_cell(enc_input, enc_hidden)
+        _, enc_states = self.enc_cell(enc_input, enc_hidden)  # 通过编码器得到的是状态
         # outputs : [max_len+1(=6), batch_size, num_directions(=1) * n_hidden(=128)]
         outputs, _ = self.dec_cell(dec_input, enc_states)
 
