@@ -24,6 +24,14 @@ attn_model = 'general'
 hidden_size = 500
 n_layers = 2
 dropout_p = 0.05
+MAX_LENGTH = 10
+
+good_prefixes = (
+    "i am ", "i m ",
+    "he is", "he s ",
+    "she is", "she s",
+    "you are", "you re "
+)
 
 
 class Lang:
@@ -69,15 +77,7 @@ def read_langs(lang1, lang2, reverse=False):
 
     # Read the file and split into lines
     lines = open('../eng-fra/%s-%s.txt' % (lang1, lang2)).read().strip().split('\n')
-
     # Split every line into pairs and normalize
-    # pair = list()
-    # for l in lines:
-    #     temp = list()
-    #     for s in l.split('\t')[0:2]:
-    #         temps = normalize_string(s)
-    #         temp.append(temps)
-    #     pair.append(temp)
 
     pairs = [[normalize_string(s) for s in l.split('\t')[0:2]] for l in lines]
 
@@ -93,17 +93,12 @@ def read_langs(lang1, lang2, reverse=False):
     return input_lang, output_lang, pairs
 
 
-MAX_LENGTH = 10
-
-good_prefixes = (
-    "i am ", "i m ",
-    "he is", "he s ",
-    "she is", "she s",
-    "you are", "you re "
-)
-
-
 def filter_pair(p):
+    """
+    过滤函数,过滤掉每一个法英翻译对,最大长度不能大于10,且英文开头是带有 good_prefixes的data
+    :param p:
+    :return:
+    """
     return len(p[0].split(' ')) < MAX_LENGTH and len(p[1].split(' ')) < MAX_LENGTH and p[1].startswith(good_prefixes)
 
 
@@ -112,6 +107,13 @@ def filter_pairs(pairs):
 
 
 def prepare_data(lang1_name, lang2_name, reverse=False):
+    """
+    数据准备阶段,
+    :param lang1_name: 输入语种
+    :param lang2_name: 输出语种
+    :param reverse: 翻译翻转
+    :return: 法英句子pairs
+    """
     input_lang, output_lang, pairs = read_langs(lang1_name, lang2_name, reverse)
     print("Read %s sentence pairs" % len(pairs))
 
@@ -138,6 +140,12 @@ def indexes_from_sentence(lang, sentence):
 
 
 def variable_from_sentence(lang, sentence):
+    """
+    把句子变成index的list,然后再转化为tensor,最后加上一个1表示截止,shape是只有1列
+    :param lang:
+    :param sentence:
+    :return:
+    """
     indexes = indexes_from_sentence(lang, sentence)
     indexes.append(EOS_token)
     var = torch.LongTensor(indexes).view(-1, 1)
@@ -147,6 +155,11 @@ def variable_from_sentence(lang, sentence):
 
 
 def variables_from_pair(pair):
+    """
+    把输入和输出的句子对,进行index化,然后输出,得到的是一个str2index的tensor向量
+    :param pair:
+    :return:
+    """
     input_variable = variable_from_sentence(input_lang, pair[0])
     target_variable = variable_from_sentence(output_lang, pair[1])
     return input_variable, target_variable
@@ -438,7 +451,7 @@ plot_losses = []
 print_loss_total = 0  # Reset every print_every
 plot_loss_total = 0  # Reset every plot_every
 
-# Begin!
+# Begin to train!
 for epoch in range(1, n_epochs + 1):
 
     # Get training data for this cycle
