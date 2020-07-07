@@ -60,13 +60,13 @@ def read_langs(lang1, lang2, reverse=False):
     lines = open('../eng-fra/%s-%s.txt' % (lang1, lang2)).read().strip().split('\n')
 
     # Split every line into pairs and normalize
-    pair = list()
-    for l in lines:
-        temp = list()
-        for s in l.split('\t')[0:2]:
-            temps = normalize_string(s)
-            temp.append(temps)
-        pair.append(temp)
+    # pair = list()
+    # for l in lines:
+    #     temp = list()
+    #     for s in l.split('\t')[0:2]:
+    #         temps = normalize_string(s)
+    #         temp.append(temps)
+    #     pair.append(temp)
 
     pairs = [[normalize_string(s) for s in l.split('\t')[0:2]] for l in lines]
 
