@@ -248,7 +248,7 @@ class Attn(nn.Module):
         seq_len = len(encoder_outputs)
 
         # Create variable to store attention energies
-        attn_energies = Variable(torch.zeros(seq_len))  # B x 1 x S
+        attn_energies = torch.zeros(seq_len)  # B x 1 x S
         if USE_CUDA: attn_energies = attn_energies.cuda()
 
         # Calculate energies for each encoder output
