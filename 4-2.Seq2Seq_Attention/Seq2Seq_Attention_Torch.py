@@ -14,8 +14,8 @@ dtype = torch.FloatTensor
 sentences = ['ich mochte ein bier P', 'S i want a beer', 'i want a beer E']
 
 word_list = " ".join(sentences).split()
-word_list = list(set(word_list))
-word_dict = {w: i for i, w in enumerate(word_list)}
+word_list = list(set(word_list))  # 去重
+word_dict = {w: i for i, w in enumerate(word_list)}  # word2index
 number_dict = {i: w for i, w in enumerate(word_list)}
 n_class = len(word_dict)  # vocab list
 
@@ -53,7 +53,7 @@ class Attention(nn.Module):
         trained_attn = []
         hidden = enc_hidden
         n_step = len(dec_inputs)
-        model = Variable(torch.empty([n_step, 1, n_class]))
+        model = torch.empty([n_step, 1, n_class])
 
         for i in range(n_step):  # each time step
             # dec_output : [n_step(=1), batch_size(=1), num_directions(=1) * n_hidden]
@@ -89,7 +89,7 @@ class Attention(nn.Module):
 input_batch, output_batch, target_batch = make_batch(sentences)
 
 # hidden : [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
-hidden = Variable(torch.zeros(1, 1, n_hidden))
+hidden = torch.zeros(1, 1, n_hidden)
 
 model = Attention()
 criterion = nn.CrossEntropyLoss()
