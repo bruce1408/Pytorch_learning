@@ -6,7 +6,8 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '1, 2, 3'
 dtype = torch.FloatTensor
 # S: Symbol that shows starting of decoding input
 # E: Symbol that shows starting of decoding output
@@ -29,7 +30,7 @@ def make_batch(sentences):
     target_batch = [[word_dict[n] for n in sentences[2].split()]]
 
     # make tensor
-    return Variable(torch.Tensor(input_batch)), Variable(torch.Tensor(output_batch)), Variable(torch.LongTensor(target_batch))
+    return torch.Tensor(input_batch), torch.Tensor(output_batch), torch.LongTensor(target_batch)
 
 
 class Attention(nn.Module):
@@ -73,7 +74,7 @@ class Attention(nn.Module):
 
     def get_att_weight(self, dec_output, enc_outputs):  # get attention weight one 'dec_output' with 'enc_outputs'
         n_step = len(enc_outputs)
-        attn_scores = Variable(torch.zeros(n_step))  # attn_scores : [n_step]
+        attn_scores = torch.zeros(n_step)  # attn_scores : [n_step]
 
         for i in range(n_step):
             attn_scores[i] = self.get_att_score(dec_output, enc_outputs[i])
@@ -109,7 +110,7 @@ for epoch in range(2000):
 
 # Test
 test_batch = [np.eye(n_class)[[word_dict[n] for n in 'SPPPP']]]
-test_batch = Variable(torch.Tensor(test_batch))
+test_batch = torch.Tensor(test_batch)
 predict, trained_attn = model(input_batch, hidden, test_batch)
 predict = predict.data.max(1, keepdim=True)[1]
 print(sentences[0], '->', [number_dict[n.item()] for n in predict.squeeze()])

@@ -119,7 +119,6 @@ def val(epoch):
     print("Acc: %f " % ((1.0 * correct.numpy()) / total))
 
 
-
 if __name__ == '__main__':
 
     # 除了最后一层的全连接层，其他都是冻层之后，只更新最后一层参数，而不是全部参数都更新
