@@ -258,20 +258,21 @@ class BiRNN(nn.Module):
         super(BiRNN, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, bidirectional=True)
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, bidirectional=True)  # 双向LSTM
         self.fc = nn.Linear(hidden_size * 2, num_classes)  # 2 for bidirection
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
         # Set initial states
         h0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(device)  # 2 for bidirection
-        c0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(device)
+        c0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(device)  #
 
         # Forward propagate LSTM
         out, _ = self.lstm(x, (h0, c0))  # out: tensor of shape (batch_size, seq_length, hidden_size*2)
 
-        # Decode the hidden state of the last time step
-        out = self.fc(out[:, -1, :])
-        return out
+        # Decode the hidden state of the last time step out是最后一层每一个时刻，把它变成最后一层的最后一个时刻的值。
+        out = self.fc(out[:, -1, :])  # [100, 256]
+        return self.softmax(out)
 
 
 model = BiRNN(input_size, hidden_size, num_layers, num_classes).to(device)
