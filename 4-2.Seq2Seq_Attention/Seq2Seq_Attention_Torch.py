@@ -16,19 +16,23 @@ sentences = ['ich mochte ein bier P', 'S i want a beer', 'i want a beer E']
 
 word_list = " ".join(sentences).split()
 word_list = list(set(word_list))  # 去重
-word_dict = {w: i for i, w in enumerate(word_list)}  # word2index
-number_dict = {i: w for i, w in enumerate(word_list)}
-n_class = len(word_dict)  # vocab list
+word2index = {w: i for i, w in enumerate(word_list)}  # word2index
+index2word = {i: w for i, w in enumerate(word_list)}
+n_class = len(word2index)  # vocab list n_class = 11
 
 # Parameter
 n_hidden = 128
 
 
 def make_batch(sentences):
-    input_batch = [np.eye(n_class)[[word_dict[n] for n in sentences[0].split()]]]
-    output_batch = [np.eye(n_class)[[word_dict[n] for n in sentences[1].split()]]]
-    target_batch = [[word_dict[n] for n in sentences[2].split()]]
-
+    """
+    生成batch—size数据
+    :param sentences:
+    :return:
+    """
+    input_batch = [np.eye(n_class)[[word2index[n] for n in sentences[0].split()]]]
+    output_batch = [np.eye(n_class)[[word2index[n] for n in sentences[1].split()]]]
+    target_batch = [[word2index[n] for n in sentences[2].split()]]
     # make tensor
     return torch.Tensor(input_batch), torch.Tensor(output_batch), torch.LongTensor(target_batch)
 
@@ -36,27 +40,28 @@ def make_batch(sentences):
 class Attention(nn.Module):
     def __init__(self):
         super(Attention, self).__init__()
-        self.enc_cell = nn.RNN(input_size=n_class, hidden_size=n_hidden, dropout=0.5)
-        self.dec_cell = nn.RNN(input_size=n_class, hidden_size=n_hidden, dropout=0.5)
+        self.enc_cell = nn.RNN(input_size=n_class, hidden_size=n_hidden, dropout=0.5)  # [11, 128]
+        self.dec_cell = nn.RNN(input_size=n_class, hidden_size=n_hidden, dropout=0.5)  # [11, 128]
 
         # Linear for attention
         self.attn = nn.Linear(n_hidden, n_hidden)
         self.out = nn.Linear(n_hidden * 2, n_class)
 
     def forward(self, enc_inputs, hidden, dec_inputs):
+        # [5, 1, 11]
         enc_inputs = enc_inputs.transpose(0, 1)  # enc_inputs: [n_step(=n_step, time step), batch_size, n_class]
         dec_inputs = dec_inputs.transpose(0, 1)  # dec_inputs: [n_step(=n_step, time step), batch_size, n_class]
 
         # enc_outputs : [n_step, batch_size, num_directions(=1) * n_hidden], matrix F
         # enc_hidden : [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
-        enc_outputs, enc_hidden = self.enc_cell(enc_inputs, hidden)
+        enc_outputs, enc_hidden = self.enc_cell(enc_inputs, hidden)  # [seq, batch, hidden], [1, batch, hidden]
 
         trained_attn = []
         hidden = enc_hidden
-        n_step = len(dec_inputs)
-        model = torch.empty([n_step, 1, n_class])
+        n_step = len(dec_inputs)  # n_step = 5
+        model = torch.empty([n_step, 1, n_class])  # 初始化model=[5, 1, 11]
 
-        for i in range(n_step):  # each time step
+        for i in range(n_step):
             # dec_output : [n_step(=1), batch_size(=1), num_directions(=1) * n_hidden]
             # hidden : [num_layers(=1) * num_directions(=1), batch_size(=1), n_hidden]
             dec_output, hidden = self.dec_cell(dec_inputs[i].unsqueeze(0), hidden)
@@ -109,11 +114,12 @@ for epoch in range(2000):
     optimizer.step()
 
 # Test
-test_batch = [np.eye(n_class)[[word_dict[n] for n in 'SPPPP']]]
+test_batch = [np.eye(n_class)[[word2index[n] for n in 'SPPPP']]]
 test_batch = torch.Tensor(test_batch)
+
 predict, trained_attn = model(input_batch, hidden, test_batch)
 predict = predict.data.max(1, keepdim=True)[1]
-print(sentences[0], '->', [number_dict[n.item()] for n in predict.squeeze()])
+print(sentences[0], '->', [index2word[n.item()] for n in predict.squeeze()])
 
 # Show Attention
 fig = plt.figure(figsize=(5, 5))
