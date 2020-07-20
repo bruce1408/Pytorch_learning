@@ -7,7 +7,8 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '1, 2, 3'
 dtype = torch.FloatTensor
 # S: Symbol that shows starting of decoding input
 # E: Symbol that shows starting of decoding output
@@ -122,7 +123,8 @@ for epoch in range(2000):
 
 # Test
 test_batch = [np.eye(n_class)[[word2index[n] for n in 'SPPPP']]]
-test_batch = Variable(torch.Tensor(test_batch))
+test_batch = torch.Tensor(test_batch)
+
 predict, trained_attn = model(input_batch, hidden, test_batch)
 predict = predict.data.max(1, keepdim=True)[1]
 print(sentences[0], '->', [index2word[n.item()] for n in predict.squeeze()])
