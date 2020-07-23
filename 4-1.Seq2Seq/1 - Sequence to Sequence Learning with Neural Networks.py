@@ -60,14 +60,9 @@ TRG = Field(tokenize=tokenize_en,
 
 
 train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'), fields=(SRC, TRG))
-print(f"Number of training examples: {len(train_data.examples)}")
-print(f"Number of validation examples: {len(valid_data.examples)}")
-print(f"Number of testing examples: {len(test_data.examples)}")
-
 # We can also print out an example, making sure the source sentence is reversed:
 
 print(vars(train_data.examples[0]))
-
 # The period is at the beginning of the German (src) sentence, so it looks like the sentence has been correctly
 # reversed.
 
@@ -131,13 +126,17 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 
 # ## Building the Seq2Seq Model
 # 
-# We'll be building our model in three parts. The encoder, the decoder and a seq2seq model that encapsulates the encoder and decoder and will provide a way to interface with each.
+# We'll be building our model in three parts. The encoder, the decoder and a seq2seq model that encapsulates the
+# encoder and decoder and will provide a way to interface with each.
 # 
 # ### Encoder
 # 
-# First, the encoder, a 2 layer LSTM. The paper we are implementing uses a 4-layer LSTM, but in the interest of training time we cut this down to 2-layers. The concept of multi-layer RNNs is easy to expand from 2 to 4 layers. 
+# First, the encoder, a 2 layer LSTM. The paper we are implementing uses a 4-layer LSTM, but in the interest of
+# training time we cut this down to 2-layers. The concept of multi-layer RNNs is easy to expand from 2 to 4 layers.
 # 
-# For a multi-layer RNN, the input sentence, $X$, after being embedded goes into the first (bottom) layer of the RNN and hidden states, $H=\{h_1, h_2, ..., h_T\}$, output by this layer are used as inputs to the RNN in the layer above. Thus, representing each layer with a superscript, the hidden states in the first layer are given by:
+# For a multi-layer RNN, the input sentence, $X$, after being embedded goes into the first (bottom) layer of the RNN
+# and hidden states, $H=\{h_1, h_2, ..., h_T\}$, output by this layer are used as inputs to the RNN in the layer
+# above. Thus, representing each layer with a superscript, the hidden states in the first layer are given by:
 # 
 # $$h_t^1 = \text{EncoderRNN}^1(e(x_t), h_{t-1}^1)$$
 # 
@@ -292,7 +291,6 @@ class Encoder(nn.Module):
 # we don't have to `unsqueeze` to add a fake sequence length dimension, but we would need one `nn.LSTMCell` per layer
 # in the decoder and to ensure each `nn.LSTMCell` receives the correct initial hidden state from the encoder. All of
 # this makes the code less concise - hence the decision to stick with the regular `nn.LSTM`.
-
 
 
 class Decoder(nn.Module):
