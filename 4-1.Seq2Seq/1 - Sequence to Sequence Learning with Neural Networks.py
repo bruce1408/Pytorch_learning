@@ -14,6 +14,7 @@ import math
 import time
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+print(torch.__version__)
 
 SEED = 1234
 random.seed(SEED)
@@ -26,8 +27,14 @@ spacy_de = spacy.load('de_core_news_sm')
 spacy_en = spacy.load('en_core_web_sm')
 
 
+def init_weights(m):
+    for name, param in m.named_parameters():
+        nn.init.uniform_(param.data, -0.08, 0.08)
+
+
 def tokenize_de(text):
     """
+    每个字符倒序
     Tokenizes German text from a string into a list of strings (tokens) and reverses it
     """
     return [tok.text for tok in spacy_de.tokenizer(text)][::-1]
@@ -35,6 +42,7 @@ def tokenize_de(text):
 
 def tokenize_en(text):
     """
+    切词且正常顺序
     Tokenizes English text from a string into a list of strings (tokens)
     """
     return [tok.text for tok in spacy_en.tokenizer(text)]
@@ -95,6 +103,20 @@ print(f"Unique tokens in target (en) vocabulary: {len(TRG.vocab)}")
 # 
 # We use a `BucketIterator` instead of the standard `Iterator` as it creates batches in such a way that it minimizes
 # the amount of padding in both the source and target sentences.
+
+
+print(f"Number of training examples: {len(train_data.examples)}")  # 29000
+print(f"Number of validation examples: {len(valid_data.examples)}")  # 1014
+print(f"Number of testing examples: {len(test_data.examples)}")  # 1000
+
+
+print(vars(train_data.examples[0]))
+
+SRC.build_vocab(train_data, min_freq=2)
+TRG.build_vocab(train_data, min_freq=2)
+
+print(f"Unique tokens in source (de) vocabulary: {len(SRC.vocab)}")
+print(f"Unique tokens in target (en) vocabulary: {len(TRG.vocab)}")
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -194,7 +216,9 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 # The sizes of each of the tensors is left as comments in the code. In this implementation `n_directions` will always
 # be 1, however note that bidirectional RNNs (covered in tutorial 3) will have `n_directions` as 2.
 
-# In[14]:
+train_iterator, valid_iterator, test_iterator = BucketIterator.splits((train_data, valid_data, test_data),
+                                                                      batch_size=BATCH_SIZE,
+                                                                      device=device)
 
 
 class Encoder(nn.Module):
@@ -212,11 +236,7 @@ class Encoder(nn.Module):
 
     def forward(self, src):
         # src = [src len, batch size]
-
-        embedded = self.dropout(self.embedding(src))
-
-        # embedded = [src len, batch size, emb dim]
-
+        embedded = self.dropout(self.embedding(src))  # embedded = [src_len, batch size, emb dim]
         outputs, (hidden, cell) = self.rnn(embedded)
 
         # outputs = [src len, batch size, hid dim * n directions]
@@ -279,35 +299,29 @@ class Decoder(nn.Module):
     def __init__(self, output_dim, emb_dim, hid_dim, n_layers, dropout):
         super().__init__()
 
-        self.output_dim = output_dim
-        self.hid_dim = hid_dim
-        self.n_layers = n_layers
+        self.output_dim = output_dim  # 5893
+        self.hid_dim = hid_dim  # 512
+        self.n_layers = n_layers  # 2
 
         self.embedding = nn.Embedding(output_dim, emb_dim)
 
         self.rnn = nn.LSTM(emb_dim, hid_dim, n_layers, dropout=dropout)
 
-        self.fc_out = nn.Linear(hid_dim, output_dim)
+        self.fc_out = nn.Linear(hid_dim, output_dim)  # 512, 5893
 
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, input, hidden, cell):
         # input = [batch size]
-        # hidden = [n layers * n directions, batch size, hid dim]
-        # cell = [n layers * n directions, batch size, hid dim]
+        # hidden = [n layers * n directions, batch size, hid dim]  [2, 64, 512]
+        # cell = [n layers * n directions, batch size, hid dim]  [2, 64, 512]
 
         # n directions in the decoder will both always be 1, therefore:
         # hidden = [n layers, batch size, hid dim]
         # context = [n layers, batch size, hid dim]
 
-        input = input.unsqueeze(0)
-
-        # input = [1, batch size]
-
-        embedded = self.dropout(self.embedding(input))
-
-        # embedded = [1, batch size, emb dim]
-
+        input = input.unsqueeze(0)  # input = [1, batch size]
+        embedded = self.dropout(self.embedding(input))  # embedded = [1, batch size, emb dim]
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
 
         # output = [seq len, batch size, hid dim * n directions]
@@ -324,56 +338,6 @@ class Decoder(nn.Module):
         # prediction = [batch size, output dim]
 
         return prediction, hidden, cell
-
-
-# ### Seq2Seq
-# 
-# For the final part of the implemenetation, we'll implement the seq2seq model. This will handle: 
-# - receiving the input/source sentence
-# - using the encoder to produce the context vectors 
-# - using the decoder to produce the predicted output/target sentence
-# 
-# Our full model will look like this:
-# 
-# ![](assets/seq2seq4.png)
-# 
-# The `Seq2Seq` model takes in an `Encoder`, `Decoder`, and a `device` (used to place tensors on the GPU, if it exists).
-# 
-# For this implementation, we have to ensure that the number of layers and the hidden (and cell) dimensions are equal in the `Encoder` and `Decoder`. This is not always the case, we do not necessarily need the same number of layers or the same hidden dimension sizes in a sequence-to-sequence model. However, if we did something like having a different number of layers then we would need to make decisions about how this is handled. For example, if our encoder has 2 layers and our decoder only has 1, how is this handled? Do we average the two context vectors output by the decoder? Do we pass both through a linear layer? Do we only use the context vector from the highest layer? Etc.
-# 
-# Our `forward` method takes the source sentence, target sentence and a teacher-forcing ratio. The teacher forcing ratio is used when training our model. When decoding, at each time-step we will predict what the next token in the target sequence will be from the previous tokens decoded, $\hat{y}_{t+1}=f(s_t^L)$. With probability equal to the teaching forcing ratio (`teacher_forcing_ratio`) we will use the actual ground-truth next token in the sequence as the input to the decoder during the next time-step. However, with probability `1 - teacher_forcing_ratio`, we will use the token that the model predicted as the next input to the model, even if it doesn't match the actual next token in the sequence.  
-# 
-# The first thing we do in the `forward` method is to create an `outputs` tensor that will store all of our predictions, $\hat{Y}$.
-# 
-# We then feed the input/source sentence, `src`, into the encoder and receive out final hidden and cell states.
-# 
-# The first input to the decoder is the start of sequence (`<sos>`) token. As our `trg` tensor already has the `<sos>` token appended (all the way back when we defined the `init_token` in our `TRG` field) we get our $y_1$ by slicing into it. We know how long our target sentences should be (`max_len`), so we loop that many times. The last token input into the decoder is the one **before** the `<eos>` token - the `<eos>` token is never input into the decoder. 
-# 
-# During each iteration of the loop, we:
-# - pass the input, previous hidden and previous cell states ($y_t, s_{t-1}, c_{t-1}$) into the decoder
-# - receive a prediction, next hidden state and next cell state ($\hat{y}_{t+1}, s_{t}, c_{t}$) from the decoder
-# - place our prediction, $\hat{y}_{t+1}$/`output` in our tensor of predictions, $\hat{Y}$/`outputs`
-# - decide if we are going to "teacher force" or not
-#     - if we do, the next `input` is the ground-truth next token in the sequence, $y_{t+1}$/`trg[t]`
-#     - if we don't, the next `input` is the predicted next token in the sequence, $\hat{y}_{t+1}$/`top1`, which we get by doing an `argmax` over the output tensor
-#     
-# Once we've made all of our predictions, we return our tensor full of predictions, $\hat{Y}$/`outputs`.
-# 
-# **Note**: our decoder loop starts at 1, not 0. This means the 0th element of our `outputs` tensor remains all zeros. So our `trg` and `outputs` look something like:
-# 
-# $$\begin{align*}
-# \text{trg} = [<sos>, &y_1, y_2, y_3, <eos>]\\
-# \text{outputs} = [0, &\hat{y}_1, \hat{y}_2, \hat{y}_3, <eos>]
-# \end{align*}$$
-# 
-# Later on when we calculate the loss, we cut off the first element of each tensor to get:
-# 
-# $$\begin{align*}
-# \text{trg} = [&y_1, y_2, y_3, <eos>]\\
-# \text{outputs} = [&\hat{y}_1, \hat{y}_2, \hat{y}_3, <eos>]
-# \end{align*}$$
-
-# In[16]:
 
 
 class Seq2Seq(nn.Module):
@@ -427,19 +391,8 @@ class Seq2Seq(nn.Module):
         return outputs
 
 
-# # Training the Seq2Seq Model
-# 
-# Now we have our model implemented, we can begin training it. 
-# 
-# First, we'll initialize our model. As mentioned before, the input and output dimensions are defined by the size of the vocabulary. The embedding dimesions and dropout for the encoder and decoder can be different, but the number of layers and the size of the hidden/cell states must be the same. 
-# 
-# We then define the encoder, decoder and then our Seq2Seq model, which we place on the `device`.
-
-# In[17]:
-
-
-INPUT_DIM = len(SRC.vocab)
-OUTPUT_DIM = len(TRG.vocab)
+INPUT_DIM = len(SRC.vocab)  # 7854
+OUTPUT_DIM = len(TRG.vocab)  # 5893
 ENC_EMB_DIM = 256
 DEC_EMB_DIM = 256
 HID_DIM = 512
@@ -447,30 +400,12 @@ N_LAYERS = 2
 ENC_DROPOUT = 0.5
 DEC_DROPOUT = 0.5
 
-enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)
-dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)
+enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)  # [7854, 256, 512, 2, 0.5]
+dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)  # [5893, 256, 512, 2, 0.5]
 
 model = Seq2Seq(enc, dec, device).to(device)
 
-
-# Next up is initializing the weights of our model. In the paper they state they initialize all weights from a uniform distribution between -0.08 and +0.08, i.e. $\mathcal{U}(-0.08, 0.08)$.
-# 
-# We initialize weights in PyTorch by creating a function which we `apply` to our model. When using `apply`, the `init_weights` function will be called on every module and sub-module within our model. For each module we loop through all of the parameters and sample them from a uniform distribution with `nn.init.uniform_`.
-
-# In[18]:
-
-
-def init_weights(m):
-    for name, param in m.named_parameters():
-        nn.init.uniform_(param.data, -0.08, 0.08)
-
-
 model.apply(init_weights)
-
-
-# We also define a function that will calculate the number of trainable parameters in the model.
-
-# In[19]:
 
 
 def count_parameters(model):
@@ -479,77 +414,24 @@ def count_parameters(model):
 
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
-# We define our optimizer, which we use to update our parameters in the training loop. Check out [this](http://ruder.io/optimizing-gradient-descent/) post for information about different optimizers. Here, we'll use Adam.
-
-# In[20]:
-
-
 optimizer = optim.Adam(model.parameters())
-
-# Next, we define our loss function. The `CrossEntropyLoss` function calculates both the log softmax as well as the negative log-likelihood of our predictions.
-# 
-# Our loss function calculates the average loss per token, however by passing the index of the `<pad>` token as the `ignore_index` argument we ignore the loss whenever the target token is a padding token. 
-
-# In[21]:
-
-
 TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]
-
 criterion = nn.CrossEntropyLoss(ignore_index=TRG_PAD_IDX)
-
-
-# Next, we'll define our training loop. 
-# 
-# First, we'll set the model into "training mode" with `model.train()`. This will turn on dropout (and batch normalization, which we aren't using) and then iterate through our data iterator.
-# 
-# As stated before, our decoder loop starts at 1, not 0. This means the 0th element of our `outputs` tensor remains all zeros. So our `trg` and `outputs` look something like:
-# 
-# $$\begin{align*}
-# \text{trg} = [<sos>, &y_1, y_2, y_3, <eos>]\\
-# \text{outputs} = [0, &\hat{y}_1, \hat{y}_2, \hat{y}_3, <eos>]
-# \end{align*}$$
-# 
-# Here, when we calculate the loss, we cut off the first element of each tensor to get:
-# 
-# $$\begin{align*}
-# \text{trg} = [&y_1, y_2, y_3, <eos>]\\
-# \text{outputs} = [&\hat{y}_1, \hat{y}_2, \hat{y}_3, <eos>]
-# \end{align*}$$
-# 
-# At each iteration:
-# - get the source and target sentences from the batch, $X$ and $Y$
-# - zero the gradients calculated from the last batch
-# - feed the source and target into the model to get the output, $\hat{Y}$
-# - as the loss function only works on 2d inputs with 1d targets we need to flatten each of them with `.view`
-#     - we slice off the first column of the output and target tensors as mentioned above
-# - calculate the gradients with `loss.backward()`
-# - clip the gradients to prevent them from exploding (a common issue in RNNs)
-# - update the parameters of our model by doing an optimizer step
-# - sum the loss value to a running total
-# 
-# Finally, we return the loss that is averaged over all batches.
-
-# In[22]:
 
 
 def train(model, iterator, optimizer, criterion, clip):
     model.train()
-
     epoch_loss = 0
-
     for i, batch in enumerate(iterator):
         src = batch.src
         trg = batch.trg
-
         optimizer.zero_grad()
-
         output = model(src, trg)
 
         # trg = [trg len, batch size]
         # output = [trg len, batch size, output dim]
 
         output_dim = output.shape[-1]
-
         output = output[1:].view(-1, output_dim)
         trg = trg[1:].view(-1)
 
@@ -557,62 +439,36 @@ def train(model, iterator, optimizer, criterion, clip):
         # output = [(trg len - 1) * batch size, output dim]
 
         loss = criterion(output, trg)
-
         loss.backward()
-
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
-
         optimizer.step()
-
         epoch_loss += loss.item()
 
     return epoch_loss / len(iterator)
 
 
-# Our evaluation loop is similar to our training loop, however as we aren't updating any parameters we don't need to pass an optimizer or a clip value.
-# 
-# We must remember to set the model to evaluation mode with `model.eval()`. This will turn off dropout (and batch normalization, if used).
-# 
-# We use the `with torch.no_grad()` block to ensure no gradients are calculated within the block. This reduces memory consumption and speeds things up. 
-# 
-# The iteration loop is similar (without the parameter updates), however we must ensure we turn teacher forcing off for evaluation. This will cause the model to only use it's own predictions to make further predictions within a sentence, which mirrors how it would be used in deployment.
-
-# In[23]:
-
-
 def evaluate(model, iterator, criterion):
     model.eval()
-
     epoch_loss = 0
 
     with torch.no_grad():
         for i, batch in enumerate(iterator):
             src = batch.src
             trg = batch.trg
-
             output = model(src, trg, 0)  # turn off teacher forcing
 
             # trg = [trg len, batch size]
             # output = [trg len, batch size, output dim]
 
             output_dim = output.shape[-1]
-
             output = output[1:].view(-1, output_dim)
             trg = trg[1:].view(-1)
 
             # trg = [(trg len - 1) * batch size]
             # output = [(trg len - 1) * batch size, output dim]
-
             loss = criterion(output, trg)
-
             epoch_loss += loss.item()
-
     return epoch_loss / len(iterator)
-
-
-# Next, we'll create a function that we'll use to tell us how long an epoch takes.
-
-# In[24]:
 
 
 def epoch_time(start_time, end_time):
@@ -620,15 +476,6 @@ def epoch_time(start_time, end_time):
     elapsed_mins = int(elapsed_time / 60)
     elapsed_secs = int(elapsed_time - (elapsed_mins * 60))
     return elapsed_mins, elapsed_secs
-
-
-# We can finally start training our model!
-# 
-# At each epoch, we'll be checking if our model has achieved the best validation loss so far. If it has, we'll update our best validation loss and save the parameters of our model (called `state_dict` in PyTorch). Then, when we come to test our model, we'll use the saved parameters used to achieve the best validation loss. 
-# 
-# We'll be printing out both the loss and the perplexity at each epoch. It is easier to see a change in perplexity than a change in loss as the numbers are much bigger.
-
-# In[26]:
 
 
 N_EPOCHS = 4
@@ -655,15 +502,7 @@ for epoch in range(N_EPOCHS):
     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
-# We'll load the parameters (`state_dict`) that gave our model the best validation loss and run it the model on the test set.
-
-# In[27]:
-
 
 model.load_state_dict(torch.load('tut1-model.pt'))
-
 test_loss = evaluate(model, test_iterator, criterion)
-
 print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
-
-# In the following notebook we'll implement a model that achieves improved test perplexity, but only uses a single layer in the encoder and the decoder.
