@@ -100,11 +100,7 @@ class Encoder(nn.Module):
 
     def forward(self, src):
         # src = [src len, batch size]
-
-        embedded = self.dropout(self.embedding(src))
-
-        # embedded = [src_len, batch size, emb dim]
-
+        embedded = self.dropout(self.embedding(src))  # embedded = [src_len, batch size, emb dim]
         outputs, (hidden, cell) = self.rnn(embedded)
 
         # outputs = [src len, batch size, hid dim * n directions]
