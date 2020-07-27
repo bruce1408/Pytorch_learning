@@ -182,7 +182,7 @@ class Seq2Seq(nn.Module):
         outputs = torch.zeros(trg_len, batch_size, trg_vocab_size).to(self.device)
 
         # last hidden state of the encoder is used as the initial hidden state of the decoder
-        hidden, cell = self.encoder(src)
+        hidden, cell = self.encoder(src)  # encoder作为context vector
 
         # first input to the decoder is the <sos> tokens
         input = trg[0, :]
@@ -190,7 +190,7 @@ class Seq2Seq(nn.Module):
         for t in range(1, trg_len):
             # insert input token embedding, previous hidden and previous cell states
             # receive output tensor (predictions) and new hidden and cell states
-            output, hidden, cell = self.decoder(input, hidden, cell)
+            output, hidden, cell = self.decoder(input, hidden, cell)  # 把encoder的输出cell 和 hidden作为初始
 
             # place predictions in a tensor holding predictions for each token
             outputs[t] = output
@@ -295,7 +295,7 @@ def epoch_time(start_time, end_time):
     return elapsed_mins, elapsed_secs
 
 
-N_EPOCHS = 4
+N_EPOCHS = 24
 CLIP = 1
 
 best_valid_loss = float('inf')
