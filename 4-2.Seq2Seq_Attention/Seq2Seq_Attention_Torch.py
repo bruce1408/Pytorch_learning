@@ -1,5 +1,6 @@
 # code by Tae Hwan Jung(Jeff Jung) @graykode
 # Reference : https://github.com/hunkim/PyTorchZeroToAll/blob/master/14_2_seq2seq_att.py
+# https://lilianweng.github.io/lil-log/2018/06/24/attention-attention.html
 import numpy as np
 import torch
 import torch.nn as nn
@@ -57,7 +58,7 @@ class Attention(nn.Module):
         enc_outputs, enc_hidden = self.enc_cell(enc_inputs, hidden)  # [seq, batch, hidden], [1, batch, hidden]
 
         trained_attn = []
-        hidden = enc_hidden
+        hidden = enc_hidden  # [1, 1, 128]
         n_step = len(dec_inputs)  # n_step = 5
         model = torch.empty([n_step, 1, n_class])  # 初始化model=[5, 1, 11]
 
@@ -66,6 +67,7 @@ class Attention(nn.Module):
             # hidden : [num_layers(=1) * num_directions(=1), batch_size(=1), n_hidden]
             dec_output, hidden = self.dec_cell(dec_inputs[i].unsqueeze(0), hidden)
             attn_weights = self.get_att_weight(dec_output, enc_outputs)  # attn_weights : [1, 1, n_step]
+            print('atten_weight is: ', attn_weights)
             trained_attn.append(attn_weights.squeeze().data.numpy())
 
             # matrix-matrix product of matrices [1,1,n_step] x [1,n_step,n_hidden] = [1,1,n_hidden]
@@ -78,11 +80,17 @@ class Attention(nn.Module):
         return model.transpose(0, 1).squeeze(0), trained_attn
 
     def get_att_weight(self, dec_output, enc_outputs):  # get attention weight one 'dec_output' with 'enc_outputs'
+        """
+        attention 机制，encode所有时刻的最后一层输出和当前时刻的decode输入进行一个计算
+        :param dec_output: 当前时刻的decode输入
+        :param enc_outputs: encode所有时刻的输出
+        :return:
+        """
         n_step = len(enc_outputs)
         attn_scores = torch.zeros(n_step)  # attn_scores : [n_step]
 
         for i in range(n_step):
-            attn_scores[i] = self.get_att_score(dec_output, enc_outputs[i])
+            attn_scores[i] = self.get_att_score(dec_output, enc_outputs[i])  # 点乘
 
         # Normalize scores to weights in range 0 to 1
         return F.softmax(attn_scores).view(1, 1, -1)
