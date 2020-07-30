@@ -121,5 +121,7 @@ def ResNet152():
 if __name__ == '__main__':
     model = ResNet50()
     print(model)
-    summary(model, (3, 224, 224))
-
+    if torch.cuda.is_available():
+        summary(model.cuda(), (3, 224, 224))
+    else:
+        summary(model, (3, 224, 224))

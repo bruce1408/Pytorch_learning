@@ -137,4 +137,7 @@ class Inception_v1(nn.Module):
 if __name__ == '__main__':
 
     net = Inception_v1(2)
-    summary(net, (3, 224, 224))
+    if torch.cuda.is_available():
+        summary(net.cuda(), (3, 224, 224))
+    else:
+        summary(net, (3, 224, 224))

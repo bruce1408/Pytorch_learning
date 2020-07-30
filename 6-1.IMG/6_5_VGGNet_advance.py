@@ -1,4 +1,3 @@
-
 """
 VGG in pytorch
 VGG-11/13/16/19 in Pytorch.
@@ -79,6 +78,3 @@ if __name__ == '__main__':
     net = vgg16_bn()
     print(net)
     summary(net, (3, 224, 224))
-
-
-
