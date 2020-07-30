@@ -6,9 +6,12 @@ from torchsummary import summary
 
 class VGGNet16(nn.Module):
     def __init__(self):
+        """
+        计算公式 (input_size - kernel_size + stride + padding * 2)/stride
+        """
         super(VGGNet16, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(3, 64, 3, 1, 1),
+            nn.Conv2d(3, 64, 3, 1, 1),  # [输入通道数,输出通道数,kernel_size, stride, padding]
             nn.ReLU(),
             nn.Conv2d(64, 64, 3, 1, 1),
             nn.ReLU(),
@@ -63,5 +66,8 @@ class VGGNet16(nn.Module):
 
 if __name__ == '__main__':
     net = VGGNet16()
-    summary(net, (3, 224, 224))
+    if torch.cuda.is_available():
+        summary(net.cuda(), (3, 224, 224))
+    else:
+        summary(net, (3, 224, 224))
 
