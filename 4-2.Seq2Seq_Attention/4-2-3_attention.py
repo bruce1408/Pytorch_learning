@@ -29,8 +29,6 @@
 # 
 # First we import all the required modules.
 
-# In[1]:
-
 
 import torch
 import torch.nn as nn
@@ -48,10 +46,6 @@ import math
 import time
 
 # Set the random seeds for reproducability.
-
-# In[2]:
-
-
 SEED = 1234
 
 random.seed(SEED)
@@ -61,8 +55,6 @@ torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 
 # Load the German and English spaCy models.
-
-# In[6]:
 
 
 spacy_de = spacy.load('de_core_news_sm')
@@ -84,9 +76,6 @@ def tokenize_en(text):
 
 
 # The fields remain the same as before.
-
-# In[8]:
-
 
 SRC = Field(tokenize=tokenize_de,
             init_token='<sos>',
@@ -151,7 +140,6 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 # 
 # As we want our model to look back over the whole of the source sentence we return `outputs`, the stacked forward and backward hidden states for every token in the source sentence. We also return `hidden`, which acts as our initial hidden state in the decoder.
 
-# In[13]:
 
 
 class Encoder(nn.Module):
@@ -220,8 +208,6 @@ class Encoder(nn.Module):
 # 
 # ![](assets/seq2seq9.png)
 
-# In[14]:
-
 
 class Attention(nn.Module):
     def __init__(self, enc_hid_dim, dec_hid_dim):
@@ -279,8 +265,6 @@ class Attention(nn.Module):
 # ![](assets/seq2seq10.png)
 # 
 # The green/teal blocks show the forward/backward encoder RNNs which output $H$, the red block shows the context vector, $z = h_T = \tanh(g(h^\rightarrow_T,h^\leftarrow_T)) = \tanh(g(z^\rightarrow, z^\leftarrow)) = s_0$, the blue block shows the decoder RNN which outputs $s_t$, the purple block shows the linear layer, $f$, which outputs $\hat{y}_{t+1}$ and the orange block shows the calculation of the weighted sum over $H$ by $a_t$ and outputs $w_t$. Not shown is the calculation of $a_t$.
-
-# In[15]:
 
 
 class Decoder(nn.Module):
@@ -373,8 +357,6 @@ class Decoder(nn.Module):
 #   - receiving a prediction, $\hat{y}_{t+1}$, and a new hidden state, $s_t$
 #   - we then decide if we are going to teacher force or not, setting the next input as appropriate
 
-# In[16]:
-
 
 class Seq2Seq(nn.Module):
     def __init__(self, encoder, decoder, device):
@@ -431,8 +413,6 @@ class Seq2Seq(nn.Module):
 # 
 # We initialise our parameters, encoder, decoder and seq2seq model (placing it on the GPU if we have one). 
 
-# In[17]:
-
 
 INPUT_DIM = len(SRC.vocab)
 OUTPUT_DIM = len(TRG.vocab)
@@ -452,8 +432,6 @@ model = Seq2Seq(enc, dec, device).to(device)
 
 # We use a simplified version of the weight initialization scheme used in the paper. Here, we will initialize all biases to zero and all weights from $\mathcal{N}(0, 0.01)$.
 
-# In[18]:
-
 
 def init_weights(m):
     for name, param in m.named_parameters():
@@ -464,11 +442,7 @@ def init_weights(m):
 
 
 model.apply(init_weights)
-
-
 # Calculate the number of parameters. We get an increase of almost 50% in the amount of parameters from the last model. 
-
-# In[19]:
 
 
 def count_parameters(model):
@@ -478,8 +452,6 @@ def count_parameters(model):
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
 # We create an optimizer.
-
-# In[20]:
 
 
 optimizer = optim.Adam(model.parameters())
@@ -495,8 +467,6 @@ criterion = nn.CrossEntropyLoss(ignore_index=TRG_PAD_IDX)
 
 
 # We then create the training loop...
-
-# In[22]:
 
 
 def train(model, iterator, optimizer, criterion, clip):
@@ -538,8 +508,6 @@ def train(model, iterator, optimizer, criterion, clip):
 
 # ...and the evaluation loop, remembering to set the model to `eval` mode and turn off teaching forcing.
 
-# In[23]:
-
 
 def evaluate(model, iterator, criterion):
     model.eval()
@@ -573,8 +541,6 @@ def evaluate(model, iterator, criterion):
 
 # Finally, define a timing function.
 
-# In[24]:
-
 
 def epoch_time(start_time, end_time):
     elapsed_time = end_time - start_time
@@ -584,9 +550,6 @@ def epoch_time(start_time, end_time):
 
 
 # Then, we train our model, saving the parameters that give us the best validation loss.
-
-# In[25]:
-
 
 N_EPOCHS = 10
 CLIP = 1
@@ -613,9 +576,6 @@ for epoch in range(N_EPOCHS):
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
 # Finally, we test the model on the test set using these "best" parameters.
-
-# In[26]:
-
 
 model.load_state_dict(torch.load('tut3-model.pt'))
 

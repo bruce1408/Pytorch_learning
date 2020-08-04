@@ -1,7 +1,4 @@
-
-
 # coding: utf-8
-
 # # 2 - Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation
 # 
 # In this second notebook on sequence-to-sequence models using PyTorch and TorchText, we'll be implementing the model from [Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation](https://arxiv.org/abs/1406.1078). This model will achieve improved test perplexity whilst only using a single layer RNN in both the encoder and the decoder.
@@ -28,28 +25,20 @@
 # 
 # We'll import PyTorch, TorchText, spaCy and a few standard modules.
 
-# In[1]:
-
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
 from torchtext.datasets import Multi30k
 from torchtext.data import Field, BucketIterator
-
 import spacy
 import numpy as np
-
 import random
 import math
 import time
-
-
-# Then set a random seed for deterministic results/reproducability.
-
-# In[2]:
-
+"""
+paper: Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation
+"""
 
 SEED = 1234
 
@@ -62,15 +51,11 @@ torch.backends.cudnn.deterministic = True
 
 # Instantiate our German and English spaCy models.
 
-# In[3]:
 
 spacy_de = spacy.load('de_core_news_sm')
 spacy_en = spacy.load('en_core_web_sm')
 
-
 # Previously we reversed the source (German) sentence, however in the paper we are implementing they don't do this, so neither will we.
-
-# In[4]:
 
 
 def tokenize_de(text):
@@ -78,6 +63,7 @@ def tokenize_de(text):
     Tokenizes German text from a string into a list of strings
     """
     return [tok.text for tok in spacy_de.tokenizer(text)]
+
 
 def tokenize_en(text):
     """
@@ -87,8 +73,6 @@ def tokenize_en(text):
 
 
 # Create our fields to process our data. This will append the "start of sentence" and "end of sentence" tokens as well as converting all words to lowercase.
-
-# In[5]:
 
 
 SRC = Field(tokenize=tokenize_de, 
