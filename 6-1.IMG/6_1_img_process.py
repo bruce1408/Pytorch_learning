@@ -6,7 +6,7 @@ from PIL import Image
 
 img_path = "/raid/bruce/datasets/dogs_cats/train/dog.9.jpg"
 
-# 引入transforms.ToTensor()功能： range [0, 255] -> [0.0,1.0]
+# 引入transforms.ToTensor()功能： range [0, 255] -> [0.0, 1.0]
 transform1 = transforms.Compose([transforms.ToTensor()])
 
 # 直接读取：numpy.ndarray

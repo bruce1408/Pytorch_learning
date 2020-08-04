@@ -9,9 +9,9 @@ from torchvision import transforms as T
 class DogCat(data.Dataset):
 
     def __init__(self, root, transforms=None, train=True, test=False):
-        '''
+        """
         主要目标： 获取所有图片的地址，并根据训练，验证，测试划分数据
-        '''
+        """
         self.test = test
         imgs = [os.path.join(root, img) for img in os.listdir(root)]
 

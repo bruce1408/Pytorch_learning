@@ -10,9 +10,9 @@ IMAGE_SIZE = 224
 
 # 图片处理
 dataTransform = transforms.Compose([
-    transforms.Resize(IMAGE_SIZE),
+    transforms.Resize(IMAGE_SIZE),  # 尺寸变化
     transforms.CenterCrop((IMAGE_SIZE, IMAGE_SIZE)),
-    transforms.ToTensor()
+    transforms.ToTensor()  # 归一化
 ])
 
 

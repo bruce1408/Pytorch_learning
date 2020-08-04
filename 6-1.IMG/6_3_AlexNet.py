@@ -9,6 +9,7 @@ https://pytorch.org/docs/stable/torchvision/models.html
 https://github.com/weiaicunzai/pytorch-cifar100/tree/master/models
 """
 
+
 class AlexNet(nn.Module):
     def __init__(self):
         super(AlexNet, self).__init__()
@@ -46,5 +47,7 @@ class AlexNet(nn.Module):
 
 if __name__ == '__main__':
     net = AlexNet()
-    summary(net, (3, 224, 224))
-
+    if torch.cuda.is_available():
+        summary(net.cuda(), (3, 224, 224))
+    else:
+        summary(net, (3, 224, 224))

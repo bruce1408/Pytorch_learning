@@ -13,6 +13,9 @@ import random
 import math
 import time
 import os
+"""
+paper: Sequence to Sequence Learning with Neural Networks
+"""
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 print(torch.__version__)
 
