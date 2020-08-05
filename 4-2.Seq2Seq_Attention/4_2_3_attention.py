@@ -141,7 +141,6 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 # As we want our model to look back over the whole of the source sentence we return `outputs`, the stacked forward and backward hidden states for every token in the source sentence. We also return `hidden`, which acts as our initial hidden state in the decoder.
 
 
-
 class Encoder(nn.Module):
     def __init__(self, input_dim, emb_dim, enc_hid_dim, dec_hid_dim, dropout):
         super().__init__()
@@ -434,6 +433,11 @@ model = Seq2Seq(enc, dec, device).to(device)
 
 
 def init_weights(m):
+    """
+    初始化参数权重
+    :param m:
+    :return:
+    """
     for name, param in m.named_parameters():
         if 'weight' in name:
             nn.init.normal_(param.data, mean=0, std=0.01)
@@ -446,34 +450,29 @@ model.apply(init_weights)
 
 
 def count_parameters(model):
+    """
+    计算总共有多少参数需要计算
+    :param model:
+    :return:
+    """
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
 # We create an optimizer.
-
-
 optimizer = optim.Adam(model.parameters())
 
 # We initialize the loss function.
-
-# In[21]:
-
-
 TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]
-
 criterion = nn.CrossEntropyLoss(ignore_index=TRG_PAD_IDX)
 
 
 # We then create the training loop...
-
-
 def train(model, iterator, optimizer, criterion, clip):
     model.train()
 
     epoch_loss = 0
-
     for i, batch in enumerate(iterator):
         src = batch.src
         trg = batch.trg
@@ -486,7 +485,6 @@ def train(model, iterator, optimizer, criterion, clip):
         # output = [trg len, batch size, output dim]
 
         output_dim = output.shape[-1]
-
         output = output[1:].view(-1, output_dim)
         trg = trg[1:].view(-1)
 

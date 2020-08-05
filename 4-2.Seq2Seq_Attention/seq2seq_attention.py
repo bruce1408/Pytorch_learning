@@ -14,7 +14,7 @@ class Encoder(nn.Module):
     def forward(self, src):
         embedded = self.dropout(self.embedding(src))  # 输入进行embedding
         outputs, hidden = self.rnn(embedded)
-        hidden = torch.cat((hidden[-2, :, :], hidden[-1, :, :]), dim=1)
+        hidden = torch.cat((hidden[-2, :, :], hidden[-1, :, :]), dim=1)  # hidden 进行合并
         hidden = self.fc(hidden)
         hidden = torch.tanh(hidden)
         return outputs, hidden
