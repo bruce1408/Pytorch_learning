@@ -36,11 +36,6 @@
 # Again, the preparation is similar to last time.
 # 
 # First we import all the required modules.
-
-<<<<<<< HEAD:4-1.Seq2Seq/3 - Neural Machine Translation by Jointly Learning to Align and Translate.py
-=======
-
->>>>>>> c9297119773951673fdf62ebf001afa120bcdde7:4-2.Seq2Seq_Attention/4-2-3_attention.py
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -57,10 +52,7 @@ import math
 import time
 
 # Set the random seeds for reproducability.
-<<<<<<< HEAD:4-1.Seq2Seq/3 - Neural Machine Translation by Jointly Learning to Align and Translate.py
 
-=======
->>>>>>> c9297119773951673fdf62ebf001afa120bcdde7:4-2.Seq2Seq_Attention/4-2-3_attention.py
 SEED = 1234
 random.seed(SEED)
 np.random.seed(SEED)
@@ -69,11 +61,6 @@ torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 
 # Load the German and English spaCy models.
-
-<<<<<<< HEAD:4-1.Seq2Seq/3 - Neural Machine Translation by Jointly Learning to Align and Translate.py
-=======
-
->>>>>>> c9297119773951673fdf62ebf001afa120bcdde7:4-2.Seq2Seq_Attention/4-2-3_attention.py
 spacy_de = spacy.load('de_core_news_sm')
 spacy_en = spacy.load('en_core_web_sm')
 
