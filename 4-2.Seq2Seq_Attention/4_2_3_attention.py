@@ -11,17 +11,25 @@
 # 
 # ![](assets/seq2seq1.png)
 # 
-# In the previous model, our architecture was set-up in a way to reduce "information compression" by explicitly passing the context vector, $z$, to the decoder at every time-step and by passing both the context vector and embedded input word, $d(y_t)$, along with the hidden state, $s_t$, to the linear layer, $f$, to make a prediction.
+# In the previous model, our architecture was set-up in a way to reduce "information compression" by explicitly
+# passing the context vector, $z$, to the decoder at every time-step and by passing both the context vector and
+# embedded input word, $d(y_t)$, along with the hidden state, $s_t$, to the linear layer, $f$, to make a prediction.
 # 
 # ![](assets/seq2seq7.png)
 # 
-# Even though we have reduced some of this compression, our context vector still needs to contain all of the information about the source sentence. The model implemented in this notebook avoids this compression by allowing the decoder to look at the entire source sentence (via its hidden states) at each decoding step! How does it do this? It uses *attention*. 
+# Even though we have reduced some of this compression, our context vector still needs to contain all of the
+# information about the source sentence. The model implemented in this notebook avoids this compression by allowing
+# the decoder to look at the entire source sentence (via its hidden states) at each decoding step! How does it do
+# this? It uses *attention*.
 # 
-# Attention works by first, calculating an attention vector, $a$, that is the length of the source sentence. The attention vector has the property that each element is between 0 and 1, and the entire vector sums to 1. We then calculate a weighted sum of our source sentence hidden states, $H$, to get a weighted source vector, $w$. 
+# Attention works by first, calculating an attention vector, $a$, that is the length of the source sentence. The
+# attention vector has the property that each element is between 0 and 1, and the entire vector sums to 1. We then
+# calculate a weighted sum of our source sentence hidden states, $H$, to get a weighted source vector, $w$.
 # 
 # $$w = \sum_{i}a_ih_i$$
 # 
-# We calculate a new weighted source vector every time-step when decoding, using it as input to our decoder RNN as well as the linear layer to make a prediction. We'll explain how to do all of this during the tutorial.
+# We calculate a new weighted source vector every time-step when decoding, using it as input to our decoder RNN as
+# well as the linear layer to make a prediction. We'll explain how to do all of this during the tutorial.
 # 
 # ## Preparing Data
 # 
@@ -29,7 +37,10 @@
 # 
 # First we import all the required modules.
 
+<<<<<<< HEAD:4-1.Seq2Seq/3 - Neural Machine Translation by Jointly Learning to Align and Translate.py
+=======
 
+>>>>>>> c9297119773951673fdf62ebf001afa120bcdde7:4-2.Seq2Seq_Attention/4-2-3_attention.py
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -46,8 +57,11 @@ import math
 import time
 
 # Set the random seeds for reproducability.
-SEED = 1234
+<<<<<<< HEAD:4-1.Seq2Seq/3 - Neural Machine Translation by Jointly Learning to Align and Translate.py
 
+=======
+>>>>>>> c9297119773951673fdf62ebf001afa120bcdde7:4-2.Seq2Seq_Attention/4-2-3_attention.py
+SEED = 1234
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
@@ -56,7 +70,10 @@ torch.backends.cudnn.deterministic = True
 
 # Load the German and English spaCy models.
 
+<<<<<<< HEAD:4-1.Seq2Seq/3 - Neural Machine Translation by Jointly Learning to Align and Translate.py
+=======
 
+>>>>>>> c9297119773951673fdf62ebf001afa120bcdde7:4-2.Seq2Seq_Attention/4-2-3_attention.py
 spacy_de = spacy.load('de_core_news_sm')
 spacy_en = spacy.load('en_core_web_sm')
 
@@ -88,8 +105,7 @@ TRG = Field(tokenize=tokenize_en,
             lower=True)
 
 # Load the data.
-train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'),
-                                                    fields=(SRC, TRG))
+train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'), fields=(SRC, TRG))
 
 # Build the vocabulary.
 SRC.build_vocab(train_data, min_freq=2)
@@ -111,7 +127,11 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 # 
 # ### Encoder
 # 
-# First, we'll build the encoder. Similar to the previous model, we only use a single layer GRU, however we now use a *bidirectional RNN*. With a bidirectional RNN, we have two RNNs in each layer. A *forward RNN* going over the embedded sentence from left to right (shown below in green), and a *backward RNN* going over the embedded sentence from right to left (teal). All we need to do in code is set `bidirectional = True` and then pass the embedded sentence to the RNN as before. 
+# First, we'll build the encoder. Similar to the previous model, we only use a single layer GRU, however we now use a
+# *bidirectional RNN*. With a bidirectional RNN, we have two RNNs in each layer. A *forward RNN* going over the
+# embedded sentence from left to right (shown below in green), and a *backward RNN* going over the embedded sentence
+# from right to left (teal). All we need to do in code is set `bidirectional = True` and then pass the embedded
+# sentence to the RNN as before.
 # 
 # ![](assets/seq2seq8.png)
 # 
@@ -122,23 +142,43 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 # h_t^\leftarrow &= \text{EncoderGRU}^\leftarrow(e(x_t^\leftarrow),h_{t-1}^\leftarrow)
 # \end{align*}$$
 # 
-# Where $x_0^\rightarrow = \text{<sos>}, x_1^\rightarrow = \text{guten}$ and $x_0^\leftarrow = \text{<eos>}, x_1^\leftarrow = \text{morgen}$.
+# Where $x_0^\rightarrow = \text{<sos>}, x_1^\rightarrow = \text{guten}$ and $x_0^\leftarrow = \text{<eos>},
+# x_1^\leftarrow = \text{morgen}$.
 # 
-# As before, we only pass an input (`embedded`) to the RNN, which tells PyTorch to initialize both the forward and backward initial hidden states ($h_0^\rightarrow$ and $h_0^\leftarrow$, respectively) to a tensor of all zeros. We'll also get two context vectors, one from the forward RNN after it has seen the final word in the sentence, $z^\rightarrow=h_T^\rightarrow$, and one from the backward RNN after it has seen the first word in the sentence, $z^\leftarrow=h_T^\leftarrow$.
+# As before, we only pass an input (`embedded`) to the RNN, which tells PyTorch to initialize both the forward and
+# backward initial hidden states ($h_0^\rightarrow$ and $h_0^\leftarrow$, respectively) to a tensor of all zeros.
+# We'll also get two context vectors, one from the forward RNN after it has seen the final word in the sentence,
+# $z^\rightarrow=h_T^\rightarrow$, and one from the backward RNN after it has seen the first word in the sentence,
+# $z^\leftarrow=h_T^\leftarrow$.
 # 
 # The RNN returns `outputs` and `hidden`. 
 # 
-# `outputs` is of size **[src len, batch size, hid dim * num directions]** where the first `hid_dim` elements in the third axis are the hidden states from the top layer forward RNN, and the last `hid_dim` elements are hidden states from the top layer backward RNN. We can think of the third axis as being the forward and backward hidden states concatenated together other, i.e. $h_1 = [h_1^\rightarrow; h_{T}^\leftarrow]$, $h_2 = [h_2^\rightarrow; h_{T-1}^\leftarrow]$ and we can denote all encoder hidden states (forward and backwards concatenated together) as $H=\{ h_1, h_2, ..., h_T\}$.
+# `outputs` is of size **[src len, batch size, hid dim * num directions]** where the first `hid_dim` elements in the
+# third axis are the hidden states from the top layer forward RNN, and the last `hid_dim` elements are hidden states
+# from the top layer backward RNN. We can think of the third axis as being the forward and backward hidden states
+# concatenated together other, i.e. $h_1 = [h_1^\rightarrow; h_{T}^\leftarrow]$, $h_2 = [h_2^\rightarrow; h_{
+# T-1}^\leftarrow]$ and we can denote all encoder hidden states (forward and backwards concatenated together) as
+# $H=\{ h_1, h_2, ..., h_T\}$.
 # 
-# `hidden` is of size **[n layers * num directions, batch size, hid dim]**, where **[-2, :, :]** gives the top layer forward RNN hidden state after the final time-step (i.e. after it has seen the last word in the sentence) and **[-1, :, :]** gives the top layer backward RNN hidden state after the final time-step (i.e. after it has seen the first word in the sentence).
+# `hidden` is of size **[n layers * num directions, batch size, hid dim]**, where **[-2, :, :]** gives the top layer
+# forward RNN hidden state after the final time-step (i.e. after it has seen the last word in the sentence) and **[
+# -1, :, :]** gives the top layer backward RNN hidden state after the final time-step (i.e. after it has seen the
+# first word in the sentence).
 # 
-# As the decoder is not bidirectional, it only needs a single context vector, $z$, to use as its initial hidden state, $s_0$, and we currently have two, a forward and a backward one ($z^\rightarrow=h_T^\rightarrow$ and $z^\leftarrow=h_T^\leftarrow$, respectively). We solve this by concatenating the two context vectors together, passing them through a linear layer, $g$, and applying the $\tanh$ activation function. 
+# As the decoder is not bidirectional, it only needs a single context vector, $z$, to use as its initial hidden
+# state, $s_0$, and we currently have two, a forward and a backward one ($z^\rightarrow=h_T^\rightarrow$ and
+# $z^\leftarrow=h_T^\leftarrow$, respectively). We solve this by concatenating the two context vectors together,
+# passing them through a linear layer, $g$, and applying the $\tanh$ activation function.
 # 
 # $$z=\tanh(g(h_T^\rightarrow, h_T^\leftarrow)) = \tanh(g(z^\rightarrow, z^\leftarrow)) = s_0$$
 # 
-# **Note**: this is actually a deviation from the paper. Instead, they feed only the first backward RNN hidden state through a linear layer to get the context vector/decoder initial hidden state. This doesn't seem to make sense to me, so we have changed it.
+# **Note**: this is actually a deviation from the paper. Instead, they feed only the first backward RNN hidden state
+# through a linear layer to get the context vector/decoder initial hidden state. This doesn't seem to make sense to
+# me, so we have changed it.
 # 
-# As we want our model to look back over the whole of the source sentence we return `outputs`, the stacked forward and backward hidden states for every token in the source sentence. We also return `hidden`, which acts as our initial hidden state in the decoder.
+# As we want our model to look back over the whole of the source sentence we return `outputs`, the stacked forward
+# and backward hidden states for every token in the source sentence. We also return `hidden`, which acts as our
+# initial hidden state in the decoder.
 
 
 class Encoder(nn.Module):
@@ -181,11 +221,19 @@ class Encoder(nn.Module):
 
 # ### Attention
 # 
-# Next up is the attention layer. This will take in the previous hidden state of the decoder, $s_{t-1}$, and all of the stacked forward and backward hidden states from the encoder, $H$. The layer will output an attention vector, $a_t$, that is the length of the source sentence, each element is between 0 and 1 and the entire vector sums to 1.
+# Next up is the attention layer. This will take in the previous hidden state of the decoder, $s_{t-1}$, and all of
+# the stacked forward and backward hidden states from the encoder, $H$. The layer will output an attention vector,
+# $a_t$, that is the length of the source sentence, each element is between 0 and 1 and the entire vector sums to 1.
 # 
-# Intuitively, this layer takes what we have decoded so far, $s_{t-1}$, and all of what we have encoded, $H$, to produce a vector, $a_t$, that represents which words in the source sentence we should pay the most attention to in order to correctly predict the next word to decode, $\hat{y}_{t+1}$. 
+# Intuitively, this layer takes what we have decoded so far, $s_{t-1}$, and all of what we have encoded, $H$,
+# to produce a vector, $a_t$, that represents which words in the source sentence we should pay the most attention to
+# in order to correctly predict the next word to decode, $\hat{y}_{t+1}$.
 # 
-# First, we calculate the *energy* between the previous decoder hidden state and the encoder hidden states. As our encoder hidden states are a sequence of $T$ tensors, and our previous decoder hidden state is a single tensor, the first thing we do is `repeat` the previous decoder hidden state $T$ times. We then calculate the energy, $E_t$, between them by concatenating them together and passing them through a linear layer (`attn`) and a $\tanh$ activation function. 
+# First, we calculate the *energy* between the previous decoder hidden state and the encoder hidden states. As our
+# encoder hidden states are a sequence of $T$ tensors, and our previous decoder hidden state is a single tensor,
+# the first thing we do is `repeat` the previous decoder hidden state $T$ times. We then calculate the energy, $E_t$,
+# between them by concatenating them together and passing them through a linear layer (`attn`) and a $\tanh$
+# activation function.
 # 
 # $$E_t = \tanh(\text{attn}(s_{t-1}, H))$$ 
 # 
