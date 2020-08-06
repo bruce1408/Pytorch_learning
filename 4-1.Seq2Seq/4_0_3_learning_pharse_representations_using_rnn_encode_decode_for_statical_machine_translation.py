@@ -70,6 +70,9 @@ spacy_en = spacy.load('en_core_web_sm')
 # so neither will we.
 
 
+# Previously we reversed the source (German) sentence, however in the paper we are implementing they don't do this, so neither will we.
+
+
 def tokenize_de(text):
     """
     Tokenizes German text from a string into a list of strings
@@ -99,6 +102,8 @@ TRG = Field(tokenize=tokenize_en,
             lower=True)
 
 # Load our data.
+
+
 train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'),
                                                     fields=(SRC, TRG))
 
@@ -111,7 +116,6 @@ SRC.build_vocab(train_data, min_freq=2)
 TRG.build_vocab(train_data, min_freq=2)
 
 # Finally, define the `device` and create our iterators.
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 BATCH_SIZE = 128
 
@@ -151,8 +155,6 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 # This is identical to the encoder of the general seq2seq model, with all the "magic" happening inside the GRU (green).
 # 
 # ![](assets/seq2seq5.png)
-
-# In[11]:
 
 
 class Encoder(nn.Module):
@@ -352,8 +354,6 @@ class Seq2Seq(nn.Module):
 # 
 # We initialise our encoder, decoder and seq2seq model (placing it on the GPU if we have one). As before, the embedding dimensions and the amount of dropout used can be different between the encoder and the decoder, but the hidden dimensions must remain the same.
 
-# In[14]:
-
 
 INPUT_DIM = len(SRC.vocab)
 OUTPUT_DIM = len(TRG.vocab)
@@ -375,8 +375,6 @@ model = Seq2Seq(enc, dec, device).to(device)
 # 
 # It also states we should initialize the recurrent parameters to a special initialization, however to keep things simple we'll also initialize them to $\mathcal{N}(0, 0.01)$.
 
-# In[15]:
-
 
 def init_weights(m):
     for name, param in m.named_parameters():
@@ -385,12 +383,12 @@ def init_weights(m):
 
 model.apply(init_weights)
 
-
 # We print out the number of parameters.
 # 
-# Even though we only have a single layer RNN for our encoder and decoder we actually have **more** parameters  than the last model. This is due to the increased size of the inputs to the GRU and the linear layer. However, it is not a significant amount of parameters and causes a minimal amount of increase in training time (~3 seconds per epoch extra).
-
-# In[16]:
+# Even though we only have a single layer RNN for our encoder and decoder we actually have **more** parameters  than
+# the last model. This is due to the increased size of the inputs to the GRU and the linear layer. However,
+# it is not a significant amount of parameters and causes a minimal amount of increase in training time (~3 seconds
+# per epoch extra).
 
 
 def count_parameters(model):
@@ -401,14 +399,10 @@ print(f'The model has {count_parameters(model):,} trainable parameters')
 
 # We initiaize our optimizer.
 
-# In[17]:
-
 
 optimizer = optim.Adam(model.parameters())
 
 # We also initialize the loss function, making sure to ignore the loss on `<pad>` tokens.
-
-# In[18]:
 
 
 TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]
@@ -417,8 +411,6 @@ criterion = nn.CrossEntropyLoss(ignore_index=TRG_PAD_IDX)
 
 
 # We then create the training loop...
-
-# In[19]:
 
 
 def train(model, iterator, optimizer, criterion, clip):
@@ -460,8 +452,6 @@ def train(model, iterator, optimizer, criterion, clip):
 
 # ...and the evaluation loop, remembering to set the model to `eval` mode and turn off teaching forcing.
 
-# In[20]:
-
 
 def evaluate(model, iterator, criterion):
     model.eval()
@@ -495,8 +485,6 @@ def evaluate(model, iterator, criterion):
 
 # We'll also define the function that calculates how long an epoch takes.
 
-# In[21]:
-
 
 def epoch_time(start_time, end_time):
     elapsed_time = end_time - start_time
@@ -506,8 +494,6 @@ def epoch_time(start_time, end_time):
 
 
 # Then, we train our model, saving the parameters that give us the best validation loss.
-
-# In[22]:
 
 
 N_EPOCHS = 10
@@ -536,8 +522,6 @@ for epoch in range(N_EPOCHS):
 
 # Finally, we test the model on the test set using these "best" parameters.
 
-# In[23]:
-
 
 model.load_state_dict(torch.load('tut2-model.pt'))
 
@@ -545,4 +529,6 @@ test_loss = evaluate(model, test_iterator, criterion)
 
 print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
 
-# Just looking at the test loss, we get better performance. This is a pretty good sign that this model architecture is doing something right! Relieving the information compression seems like the way forard, and in the next tutorial we'll expand on this even further with *attention*.
+# Just looking at the test loss, we get better performance. This is a pretty good sign that this model architecture
+# is doing something right! Relieving the information compression seems like the way forard, and in the next tutorial
+# we'll expand on this even further with *attention*.

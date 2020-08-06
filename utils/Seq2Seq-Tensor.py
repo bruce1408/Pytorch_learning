@@ -1,7 +1,7 @@
-'''
+"""
   code by Tae Hwan Jung(Jeff Jung) @graykode
   reference : https://github.com/golbin/TensorFlow-Tutorials/blob/master/10%20-%20RNN/03%20-%20Seq2Seq.py
-'''
+"""
 import tensorflow as tf
 import numpy as np
 
@@ -18,7 +18,8 @@ seq_data = [['man', 'women'], ['black', 'white'], ['king', 'queen'], ['girl', 'b
 # Seq2Seq Parameter
 n_step = 5
 n_hidden = 128
-n_class = len(num_dic) # number of class(=number of vocab)
+n_class = len(num_dic)  # number of class(=number of vocab)
+
 
 def make_batch(seq_data):
     input_batch, output_batch, target_batch = [], [], []
@@ -38,10 +39,12 @@ def make_batch(seq_data):
 
     return input_batch, output_batch, target_batch
 
+
 # Model
-enc_input = tf.placeholder(tf.float32, [None, None, n_class]) # [batch_size, max_len(=encoder_step), n_class]
-dec_input = tf.placeholder(tf.float32, [None, None, n_class]) # [batch_size, max_len+1(=decoder_step) (becase of 'S' or 'E'), n_class]
-targets = tf.placeholder(tf.int64, [None, None]) # [batch_size, max_len+1], not one-hot
+enc_input = tf.placeholder(tf.float32, [None, None, n_class])  # [batch_size, max_len(=encoder_step), n_class]
+dec_input = tf.placeholder(tf.float32, [None, None,
+                                        n_class])  # [batch_size, max_len+1(=decoder_step) (becase of 'S' or 'E'), n_class]
+targets = tf.placeholder(tf.int64, [None, None])  # [batch_size, max_len+1], not one-hot
 
 with tf.variable_scope('encode'):
     enc_cell = tf.nn.rnn_cell.BasicRNNCell(n_hidden)
@@ -55,7 +58,7 @@ with tf.variable_scope('decode'):
     outputs, _ = tf.nn.dynamic_rnn(dec_cell, dec_input, initial_state=enc_states, dtype=tf.float32)
     # outputs : [batch_size, max_len+1, n_hidden(=128)]
 
-model = tf.layers.dense(outputs, n_class, activation=None) # model : [batch_size, max_len+1, n_class]
+model = tf.layers.dense(outputs, n_class, activation=None)  # model : [batch_size, max_len+1, n_class]
 
 cost = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=model, labels=targets))
 optimizer = tf.train.AdamOptimizer(0.001).minimize(cost)
@@ -66,9 +69,11 @@ sess.run(tf.global_variables_initializer())
 input_batch, output_batch, target_batch = make_batch(seq_data)
 
 for epoch in range(5000):
-    _, loss = sess.run([optimizer, cost], feed_dict={enc_input: input_batch, dec_input: output_batch, targets: target_batch})
-    if (epoch + 1)%1000 == 0:
+    _, loss = sess.run([optimizer, cost],
+                       feed_dict={enc_input: input_batch, dec_input: output_batch, targets: target_batch})
+    if (epoch + 1) % 1000 == 0:
         print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.6f}'.format(loss))
+
 
 # Test
 def translate(word):
@@ -83,7 +88,8 @@ def translate(word):
     end = decoded.index('E')
     translated = ''.join(decoded[:end])
 
-    return translated.replace('P','')
+    return translated.replace('P', '')
+
 
 print('test')
 print('man ->', translate('man'))

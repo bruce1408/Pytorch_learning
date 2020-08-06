@@ -397,7 +397,8 @@ def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, 
             ni = topi[0][0]
 
             decoder_input = Variable(torch.LongTensor([[ni]]))  # Chosen word is next input
-            if USE_CUDA: decoder_input = decoder_input.cuda()
+            if USE_CUDA:
+                decoder_input = decoder_input.cuda()
 
             # Stop at end of sentence (not necessary when using known targets)
             if ni == EOS_token: break

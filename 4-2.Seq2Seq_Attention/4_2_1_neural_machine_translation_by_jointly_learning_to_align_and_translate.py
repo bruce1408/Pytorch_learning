@@ -36,11 +36,6 @@
 # Again, the preparation is similar to last time.
 # 
 # First we import all the required modules.
-
-<<<<<<< HEAD:4-1.Seq2Seq/3 - Neural Machine Translation by Jointly Learning to Align and Translate.py
-=======
-
->>>>>>> c9297119773951673fdf62ebf001afa120bcdde7:4-2.Seq2Seq_Attention/4-2-3_attention.py
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -57,10 +52,7 @@ import math
 import time
 
 # Set the random seeds for reproducability.
-<<<<<<< HEAD:4-1.Seq2Seq/3 - Neural Machine Translation by Jointly Learning to Align and Translate.py
 
-=======
->>>>>>> c9297119773951673fdf62ebf001afa120bcdde7:4-2.Seq2Seq_Attention/4-2-3_attention.py
 SEED = 1234
 random.seed(SEED)
 np.random.seed(SEED)
@@ -69,11 +61,6 @@ torch.cuda.manual_seed(SEED)
 torch.backends.cudnn.deterministic = True
 
 # Load the German and English spaCy models.
-
-<<<<<<< HEAD:4-1.Seq2Seq/3 - Neural Machine Translation by Jointly Learning to Align and Translate.py
-=======
-
->>>>>>> c9297119773951673fdf62ebf001afa120bcdde7:4-2.Seq2Seq_Attention/4-2-3_attention.py
 spacy_de = spacy.load('de_core_news_sm')
 spacy_en = spacy.load('en_core_web_sm')
 
@@ -181,7 +168,6 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 # initial hidden state in the decoder.
 
 
-
 class Encoder(nn.Module):
     def __init__(self, input_dim, emb_dim, enc_hid_dim, dec_hid_dim, dropout):
         super().__init__()
@@ -193,15 +179,13 @@ class Encoder(nn.Module):
 
     def forward(self, src):
         # src = [src len, batch size]
-
         embedded = self.dropout(self.embedding(src))
 
         # embedded = [src len, batch size, emb dim]
-
         outputs, hidden = self.rnn(embedded)
 
-        # outputs = [src len, batch size, hid dim * num directions]
-        # hidden = [n layers * num directions, batch size, hid dim]
+        # outputs = [src len, batch size, hid dim * num directions] = [23x128x1024]
+        # hidden = [n layers * num directions, batch size, hid dim] = [2x128x512]
 
         # hidden is stacked [forward_1, backward_1, forward_2, backward_2, ...]
         # outputs are always from the last layer
@@ -391,9 +375,14 @@ class Decoder(nn.Module):
 
 # ### Seq2Seq
 # 
-# This is the first model where we don't have to have the encoder RNN and decoder RNN have the same hidden dimensions, however the encoder has to be bidirectional. This requirement can be removed by changing all occurences of `enc_dim * 2` to `enc_dim * 2 if encoder_is_bidirectional else enc_dim`. 
-# 
-# This seq2seq encapsulator is similar to the last two. The only difference is that the `encoder` returns both the final hidden state (which is the final hidden state from both the forward and backward encoder RNNs passed through a linear layer) to be used as the initial hidden state for the decoder, as well as every hidden state (which are the forward and backward hidden states stacked on top of each other). We also need to ensure that `hidden` and `encoder_outputs` are passed to the decoder. 
+# This is the first model where we don't have to have the encoder RNN and decoder RNN have the same hidden dimensions,
+# however the encoder has to be bidirectional. This requirement can be removed by changing all occurences
+# of `enc_dim * 2` to `enc_dim * 2 if encoder_is_bidirectional else enc_dim`.
+# This seq2seq encapsulator is similar to the last two. The only difference is that the `encoder` returns
+# both the final hidden state (which is the final hidden state from both the forward and backward encoder
+# RNNs passed through a linear layer) to be used as the initial hidden state for the decoder, as well as every
+# hidden state (which are the forward and backward hidden states stacked on top of each other). We also need to
+# ensure that `hidden` and `encoder_outputs` are passed to the decoder.
 # 
 # Briefly going over all of the steps:
 # - the `outputs` tensor is created to hold all predictions, $\hat{Y}$
@@ -456,9 +445,7 @@ class Seq2Seq(nn.Module):
 
 
 # ## Training the Seq2Seq Model
-# 
 # The rest of this tutorial is very similar to the previous one.
-# 
 # We initialise our parameters, encoder, decoder and seq2seq model (placing it on the GPU if we have one). 
 
 
@@ -482,6 +469,11 @@ model = Seq2Seq(enc, dec, device).to(device)
 
 
 def init_weights(m):
+    """
+    初始化参数权重
+    :param m:
+    :return:
+    """
     for name, param in m.named_parameters():
         if 'weight' in name:
             nn.init.normal_(param.data, mean=0, std=0.01)
@@ -494,63 +486,49 @@ model.apply(init_weights)
 
 
 def count_parameters(model):
+    """
+    计算总共有多少参数需要计算
+    :param model:
+    :return:
+    """
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 
 print(f'The model has {count_parameters(model):,} trainable parameters')
 
 # We create an optimizer.
-
-
 optimizer = optim.Adam(model.parameters())
 
 # We initialize the loss function.
-
-# In[21]:
-
-
 TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]
-
 criterion = nn.CrossEntropyLoss(ignore_index=TRG_PAD_IDX)
 
 
 # We then create the training loop...
-
-
 def train(model, iterator, optimizer, criterion, clip):
     model.train()
 
     epoch_loss = 0
-
     for i, batch in enumerate(iterator):
         src = batch.src
         trg = batch.trg
-
         optimizer.zero_grad()
-
         output = model(src, trg)
 
         # trg = [trg len, batch size]
         # output = [trg len, batch size, output dim]
 
         output_dim = output.shape[-1]
-
         output = output[1:].view(-1, output_dim)
         trg = trg[1:].view(-1)
 
         # trg = [(trg len - 1) * batch size]
         # output = [(trg len - 1) * batch size, output dim]
-
         loss = criterion(output, trg)
-
         loss.backward()
-
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
-
         optimizer.step()
-
         epoch_loss += loss.item()
-
     return epoch_loss / len(iterator)
 
 
