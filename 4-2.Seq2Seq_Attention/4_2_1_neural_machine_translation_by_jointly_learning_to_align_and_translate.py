@@ -179,15 +179,13 @@ class Encoder(nn.Module):
 
     def forward(self, src):
         # src = [src len, batch size]
-
         embedded = self.dropout(self.embedding(src))
 
         # embedded = [src len, batch size, emb dim]
-
         outputs, hidden = self.rnn(embedded)
 
-        # outputs = [src len, batch size, hid dim * num directions]
-        # hidden = [n layers * num directions, batch size, hid dim]
+        # outputs = [src len, batch size, hid dim * num directions] = [23x128x1024]
+        # hidden = [n layers * num directions, batch size, hid dim] = [2x128x512]
 
         # hidden is stacked [forward_1, backward_1, forward_2, backward_2, ...]
         # outputs are always from the last layer
@@ -377,9 +375,14 @@ class Decoder(nn.Module):
 
 # ### Seq2Seq
 # 
-# This is the first model where we don't have to have the encoder RNN and decoder RNN have the same hidden dimensions, however the encoder has to be bidirectional. This requirement can be removed by changing all occurences of `enc_dim * 2` to `enc_dim * 2 if encoder_is_bidirectional else enc_dim`. 
-# 
-# This seq2seq encapsulator is similar to the last two. The only difference is that the `encoder` returns both the final hidden state (which is the final hidden state from both the forward and backward encoder RNNs passed through a linear layer) to be used as the initial hidden state for the decoder, as well as every hidden state (which are the forward and backward hidden states stacked on top of each other). We also need to ensure that `hidden` and `encoder_outputs` are passed to the decoder. 
+# This is the first model where we don't have to have the encoder RNN and decoder RNN have the same hidden dimensions,
+# however the encoder has to be bidirectional. This requirement can be removed by changing all occurences
+# of `enc_dim * 2` to `enc_dim * 2 if encoder_is_bidirectional else enc_dim`.
+# This seq2seq encapsulator is similar to the last two. The only difference is that the `encoder` returns
+# both the final hidden state (which is the final hidden state from both the forward and backward encoder
+# RNNs passed through a linear layer) to be used as the initial hidden state for the decoder, as well as every
+# hidden state (which are the forward and backward hidden states stacked on top of each other). We also need to
+# ensure that `hidden` and `encoder_outputs` are passed to the decoder.
 # 
 # Briefly going over all of the steps:
 # - the `outputs` tensor is created to hold all predictions, $\hat{Y}$
@@ -442,9 +445,7 @@ class Seq2Seq(nn.Module):
 
 
 # ## Training the Seq2Seq Model
-# 
 # The rest of this tutorial is very similar to the previous one.
-# 
 # We initialise our parameters, encoder, decoder and seq2seq model (placing it on the GPU if we have one). 
 
 
@@ -511,9 +512,7 @@ def train(model, iterator, optimizer, criterion, clip):
     for i, batch in enumerate(iterator):
         src = batch.src
         trg = batch.trg
-
         optimizer.zero_grad()
-
         output = model(src, trg)
 
         # trg = [trg len, batch size]
@@ -525,17 +524,11 @@ def train(model, iterator, optimizer, criterion, clip):
 
         # trg = [(trg len - 1) * batch size]
         # output = [(trg len - 1) * batch size, output dim]
-
         loss = criterion(output, trg)
-
         loss.backward()
-
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
-
         optimizer.step()
-
         epoch_loss += loss.item()
-
     return epoch_loss / len(iterator)
 
 

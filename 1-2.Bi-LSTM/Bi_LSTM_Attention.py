@@ -14,8 +14,8 @@ class BiLSTM_Attention(nn.Module):
 
     # lstm_output : [batch_size, n_step, n_hidden * num_directions(=2)], F matrix
     def attention_net(self, lstm_output, final_state):
-        hidden = final_state.view(-1, self.n_hidden * 2,
-                                  1)  # hidden : [batch_size, n_hidden * num_directions(=2), 1(=n_layer)]
+        # hidden : [batch_size, n_hidden * num_directions(=2), 1(=n_layer)]
+        hidden = final_state.view(-1, self.n_hidden * 2, 1)
         attn_weights = torch.bmm(lstm_output, hidden).squeeze(2)  # attn_weights : [batch_size, n_step]
         soft_attn_weights = F.softmax(attn_weights, 1)
         # [batch_size, n_hidden * num_directions(=2), n_step] * [batch_size, n_step, 1] =

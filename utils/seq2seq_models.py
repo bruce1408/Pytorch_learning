@@ -38,6 +38,7 @@ def str2tensor(msg, eos=False):
 # We need to use (1) batch and (2) data parallelism
 # http://pytorch.org/tutorials/beginner/former_torchies/parallelism_tutorial.html.
 
+
 class EncoderRNN(nn.Module):
 
     def __init__(self, input_size, hidden_size, n_layers=1):
