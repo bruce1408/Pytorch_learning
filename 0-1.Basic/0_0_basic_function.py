@@ -1,6 +1,19 @@
 import torch
 from torch import nn
+import numpy as np
+import random
+SEED = 1234
 
+
+def randomSeed(SEED):
+    np.random.seed(SEED)
+    random.seed(SEED)
+    torch.manual_seed(SEED)
+    torch.cuda.manual_seed(SEED)
+    torch.backends.cudnn.deterministic=True
+
+
+randomSeed(SEED)
 # hyper parameters
 in_dim = 1
 n_hidden_1 = 1
@@ -55,10 +68,14 @@ embeds = nn.Embedding(7, 5, padding_idx=0)
 hello_idx = torch.LongTensor([word_to_ix['hello']])
 hello_embed = embeds(hello_idx)
 print(hello_embed)
+print(hello_embed.shape)
+print(embeds(torch.LongTensor([1, 4, 3])))
+print(embeds(torch.LongTensor([[1, 4, 3], [2, 3, 1]])).shape)
 
-inputs = torch.randint(1, 7, (3, 3))
-print(embeds(inputs).shape)
-print(embeds(inputs))
+
+# inputs = torch.randint(1, 7, (3, 3))
+# print(embeds(inputs).shape)
+# print(embeds(inputs))
 
 """
 torch.mm  矩阵乘法
@@ -66,15 +83,13 @@ torch.bmm 三维矩阵乘法，第一维是batchsize
 torch.matmul 广播乘法
 torch.mul 对位相乘
 """
-import torch
-
-a = torch.tensor([[1, 2], [2, 3]])
-b = torch.tensor([[2, 3], [2, 3]])
-c = torch.mul(a, b)
-print(c)
-
-d = torch.mm(a, b)
-print(d)
-
-e = torch.matmul(a, b)
-print(e)
+# import torch
+#
+# a = torch.tensor([[1, 2], [2, 3]])
+# b = torch.tensor([[2, 3], [2, 3]])
+# c = torch.mul(a, b)
+# print(c)
+# d = torch.mm(a, b)
+# print(d)
+# e = torch.matmul(a, b)
+# print(e)
