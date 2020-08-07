@@ -1,7 +1,10 @@
 # coding: utf-8
 # # 2 - Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation
 # 
-# In this second notebook on sequence-to-sequence models using PyTorch and TorchText, we'll be implementing the model from [Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation](https://arxiv.org/abs/1406.1078). This model will achieve improved test perplexity whilst only using a single layer RNN in both the encoder and the decoder.
+# In this second notebook on sequence-to-sequence models using PyTorch and TorchText, we'll be implementing the model
+# from [Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation](
+# https://arxiv.org/abs/1406.1078). This model will achieve improved test perplexity whilst only using a single layer
+# RNN in both the encoder and the decoder.
 # 
 # ## Introduction
 # 
@@ -9,19 +12,28 @@
 # 
 # ![](assets/seq2seq1.png)
 # 
-# We use our encoder (green) over the embedded source sequence (yellow) to create a context vector (red). We then use that context vector with the decoder (blue) and a linear layer (purple) to generate the target sentence.
+# We use our encoder (green) over the embedded source sequence (yellow) to create a context vector (red). We then use
+# that context vector with the decoder (blue) and a linear layer (purple) to generate the target sentence.
 # 
 # In the previous model, we used an multi-layered LSTM as the encoder and decoder.
 # 
 # ![](assets/seq2seq4.png)
 # 
-# One downside of the previous model is that the decoder is trying to cram lots of information into the hidden states. Whilst decoding, the hidden state will need to contain information about the whole of the source sequence, as well as all of the tokens have been decoded so far. By alleviating some of this information compression, we can create a better model!
+# One downside of the previous model is that the decoder is trying to cram lots of information into the hidden
+# states. Whilst decoding, the hidden state will need to contain information about the whole of the source sequence,
+# as well as all of the tokens have been decoded so far. By alleviating some of this information compression,
+# we can create a better model!
 # 
-# We'll also be using a GRU (Gated Recurrent Unit) instead of an LSTM (Long Short-Term Memory). Why? Mainly because that's what they did in the paper (this paper also introduced GRUs) and also because we used LSTMs last time. To understand how GRUs (and LSTMs) differ from standard RNNS, check out [this](https://colah.github.io/posts/2015-08-Understanding-LSTMs/) link. Is a GRU better than an LSTM? [Research](https://arxiv.org/abs/1412.3555) has shown they're pretty much the same, and both are better than standard RNNs. 
+# We'll also be using a GRU (Gated Recurrent Unit) instead of an LSTM (Long Short-Term Memory). Why? Mainly because
+# that's what they did in the paper (this paper also introduced GRUs) and also because we used LSTMs last time. To
+# understand how GRUs (and LSTMs) differ from standard RNNS, check out [this](
+# https://colah.github.io/posts/2015-08-Understanding-LSTMs/) link. Is a GRU better than an LSTM? [Research](
+# https://arxiv.org/abs/1412.3555) has shown they're pretty much the same, and both are better than standard RNNs.
 # 
 # ## Preparing Data
 # 
-# All of the data preparation will be (almost) the same as last time, so we'll very briefly detail what each code block does. See the previous notebook for a recap.
+# All of the data preparation will be (almost) the same as last time, so we'll very briefly detail what each code
+# block does. See the previous notebook for a recap.
 # 
 # We'll import PyTorch, TorchText, spaCy and a few standard modules.
 
@@ -54,6 +66,8 @@ torch.backends.cudnn.deterministic = True
 
 spacy_de = spacy.load('de_core_news_sm')
 spacy_en = spacy.load('en_core_web_sm')
+# Previously we reversed the source (German) sentence, however in the paper we are implementing they don't do this,
+# so neither will we.
 
 
 # Previously we reversed the source (German) sentence, however in the paper we are implementing they don't do this, so neither will we.
@@ -73,7 +87,8 @@ def tokenize_en(text):
     return [tok.text for tok in spacy_en.tokenizer(text)]
 
 
-# Create our fields to process our data. This will append the "start of sentence" and "end of sentence" tokens as well as converting all words to lowercase.
+# Create our fields to process our data. This will append the "start of sentence" and "end of sentence" tokens as
+# well as converting all words to lowercase.
 
 
 SRC = Field(tokenize=tokenize_de,
@@ -88,14 +103,11 @@ TRG = Field(tokenize=tokenize_en,
 
 # Load our data.
 
-# In[6]:
-
 
 train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'),
                                                     fields=(SRC, TRG))
 
 # We'll also print out an example just to double check they're not reversed.
-
 print(vars(train_data.examples[0]))
 
 # Then create our vocabulary, converting all tokens appearing less than twice into `<unk>` tokens.
@@ -117,9 +129,12 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 # 
 # ### Encoder
 # 
-# The encoder is similar to the previous one, with the multi-layer LSTM swapped for a single-layer GRU. We also don't pass the dropout as an argument to the GRU as that dropout is used between each layer of a multi-layered RNN. As we only have a single layer, PyTorch will display a warning if we try and use pass a dropout value to it.
+# The encoder is similar to the previous one, with the multi-layer LSTM swapped for a single-layer GRU. We also don't
+# pass the dropout as an argument to the GRU as that dropout is used between each layer of a multi-layered RNN. As we
+# only have a single layer, PyTorch will display a warning if we try and use pass a dropout value to it.
 # 
-# Another thing to note about the GRU is that it only requires and returns a hidden state, there is no cell state like in the LSTM.
+# Another thing to note about the GRU is that it only requires and returns a hidden state, there is no cell state
+# like in the LSTM.
 # 
 # $$\begin{align*}
 # h_t &= \text{GRU}(e(x_t), h_{t-1})\\
@@ -127,9 +142,13 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 # h_t &= \text{RNN}(e(x_t), h_{t-1})
 # \end{align*}$$
 # 
-# From the equations above, it looks like the RNN and the GRU are identical. Inside the GRU, however, is a number of *gating mechanisms* that control the information flow in to and out of the hidden state (similar to an LSTM). Again, for more info, check out [this](https://colah.github.io/posts/2015-08-Understanding-LSTMs/) excellent post. 
+# From the equations above, it looks like the RNN and the GRU are identical. Inside the GRU, however, is a number of
+# *gating mechanisms* that control the information flow in to and out of the hidden state (similar to an LSTM).
+# Again, for more info, check out [this](https://colah.github.io/posts/2015-08-Understanding-LSTMs/) excellent post.
 # 
-# The rest of the encoder should be very familar from the last tutorial, it takes in a sequence, $X = \{x_1, x_2, ... , x_T\}$, passes it through the embedding layer, recurrently calculates hidden states, $H = \{h_1, h_2, ..., h_T\}$, and returns a context vector (the final hidden state), $z=h_T$.
+# The rest of the encoder should be very familar from the last tutorial, it takes in a sequence, $X = \{x_1, x_2,
+# ... , x_T\}$, passes it through the embedding layer, recurrently calculates hidden states, $H = \{h_1, h_2, ...,
+# h_T\}$, and returns a context vector (the final hidden state), $z=h_T$.
 # 
 # $$h_t = \text{EncoderGRU}(e(x_t), h_{t-1})$$
 # 
@@ -361,11 +380,15 @@ def init_weights(m):
     for name, param in m.named_parameters():
         nn.init.normal_(param.data, mean=0, std=0.01)
 
+
 model.apply(init_weights)
 
 # We print out the number of parameters.
 # 
-# Even though we only have a single layer RNN for our encoder and decoder we actually have **more** parameters  than the last model. This is due to the increased size of the inputs to the GRU and the linear layer. However, it is not a significant amount of parameters and causes a minimal amount of increase in training time (~3 seconds per epoch extra).
+# Even though we only have a single layer RNN for our encoder and decoder we actually have **more** parameters  than
+# the last model. This is due to the increased size of the inputs to the GRU and the linear layer. However,
+# it is not a significant amount of parameters and causes a minimal amount of increase in training time (~3 seconds
+# per epoch extra).
 
 
 def count_parameters(model):
@@ -506,4 +529,6 @@ test_loss = evaluate(model, test_iterator, criterion)
 
 print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
 
-# Just looking at the test loss, we get better performance. This is a pretty good sign that this model architecture is doing something right! Relieving the information compression seems like the way forard, and in the next tutorial we'll expand on this even further with *attention*.
+# Just looking at the test loss, we get better performance. This is a pretty good sign that this model architecture
+# is doing something right! Relieving the information compression seems like the way forard, and in the next tutorial
+# we'll expand on this even further with *attention*.
