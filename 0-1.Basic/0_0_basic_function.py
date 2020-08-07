@@ -93,3 +93,12 @@ torch.mul 对位相乘
 # print(d)
 # e = torch.matmul(a, b)
 # print(e)
+
+"""
+print 格式化输出
+"""
+import math
+print('{0:n}'.format(20.000))
+train_loss = 0.8797
+print(f'Train Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')  # 7 前面是空格
+print('Train loss: {:.3f} | train ppl: {:7.3f}'.format(train_loss, math.exp(train_loss)))

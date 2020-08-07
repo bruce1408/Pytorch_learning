@@ -577,7 +577,7 @@ def epoch_time(start_time, end_time):
 
 # Then, we train our model, saving the parameters that give us the best validation loss.
 
-N_EPOCHS = 10
+N_EPOCHS = 5
 CLIP = 1
 
 best_valid_loss = float('inf')
@@ -594,11 +594,12 @@ for epoch in range(N_EPOCHS):
     epoch_mins, epoch_secs = epoch_time(start_time, end_time)
 
     if valid_loss < best_valid_loss:
+        print('valid loss is: ', valid_loss)
         best_valid_loss = valid_loss
         torch.save(model.state_dict(), 'tut3-model.pt')
 
     print(f'Epoch: {epoch + 1:02} | Time: {epoch_mins}m {epoch_secs}s')
-    print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
+    print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}', end="")
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
 # Finally, we test the model on the test set using these "best" parameters.
