@@ -1,5 +1,4 @@
 import unicodedata
-import string
 import re
 import random
 import time
@@ -468,7 +467,8 @@ for epoch in range(1, n_epochs + 1):
     print_loss_total += loss
     plot_loss_total += loss
 
-    if epoch == 0: continue
+    if epoch == 0:
+        continue
 
     if epoch % print_every == 0:
         print_loss_avg = print_loss_total / print_every
