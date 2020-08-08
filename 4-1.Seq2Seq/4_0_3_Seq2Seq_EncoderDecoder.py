@@ -70,7 +70,8 @@ spacy_en = spacy.load('en_core_web_sm')
 # so neither will we.
 
 
-# Previously we reversed the source (German) sentence, however in the paper we are implementing they don't do this, so neither will we.
+# Previously we reversed the source (German) sentence, however in the paper we are implementing they don't do this,
+# so neither will we.
 
 
 def tokenize_de(text):
@@ -125,38 +126,6 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
     device=device)
 
 
-# ## Building the Seq2Seq Model
-# 
-# ### Encoder
-# 
-# The encoder is similar to the previous one, with the multi-layer LSTM swapped for a single-layer GRU. We also don't
-# pass the dropout as an argument to the GRU as that dropout is used between each layer of a multi-layered RNN. As we
-# only have a single layer, PyTorch will display a warning if we try and use pass a dropout value to it.
-# 
-# Another thing to note about the GRU is that it only requires and returns a hidden state, there is no cell state
-# like in the LSTM.
-# 
-# $$\begin{align*}
-# h_t &= \text{GRU}(e(x_t), h_{t-1})\\
-# (h_t, c_t) &= \text{LSTM}(e(x_t), h_{t-1}, c_{t-1})\\
-# h_t &= \text{RNN}(e(x_t), h_{t-1})
-# \end{align*}$$
-# 
-# From the equations above, it looks like the RNN and the GRU are identical. Inside the GRU, however, is a number of
-# *gating mechanisms* that control the information flow in to and out of the hidden state (similar to an LSTM).
-# Again, for more info, check out [this](https://colah.github.io/posts/2015-08-Understanding-LSTMs/) excellent post.
-# 
-# The rest of the encoder should be very familar from the last tutorial, it takes in a sequence, $X = \{x_1, x_2,
-# ... , x_T\}$, passes it through the embedding layer, recurrently calculates hidden states, $H = \{h_1, h_2, ...,
-# h_T\}$, and returns a context vector (the final hidden state), $z=h_T$.
-# 
-# $$h_t = \text{EncoderGRU}(e(x_t), h_{t-1})$$
-# 
-# This is identical to the encoder of the general seq2seq model, with all the "magic" happening inside the GRU (green).
-# 
-# ![](assets/seq2seq5.png)
-
-
 class Encoder(nn.Module):
     def __init__(self, input_dim, emb_dim, hid_dim, dropout):
         super().__init__()
@@ -184,37 +153,6 @@ class Encoder(nn.Module):
         # outputs are always from the top hidden layer
 
         return hidden
-
-
-# ## Decoder
-# 
-# The decoder is where the implementation differs significantly from the previous model and we alleviate some of the information compression.
-# 
-# Instead of the GRU in the decoder taking just the embedded target token, $d(y_t)$ and the previous hidden state $s_{t-1}$ as inputs, it also takes the context vector $z$. 
-# 
-# $$s_t = \text{DecoderGRU}(d(y_t), s_{t-1}, z)$$
-# 
-# Note how this context vector, $z$, does not have a $t$ subscript, meaning we re-use the same context vector returned by the encoder for every time-step in the decoder. 
-# 
-# Before, we predicted the next token, $\hat{y}_{t+1}$, with the linear layer, $f$, only using the top-layer decoder hidden state at that time-step, $s_t$, as $\hat{y}_{t+1}=f(s_t^L)$. Now, we also pass the embedding of current token, $d(y_t)$ and the context vector, $z$ to the linear layer.
-# 
-# $$\hat{y}_{t+1} = f(d(y_t), s_t, z)$$
-# 
-# Thus, our decoder now looks something like this:
-# 
-# ![](assets/seq2seq6.png)
-# 
-# Note, the initial hidden state, $s_0$, is still the context vector, $z$, so when generating the first token we are actually inputting two identical context vectors into the GRU.
-# 
-# How do these two changes reduce the information compression? Well, hypothetically the decoder hidden states, $s_t$, no longer need to contain information about the source sequence as it is always available as an input. Thus, it only needs to contain information about what tokens it has generated so far. The addition of $y_t$ to the linear layer also means this layer can directly see what the token is, without having to get this information from the hidden state. 
-# 
-# However, this hypothesis is just a hypothesis, it is impossible to determine how the model actually uses the information provided to it (don't listen to anyone that says differently). Nevertheless, it is a solid intuition and the results seem to indicate that this modifications are a good idea!
-# 
-# Within the implementation, we will pass $d(y_t)$ and $z$ to the GRU by concatenating them together, so the input dimensions to the GRU are now `emb_dim + hid_dim` (as context vector will be of size `hid_dim`). The linear layer will take $d(y_t), s_t$ and $z$ also by concatenating them together, hence the input dimensions are now `emb_dim + hid_dim*2`. We also don't pass a value of dropout to the GRU as it only uses a single layer.
-# 
-# `forward` now takes a `context` argument. Inside of `forward`, we concatenate $y_t$ and $z$ as `emb_con` before feeding to the GRU, and we concatenate $d(y_t)$, $s_t$ and $z$ together as `output` before feeding it through the linear layer to receive our predictions, $\hat{y}_{t+1}$.
-
-# In[12]:
 
 
 class Decoder(nn.Module):
@@ -280,19 +218,16 @@ class Decoder(nn.Module):
 # 
 # ![](assets/seq2seq7.png)
 # 
-# Again, in this implementation we need to ensure the hidden dimensions in both the encoder and the decoder are the same.
+# Again, in this implementation we need to ensure the hidden dimensions in both the encoder and the decoder are the
+# same.
 # 
-# Briefly going over all of the steps:
-# - the `outputs` tensor is created to hold all predictions, $\hat{Y}$
-# - the source sequence, $X$, is fed into the encoder to receive a `context` vector
-# - the initial decoder hidden state is set to be the `context` vector, $s_0 = z = h_T$
-# - we use a batch of `<sos>` tokens as the first `input`, $y_1$
-# - we then decode within a loop:
-#   - inserting the input token $y_t$, previous hidden state, $s_{t-1}$, and the context vector, $z$, into the decoder
-#   - receiving a prediction, $\hat{y}_{t+1}$, and a new hidden state, $s_t$
-#   - we then decide if we are going to teacher force or not, setting the next input as appropriate (either the ground truth next token in the target sequence or the highest predicted next token)
-
-# In[13]:
+# Briefly going over all of the steps: - the `outputs` tensor is created to hold all predictions, $\hat{Y}$ - the
+# source sequence, $X$, is fed into the encoder to receive a `context` vector - the initial decoder hidden state is
+# set to be the `context` vector, $s_0 = z = h_T$ - we use a batch of `<sos>` tokens as the first `input`,
+# $y_1$ - we then decode within a loop: - inserting the input token $y_t$, previous hidden state, $s_{t-1}$,
+# and the context vector, $z$, into the decoder - receiving a prediction, $\hat{y}_{t+1}$, and a new hidden state,
+# $s_t$ - we then decide if we are going to teacher force or not, setting the next input as appropriate (either the
+# ground truth next token in the target sequence or the highest predicted next token)
 
 
 class Seq2Seq(nn.Module):
@@ -348,13 +283,6 @@ class Seq2Seq(nn.Module):
         return outputs
 
 
-# # Training the Seq2Seq Model
-# 
-# The rest of this tutorial is very similar to the previous one. 
-# 
-# We initialise our encoder, decoder and seq2seq model (placing it on the GPU if we have one). As before, the embedding dimensions and the amount of dropout used can be different between the encoder and the decoder, but the hidden dimensions must remain the same.
-
-
 INPUT_DIM = len(SRC.vocab)
 OUTPUT_DIM = len(TRG.vocab)
 ENC_EMB_DIM = 256
@@ -371,9 +299,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = Seq2Seq(enc, dec, device).to(device)
 
 
-# Next, we initialize our parameters. The paper states the parameters are initialized from a normal distribution with a mean of 0 and a standard deviation of 0.01, i.e. $\mathcal{N}(0, 0.01)$. 
+# Next, we initialize our parameters. The paper states the parameters are initialized from a normal distribution with
+# a mean of 0 and a standard deviation of 0.01, i.e. $\mathcal{N}(0, 0.01)$.
 # 
-# It also states we should initialize the recurrent parameters to a special initialization, however to keep things simple we'll also initialize them to $\mathcal{N}(0, 0.01)$.
+# It also states we should initialize the recurrent parameters to a special initialization, however to keep things
+# simple we'll also initialize them to $\mathcal{N}(0, 0.01)$.
 
 
 def init_weights(m):
