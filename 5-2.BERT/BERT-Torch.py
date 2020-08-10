@@ -3,6 +3,9 @@
   Reference : https://github.com/jadore801120/attention-is-all-you-need-pytorch
               https://github.com/JayParks/transformer, https://github.com/dhlee347/pytorchic-bert
 """
+
+
+import os
 import math
 import re
 from random import *
@@ -12,6 +15,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2'
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
 # BERT Parameters
 maxlen = 30
 batch_size = 6
@@ -31,6 +37,7 @@ text = (
     'Oh Congratulations, Juliet\n'
     'Thanks you Romeo'
 )
+
 sentences = re.sub("[.,!?\\-]", '', text.lower()).split('\n')  # filter '.', ',', '?', '!'
 word_list = list(set(" ".join(sentences).split()))
 word_dict = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
@@ -146,14 +153,11 @@ class MultiHeadAttention(nn.Module):
         # q: [batch_size x len_q x d_model], k: [batch_size x len_k x d_model], v: [batch_size x len_k x d_model]
         residual, batch_size = Q, Q.size(0)
         # (B, S, D) -proj-> (B, S, D) -split-> (B, S, H, W) -trans-> (B, H, S, W)
-        q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1, 2)  # q_s:[batch_size x n_heads x len_q x d_k]
-        k_s = self.W_K(K).view(batch_size, -1, n_heads, d_k).transpose(1,
-                                                                       2)  # k_s: [batch_size x n_heads x len_k x d_k]
-        v_s = self.W_V(V).view(batch_size, -1, n_heads, d_v).transpose(1,
-                                                                       2)  # v_s: [batch_size x n_heads x len_k x d_v]
+        q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1,2)  # q_s: [batch_size x n_heads x len_q x d_k]
+        k_s = self.W_K(K).view(batch_size, -1, n_heads, d_k).transpose(1,2)  # k_s: [batch_size x n_heads x len_k x d_k]
+        v_s = self.W_V(V).view(batch_size, -1, n_heads, d_v).transpose(1,2)  # v_s: [batch_size x n_heads x len_k x d_v]
 
-        attn_mask = attn_mask.unsqueeze(1).repeat(1, n_heads, 1,
-                                                  1)  # attn_mask : [batch_size x n_heads x len_q x len_k]
+        attn_mask = attn_mask.unsqueeze(1).repeat(1, n_heads, 1,1)  # attn_mask : [batch_size x n_heads x len_q x len_k]
 
         # context: [batch_size x n_heads x len_q x d_v], attn: [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
         context, attn = ScaledDotProductAttention()(q_s, k_s, v_s, attn_mask)
@@ -251,9 +255,8 @@ input_ids, segment_ids, masked_tokens, masked_pos, isNext = batch[0]
 print(text)
 print([number_dict[w] for w in input_ids if number_dict[w] != '[PAD]'])
 
-logits_lm, logits_clsf = model(torch.LongTensor([input_ids]),
-                               torch.LongTensor([segment_ids]),
-                               torch.LongTensor([masked_pos]))
+logits_lm, logits_clsf = model(torch.LongTensor([input_ids]), \
+                               torch.LongTensor([segment_ids]), torch.LongTensor([masked_pos]))
 logits_lm = logits_lm.data.max(2)[1][0].data.numpy()
 print('masked tokens list : ', [pos for pos in masked_tokens if pos != 0])
 print('predict masked tokens list : ', [pos for pos in logits_lm if pos != 0])

@@ -105,7 +105,7 @@ print 格式化输出
 # print('Train loss: {:.3f} | train ppl: {:7.3f}'.format(train_loss, math.exp(train_loss)))
 
 """
-masked_fill
+masked_fill， 使用mask 技巧
 """
 import torch.nn.functional as F
 import numpy as np
@@ -154,4 +154,3 @@ tensor([[[          5,           5,           5,           5],
          [          2,           2,           2,           2],
          [          3,           3,           3,           3]]])
 """
-print(c)

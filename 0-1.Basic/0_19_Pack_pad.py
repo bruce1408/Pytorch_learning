@@ -21,12 +21,9 @@ seqs = ['ghatmasala', 'nicela', 'chutpakodas']  # length= [10, 6, 11]
 
 # make <pad> idx 0
 vocab = ['<pad>'] + sorted(list(set(flatten(seqs))))  # 词典列表
-
-# make model
 embedding_size = 3
 embed = nn.Embedding(len(vocab), embedding_size)
 lstm = nn.LSTM(embedding_size, 5)
-# convert sequence to vocab id vector
 vectorized_seqs = [[vocab.index(tok) for tok in seq] for seq in seqs]  # 字符串转化为index序列
 # vectorized_seqs [[5, 6, 1, 15, 10, 1, 14, 1, 9, 1], [11, 7, 2, 4, 9, 1], [2, 6, 16, 15, 13, 1, 8, 12, 3, 1, 14]]
 
@@ -35,32 +32,29 @@ seq_lengths = torch.LongTensor([x for x in map(len, vectorized_seqs)])  # 得到
 
 
 # dump padding everywhere, and place seqs on the left.
-# NOTE: you only need a tensor as big as your longest sequence
+# 对每个batch按照最长的lengths，然后进行对齐
 seq_tensor = torch.zeros((len(vectorized_seqs), seq_lengths.max()), dtype=torch.long)  # shape是[3 x 11]的零向量
 for idx, (seq, seqlen) in enumerate(zip(vectorized_seqs, seq_lengths)):
     seq_tensor[idx, :seqlen] = torch.LongTensor(seq)
 
-# SORT YOUR TENSORS BY LENGTH!
+# 按照batch中的长度，从长到短进行排序
 seq_lengths, perm_idx = seq_lengths.sort(0, descending=True)  # [11, 10, 6]
-seq_tensor = seq_tensor[perm_idx]  # 按照降序进行排列之后的长度值
+seq_tensor = seq_tensor[perm_idx]  # 按照降序进行排列之后的长度值 seq_tensor = [batch, seq_len]
 
 # utils.rnn lets you give (B,L,D) tensors where B is the batch size, L is the maxlength, if you use batch_first=True
 # Otherwise, give (L,B,D) tensors
 seq_tensor = seq_tensor.transpose(0, 1)  # (Batch_size, seq_Len, D)=[3 x 11] -> (seq_Len, Batch_size, D)=[11 x 3]
+# 等同于 seq_tensor.permute(1, 0)
 
-# embed your sequences 加入embedding
-embeded_seq_tensor = embed(seq_tensor)  # 11 x 3 x 3, 从这里开始进入pack_padded_sequence
-
-print('seq_lengths is: ', seq_lengths)
-# pack them up nicely (compress the data) 输入的是按照长度从长到短的序列和长度列表
-packed_input = pack_padded_sequence(embeded_seq_tensor, seq_lengths.cpu().numpy())  # seq_lenth需要从大到小排列才可以
-
+embeded_seq_tensor = embed(seq_tensor)  # 11 x 3 x 3, 从这里开始进入pack_padded_sequence，输入的是按照长度从长到短的序列和长度列表
+packed_input = pack_padded_sequence(embeded_seq_tensor, seq_lengths.cpu().numpy())  # seq_lengths需要从大到小排列才可以
 # throw them through your LSTM (remember to give batch_first=True here if you packed with it)
 packed_output, (ht, ct) = lstm(packed_input)  # packed_input 输入是 [27 x 3] 总共是27的有效长度, 输出是27x5
 # unpack your output if required  解压缩即可
 output, _ = pad_packed_sequence(packed_output)
 print("Lstm output\n", output.size())  # [seq_len, batch, hidden_dim] = [11 x 3 x 5]
-unpackout, (h, c) = lstm(embeded_seq_tensor)  # 不需要压缩直接进行lstm单元计算
-# Or if you just want the final hidden state?
 print("Last output \n", ht[-1].size())
 print("last hidden data is \n", ht[-1].data)
+# 不需要进行 pack_padded 运行结果
+unpackout, (h, c) = lstm(embeded_seq_tensor)  # 不需要压缩直接进行lstm单元计算
+
