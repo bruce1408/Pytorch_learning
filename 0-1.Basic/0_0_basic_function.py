@@ -2,6 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 import random
+
 SEED = 1234
 
 
@@ -10,7 +11,7 @@ def randomSeed(SEED):
     random.seed(SEED)
     torch.manual_seed(SEED)
     torch.cuda.manual_seed(SEED)
-    torch.backends.cudnn.deterministic=True
+    torch.backends.cudnn.deterministic = True
 
 
 randomSeed(SEED)
@@ -63,14 +64,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-word_to_ix = {'hello': 1, 'world': 2}
-embeds = nn.Embedding(7, 5, padding_idx=0)
-hello_idx = torch.LongTensor([word_to_ix['hello']])
-hello_embed = embeds(hello_idx)
-print(hello_embed)
-print(hello_embed.shape)
-print(embeds(torch.LongTensor([1, 4, 3])))
-print(embeds(torch.LongTensor([[1, 4, 3], [2, 3, 1]])).shape)
+# word_to_ix = {'hello': 1, 'world': 2}
+# embeds = nn.Embedding(7, 5, padding_idx=0)
+# hello_idx = torch.LongTensor([word_to_ix['hello']])
+# hello_embed = embeds(hello_idx)
+# print(hello_embed)
+# print(hello_embed.shape)
+# print(embeds(torch.LongTensor([1, 4, 3])))
+# print(embeds(torch.LongTensor([[1, 4, 3], [2, 3, 1]])).shape)
 
 
 # inputs = torch.randint(1, 7, (3, 3))
@@ -97,8 +98,60 @@ torch.mul 对位相乘
 """
 print 格式化输出
 """
-import math
-print('{0:n}'.format(20.000))
-train_loss = 0.8797
-print(f'Train Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')  # 7 前面是空格
-print('Train loss: {:.3f} | train ppl: {:7.3f}'.format(train_loss, math.exp(train_loss)))
+# import math
+# print('{0:n}'.format(20.000))
+# train_loss = 0.8797
+# print(f'Train Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')  # 7 前面是空格
+# print('Train loss: {:.3f} | train ppl: {:7.3f}'.format(train_loss, math.exp(train_loss)))
+
+"""
+masked_fill
+"""
+import torch.nn.functional as F
+import numpy as np
+
+a = torch.Tensor([1, 2, 3, 4])
+a = a.masked_fill(mask=torch.ByteTensor([1, 1, 0, 0]), value=-np.inf)
+print(a)
+b = F.softmax(a, dim=0)
+print(b)
+print(-np.inf)
+print("#############################################3")
+a = torch.tensor([[[5, 5, 5, 5], [6, 6, 6, 6], [7, 7, 7, 7]], [[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3]]])
+print(a)
+print(a.size())
+mask = torch.ByteTensor([[[0]], [[1]]])
+print(mask.size())
+b = a.masked_fill(mask, value=torch.tensor(-1e9))
+print(b)
+print(b.size())
+print("#############################################3")
+
+a = torch.tensor([[[5, 5, 5, 5], [6, 6, 6, 6], [7, 7, 7, 7]], [[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3]]])
+print(a)
+print(a.size())
+mask = torch.ByteTensor([[[1], [1], [0]], [[0], [1], [1]]])
+print(mask.size())
+b = a.masked_fill(mask, value=torch.tensor(-1e9))
+"""
+tensor b is:
+tensor([[[-1000000000, -1000000000, -1000000000, -1000000000],
+         [-1000000000, -1000000000, -1000000000, -1000000000],
+         [          7,           7,           7,           7]],
+
+        [[          1,           1,           1,           1],
+         [-1000000000, -1000000000, -1000000000, -1000000000],
+         [-1000000000, -1000000000, -1000000000, -1000000000]]])
+"""
+c = a.masked_fill(mask == 0, value=torch.tensor(-1e9))  # mask等于0的对应的行列元素赋值为value
+"""
+tensor c is:
+tensor([[[          5,           5,           5,           5],
+         [          6,           6,           6,           6],
+         [-1000000000, -1000000000, -1000000000, -1000000000]],
+
+        [[-1000000000, -1000000000, -1000000000, -1000000000],
+         [          2,           2,           2,           2],
+         [          3,           3,           3,           3]]])
+"""
+print(c)
