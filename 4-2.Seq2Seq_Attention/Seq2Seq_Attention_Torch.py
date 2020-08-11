@@ -31,7 +31,7 @@ def make_batch(sentences):
     :param sentences:
     :return:
     """
-    input_batch = [np.eye(n_class)[[word2index[n] for n in sentences[0].split()]]]
+    input_batch = [np.eye(n_class)[[word2index[n] for n in sentences[0].split()]]]  # input batch 单词的onehot编码结果
     output_batch = [np.eye(n_class)[[word2index[n] for n in sentences[1].split()]]]
     target_batch = [[word2index[n] for n in sentences[2].split()]]
     # make tensor
@@ -49,12 +49,12 @@ class Attention(nn.Module):
         self.out = nn.Linear(n_hidden * 2, n_class)
 
     def forward(self, enc_inputs, hidden, dec_inputs):
-        # [5, 1, 11]
-        enc_inputs = enc_inputs.transpose(0, 1)  # enc_inputs: [n_step(=n_step, time step), batch_size, n_class]
-        dec_inputs = dec_inputs.transpose(0, 1)  # dec_inputs: [n_step(=n_step, time step), batch_size, n_class]
-
-        # enc_outputs : [n_step, batch_size, num_directions(=1) * n_hidden], matrix F
-        # enc_hidden : [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
+        enc_inputs = enc_inputs.transpose(0, 1)  # enc_inputs: [seq_len, batch_size, n_class]=[5, 1, 11]
+        dec_inputs = dec_inputs.transpose(0, 1)  # dec_inputs: [seq_len, batch_size, n_class]=[5, 1, 11]
+        # enc_outputs = [5, 1, 128], enc_hidden = [1, 1, 128]
+        """
+        encoder 部分没有做任何处理,就是通过一个RNN网络出来.得到context vector.
+        """
         enc_outputs, enc_hidden = self.enc_cell(enc_inputs, hidden)  # [seq, batch, hidden], [1, batch, hidden]
 
         trained_attn = []
@@ -63,11 +63,12 @@ class Attention(nn.Module):
         model = torch.empty([n_step, 1, n_class])  # 初始化model=[5, 1, 11]
 
         for i in range(n_step):
-            # dec_output : [n_step(=1), batch_size(=1), num_directions(=1) * n_hidden]
-            # hidden : [num_layers(=1) * num_directions(=1), batch_size(=1), n_hidden]
+            # dec_output[1, 1, 128]
+            # hidden = [1, 1, 128]
             dec_output, hidden = self.dec_cell(dec_inputs[i].unsqueeze(0), hidden)
+
             attn_weights = self.get_att_weight(dec_output, enc_outputs)  # attn_weights : [1, 1, n_step]
-            print('atten_weight is: ', attn_weights)
+            # print('atten_weight is: ', attn_weights)
             trained_attn.append(attn_weights.squeeze().data.numpy())
 
             # matrix-matrix product of matrices [1,1,n_step] x [1,n_step,n_hidden] = [1,1,n_hidden]
@@ -82,8 +83,8 @@ class Attention(nn.Module):
     def get_att_weight(self, dec_output, enc_outputs):  # get attention weight one 'dec_output' with 'enc_outputs'
         """
         attention 机制，encode所有时刻的最后一层输出和当前时刻的decode输入进行一个计算
-        :param dec_output: 当前时刻的decode输入
-        :param enc_outputs: encode所有时刻的输出
+        :param dec_output: 当前时刻的decode输入 [1, 1, 128]
+        :param enc_outputs: encode所有时刻的输出 [5, 1, 128]
         :return:
         """
         n_step = len(enc_outputs)
@@ -96,14 +97,13 @@ class Attention(nn.Module):
         return F.softmax(attn_scores).view(1, 1, -1)
 
     def get_att_score(self, dec_output, enc_output):  # enc_outputs [batch_size, num_directions(=1) * n_hidden]
-        score = self.attn(enc_output)  # score : [batch_size, n_hidden]
+        score = self.attn(enc_output)  # score : [batch_size, n_hidden] = [1, 128]
         return torch.dot(dec_output.view(-1), score.view(-1))  # inner product make scalar value
 
 
 input_batch, output_batch, target_batch = make_batch(sentences)
 
-# hidden : [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
-hidden = torch.zeros(1, 1, n_hidden)
+hidden = torch.zeros(1, 1, n_hidden)  # [1, 1, 128]
 
 model = Attention()
 criterion = nn.CrossEntropyLoss()
@@ -112,6 +112,9 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 # Train
 for epoch in range(2000):
     optimizer.zero_grad()
+    # print(input_batch.shape)   # 1, 5, 11
+    # print(target_batch.shape)  # 1, 5
+    # print(output_batch.shape)  # 1, 5, 11
     output, _ = model(input_batch, hidden, output_batch)
 
     loss = criterion(output, target_batch.squeeze(0))

@@ -81,20 +81,25 @@ from torch.autograd import Variable
 """
 torch.mm  矩阵乘法
 torch.bmm 三维矩阵乘法，第一维是batchsize
-torch.matmul 广播乘法
-torch.mul 对位相乘
+torch.matmul 广播乘法,1维的话返回标量,2维的话返回矩阵乘法结果,其他情况比较复杂,具有广播功能
+torch.mul 对位相乘,两个矩阵的维度必须一致才可以
+torch.dot
 """
 # import torch
 #
-# a = torch.tensor([[1, 2], [2, 3]])
-# b = torch.tensor([[2, 3], [2, 3]])
-# c = torch.mul(a, b)
-# print(c)
-# d = torch.mm(a, b)
-# print(d)
-# e = torch.matmul(a, b)
-# print(e)
-
+a1 = torch.Tensor([1, 2, 3])
+a2 = torch.Tensor([1, 2, 3])
+a = torch.tensor([[1, 2], [2, 3]])
+b = torch.tensor([[2, 3], [2, 3]])
+c = torch.mul(a, b)
+print('对位相乘 mul is:\n', c)
+d = torch.mm(a, b)
+print("矩阵乘法 mm is:\n", d)
+e = torch.matmul(a, b)
+print("广播乘法 matmul is:\n", e)
+f = torch.dot(a1, a2)
+print('一维点乘 dot is:\n', f)
+print("="*50)
 """
 print 格式化输出
 """
