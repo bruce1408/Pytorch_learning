@@ -62,6 +62,12 @@ class Attention(nn.Module):
         n_step = len(dec_inputs)  # n_step = 5
         outputs = torch.empty([n_step, 1, n_class])  # 初始化model=[5, 1, 11]
 
+        """
+        decoder 部分首先对每个序列长度遍历,初始hidden为encoder_hidden,通过RNN网络得到 decoder_output 和 hidden,
+        decoder_output 和 encoder_outputs 进行点乘, 结果进行softmax归一化,得到 attention_weights,这个结果再和encoder_outputs
+        进行batch乘法,得到的是context vector, context 和 decoder_output cat合并操作后,通过一个线性层得到当前序列的输出.
+        
+        """
         for i in range(n_step):
             # dec_output[1, 1, 128], hidden = [1, 1, 128],hidden 初始化使用encoder_hidden
             dec_output, hidden = self.dec_cell(dec_inputs[i].unsqueeze(0), hidden)

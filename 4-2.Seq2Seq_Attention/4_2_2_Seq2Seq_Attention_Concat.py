@@ -2,39 +2,44 @@
 # coding: utf-8
 
 # # 3 - Neural Machine Translation by Jointly Learning to Align and Translate
-# 
-# In this third notebook on sequence-to-sequence models using PyTorch and TorchText, we'll be implementing the model from [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473). This model achives our best perplexity yet, ~27 compared to ~34 for the previous model.
-# 
-# ## Introduction
-# 
-# As a reminder, here is the general encoder-decoder model:
-# 
-# ![](assets/seq2seq1.png)
-# 
-# In the previous model, our architecture was set-up in a way to reduce "information compression" by explicitly
-# passing the context vector, $z$, to the decoder at every time-step and by passing both the context vector and
-# embedded input word, $d(y_t)$, along with the hidden state, $s_t$, to the linear layer, $f$, to make a prediction.
-# 
-# ![](assets/seq2seq7.png)
-# 
-# Even though we have reduced some of this compression, our context vector still needs to contain all of the
-# information about the source sentence. The model implemented in this notebook avoids this compression by allowing
-# the decoder to look at the entire source sentence (via its hidden states) at each decoding step! How does it do
-# this? It uses *attention*.
-# 
-# Attention works by first, calculating an attention vector, $a$, that is the length of the source sentence. The
-# attention vector has the property that each element is between 0 and 1, and the entire vector sums to 1. We then
-# calculate a weighted sum of our source sentence hidden states, $H$, to get a weighted source vector, $w$.
-# 
-# $$w = \sum_{i}a_ih_i$$
-# 
-# We calculate a new weighted source vector every time-step when decoding, using it as input to our decoder RNN as
-# well as the linear layer to make a prediction. We'll explain how to do all of this during the tutorial.
-# 
-# ## Preparing Data
-# 
-# Again, the preparation is similar to last time.
-# 
+"""
+In this third notebook on sequence-to-sequence models using PyTorch and TorchText,
+
+we'll be implementing the model from
+
+[Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473).
+
+This model achives our best perplexity yet, ~27 compared to ~34 for the previous model.
+
+## Introduction
+
+As a reminder, here is the general encoder-decoder model:
+
+In the previous model, our architecture was set-up in a way to reduce "information compression" by explicitly
+passing the context vector, z, to the decoder at every time-step and by passing both the context vector and
+embedded input word, d(y_t), along with the hidden state, s_t, to the linear layer, f, to make a prediction.
+
+
+Even though we have reduced some of this compression, our context vector still needs to contain all of the
+information about the source sentence. The model implemented in this notebook avoids this compression by allowing
+the decoder to look at the entire source sentence (via its hidden states) at each decoding step! How does it do
+this? It uses *attention*.
+
+Attention works by first, calculating an attention vector, a, that is the length of the source sentence. The
+attention vector has the property that each element is between 0 and 1, and the entire vector sums to 1. We then
+calculate a weighted sum of our source sentence hidden states, $H$, to get a weighted source vector, w.
+
+w = sum_{i} * a_ih_i
+
+We calculate a new weighted source vector every time-step when decoding, using it as input to our decoder RNN as
+well as the linear layer to make a prediction. We'll explain how to do all of this during the tutorial.
+
+## Preparing Data
+
+Again, the preparation is similar to last time.
+"""
+
+
 # First we import all the required modules.
 import torch
 import torch.nn as nn
@@ -112,6 +117,16 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 
 class Encoder(nn.Module):
     def __init__(self, input_dim, emb_dim, enc_hid_dim, dec_hid_dim, dropout):
+        """
+        Encoder部分比较简单,就是使用的是一个双向GRU,hidden得到是 前向hidden1, 后向hidden2 拼接的一个多个层的hidden
+        这里只选择最后一层的hidden,所以就是hidden[-1, :, :] 和 hidden[-2, :, :] 拼接之后再通过一个线性变换层得到的结果,这个结果再
+        进行tanh函数来变换得到的就是最后需要喂给decoder的hidden,也是最为decoder部分初始的hidden.
+        :param input_dim:
+        :param emb_dim:
+        :param enc_hid_dim:
+        :param dec_hid_dim:
+        :param dropout:
+        """
         super().__init__()
 
         self.embedding = nn.Embedding(input_dim, emb_dim)
@@ -160,7 +175,7 @@ class Attention(nn.Module):
         batch_size = encoder_outputs.shape[1]
         src_len = encoder_outputs.shape[0]
 
-        # repeat decoder hidden state src_len times
+        # repeat decoder hidden state src_len times -> [batch, src_len, dec_hid_dim]
         hidden = hidden.unsqueeze(1).repeat(1, src_len, 1)
 
         encoder_outputs = encoder_outputs.permute(1, 0, 2)
@@ -351,12 +366,12 @@ class Seq2Seq(nn.Module):
         encoder_outputs, hidden = self.encoder(src)
 
         # first input to the decoder is the <sos> tokens
-        input = trg[0, :]
+        decoder_input = trg[0, :]
 
         for t in range(1, trg_len):
             # insert input token embedding, previous hidden state and all encoder hidden states
             # receive output tensor (predictions) and new hidden state
-            output, hidden = self.decoder(input, hidden, encoder_outputs)
+            output, hidden = self.decoder(decoder_input, hidden, encoder_outputs)
 
             # place predictions in a tensor holding predictions for each token
             outputs[t] = output
@@ -369,7 +384,7 @@ class Seq2Seq(nn.Module):
 
             # if teacher forcing, use actual next token as next input
             # if not, use predicted token
-            input = trg[t] if teacher_force else top1
+            decoder_input = trg[t] if teacher_force else top1
 
         return outputs
 
