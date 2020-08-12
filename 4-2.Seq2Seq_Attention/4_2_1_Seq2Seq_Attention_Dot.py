@@ -15,14 +15,13 @@ dtype = torch.FloatTensor
 # P: Symbol that will fill in blank sequence if current batch data size is short than time steps
 sentences = ['ich mochte ein bier P', 'S i want a beer', 'i want a beer E']
 
+# Parameter
+n_hidden = 128
 word_list = " ".join(sentences).split()
 word_list = list(set(word_list))  # 去重
 word2index = {w: i for i, w in enumerate(word_list)}  # word2index
 index2word = {i: w for i, w in enumerate(word_list)}
 n_class = len(word2index)  # vocab list n_class = 11
-
-# Parameter
-n_hidden = 128
 
 
 def make_batch(sentences):
@@ -47,6 +46,7 @@ class Attention(nn.Module):
         # Linear for attention
         self.attn = nn.Linear(n_hidden, n_hidden)
         self.out = nn.Linear(n_hidden * 2, n_class)
+        self.softmax = nn.Softmax(dim=0)
 
     def forward(self, enc_inputs, hidden, dec_inputs):
         enc_inputs = enc_inputs.transpose(0, 1)  # enc_inputs: [seq_len, batch_size, n_class]=[5, 1, 11]
@@ -60,23 +60,38 @@ class Attention(nn.Module):
         trained_attn = []
         hidden = enc_hidden  # [1, 1, 128]
         n_step = len(dec_inputs)  # n_step = 5
-        model = torch.empty([n_step, 1, n_class])  # 初始化model=[5, 1, 11]
+        outputs = torch.empty([n_step, 1, n_class])  # 初始化model=[5, 1, 11]
 
+        """
+        decoder 部分首先对每个序列长度遍历,初始hidden为encoder_hidden,通过RNN网络得到 decoder_output 和 hidden,
+        decoder_output 和 encoder_outputs 进行点乘, 结果进行softmax归一化,得到 attention_weights,这个结果再和encoder_outputs
+        进行batch乘法,得到的是context vector, context 和 decoder_output cat合并操作后,通过一个线性层得到当前序列的输出.
+        
+        """
         for i in range(n_step):
             # dec_output[1, 1, 128] hidden = [1, 1, 128]
             dec_output, hidden = self.dec_cell(dec_inputs[i].unsqueeze(0), hidden)
             attn_weights = self.get_att_weight(dec_output, enc_outputs)  # attn_weights : [1, 1, n_step]
             # print('atten_weight is: ', attn_weights)
             trained_attn.append(attn_weights.squeeze().data.numpy())
+            # dec_output[1, 1, 128], hidden = [1, 1, 128],hidden 初始化使用encoder_hidden
+            dec_output, hidden = self.dec_cell(dec_inputs[i].unsqueeze(0), hidden)
 
-            # matrix-matrix product of matrices [1,1,n_step] x [1,n_step,n_hidden] = [1,1,n_hidden]
-            context = attn_weights.bmm(enc_outputs.transpose(0, 1))
-            dec_output = dec_output.squeeze(0)  # dec_output : [batch_size(=1), num_directions(=1) * n_hidden]
-            context = context.squeeze(1)  # [1, num_directions(=1) * n_hidden]
-            model[i] = self.out(torch.cat((dec_output, context), 1))
+            attn_weights = self.get_att_weight(dec_output, enc_outputs)  # attn_weights : [1, 1, 5]
 
-        # make model shape [n_step, n_class]
-        return model.transpose(0, 1).squeeze(0), trained_attn
+            # [1,1,5] x [1,5,128] = [1,1,128]
+            context = attn_weights.bmm(enc_outputs.transpose(0, 1))  # 得到的新context vector
+
+            context = context.squeeze(1)  # [1, num_directions(=1) * n_hidden] = [1, 128]
+
+            dec_output = dec_output.squeeze(0)  # dec_output :[1, 128]
+
+            outputs[i] = self.out(torch.cat((dec_output, context), 1))  # context vector 和 decoder_output 生成的输出
+
+            trained_attn.append(attn_weights.squeeze().data.numpy())
+
+        # model = [5, 11], trained_attn(list) = [5, 5]
+        return outputs.transpose(0, 1).squeeze(0), trained_attn
 
     def get_att_weight(self, dec_output, enc_outputs):  # get attention weight one 'dec_output' with 'enc_outputs'
         """
@@ -87,12 +102,15 @@ class Attention(nn.Module):
         """
         n_step = len(enc_outputs)
         attn_scores = torch.zeros(n_step)  # attn_scores : [n_step]
-
+        # 对当前时间步的decoder_output 和 enc_outputs 每一个元素分别点乘
         for i in range(n_step):
-            attn_scores[i] = self.get_att_score(dec_output, enc_outputs[i])  # 点乘
+            attn_scores[i] = self.get_att_score(dec_output, enc_outputs[i])  # decoder_output, encoder_outputs 点乘
 
-        # Normalize scores to weights in range 0 to 1
-        return F.softmax(attn_scores).view(1, 1, -1)
+        # Normalize scores to weights in range 0 to 1 归一化 attn_scores = [5]
+        # print('F is: ', F.softmax(attn_scores).view(1, 1, -1))
+        # print("S is", self.softmax(attn_scores).view(1, 1, -1))
+        # return F.softmax(attn_scores).view(1, 1, -1)
+        return self.softmax(attn_scores).view(1, 1, -1)
 
     def get_att_score(self, dec_output, enc_output):  # enc_outputs [batch_size, num_directions(=1) * n_hidden]
         score = self.attn(enc_output)  # score : [batch_size, n_hidden] = [1, 128]
@@ -104,19 +122,18 @@ input_batch, output_batch, target_batch = make_batch(sentences)
 hidden = torch.zeros(1, 1, n_hidden)  # [1, 1, 128]
 
 model = Attention()
+
 criterion = nn.CrossEntropyLoss()
+
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
-# Train
+# Train, input_batch=[1,5,11], target_batch=[1,5], output_batch=[1,5,11]
 for epoch in range(2000):
     optimizer.zero_grad()
-    # print(input_batch.shape)   # 1, 5, 11
-    # print(target_batch.shape)  # 1, 5
-    # print(output_batch.shape)  # 1, 5, 11
     output, _ = model(input_batch, hidden, output_batch)
 
     loss = criterion(output, target_batch.squeeze(0))
-    if (epoch + 1) % 400 == 0:
+    if (epoch + 1) % 100 == 0:
         print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.6f}'.format(loss))
 
     loss.backward()
@@ -136,4 +153,5 @@ ax = fig.add_subplot(1, 1, 1)
 ax.matshow(trained_attn, cmap='viridis')
 ax.set_xticklabels([''] + sentences[0].split(), fontdict={'fontsize': 14})
 ax.set_yticklabels([''] + sentences[2].split(), fontdict={'fontsize': 14})
+plt.savefig('./img.jpg')
 plt.show()

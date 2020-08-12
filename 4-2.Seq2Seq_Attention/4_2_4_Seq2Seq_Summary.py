@@ -290,6 +290,14 @@ class AttnDecoderRNN(nn.Module):
             self.attn = Attn(attn_model, hidden_size)
 
     def forward(self, word_input, last_context, last_hidden, encoder_outputs):
+        """
+
+        :param word_input: decoder_input
+        :param last_context: decoder_context
+        :param last_hidden: decoder_hidden
+        :param encoder_outputs: decoder_outputs
+        :return:
+        """
         # Note: we run this one step at a time
 
         # Get the embedding of the current input word (last output word)
