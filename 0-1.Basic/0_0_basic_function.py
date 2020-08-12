@@ -86,13 +86,12 @@ torch.mul 对位相乘,两个矩阵的维度必须一致才可以
 torch.dot
 """
 # import torch
-#
 a1 = torch.Tensor([1, 2, 3])
 a2 = torch.Tensor([1, 2, 3])
-a = torch.tensor([[1, 2], [2, 3]])
-b = torch.tensor([[2, 3], [2, 3]])
+a = torch.Tensor([[1, 2], [2, 3]])
+b = torch.Tensor([[2, 3], [2, 3]])
 c = torch.mul(a, b)
-print('对位相乘 mul is:\n', c)
+print('对位相乘, a 和 b 维度必须相同， mul is:\n', c)
 d = torch.mm(a, b)
 print("矩阵乘法 mm is:\n", d)
 e = torch.matmul(a, b)

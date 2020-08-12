@@ -51,10 +51,10 @@ class Attention(nn.Module):
     def forward(self, enc_inputs, hidden, dec_inputs):
         enc_inputs = enc_inputs.transpose(0, 1)  # enc_inputs: [seq_len, batch_size, n_class]=[5, 1, 11]
         dec_inputs = dec_inputs.transpose(0, 1)  # dec_inputs: [seq_len, batch_size, n_class]=[5, 1, 11]
-        # enc_outputs = [5, 1, 128], enc_hidden = [1, 1, 128]
         """
         encoder 部分没有做任何处理,就是通过一个RNN网络出来.得到context vector.
         """
+        # enc_outputs = [5, 1, 128], enc_hidden = [1, 1, 128]
         enc_outputs, enc_hidden = self.enc_cell(enc_inputs, hidden)  # [seq, batch, hidden], [1, batch, hidden]
 
         trained_attn = []
@@ -63,10 +63,8 @@ class Attention(nn.Module):
         model = torch.empty([n_step, 1, n_class])  # 初始化model=[5, 1, 11]
 
         for i in range(n_step):
-            # dec_output[1, 1, 128]
-            # hidden = [1, 1, 128]
+            # dec_output[1, 1, 128] hidden = [1, 1, 128]
             dec_output, hidden = self.dec_cell(dec_inputs[i].unsqueeze(0), hidden)
-
             attn_weights = self.get_att_weight(dec_output, enc_outputs)  # attn_weights : [1, 1, n_step]
             # print('atten_weight is: ', attn_weights)
             trained_attn.append(attn_weights.squeeze().data.numpy())
