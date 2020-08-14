@@ -39,7 +39,6 @@ well as the linear layer to make a prediction. We'll explain how to do all of th
 Again, the preparation is similar to last time.
 """
 
-
 # First we import all the required modules.
 import torch
 import torch.nn as nn
@@ -310,7 +309,7 @@ class Decoder(nn.Module):
         return prediction, hidden.squeeze(0)
 
 
-#### Seq2Seq
+# Seq2Seq
 """
 This is the first model where we don't have to have the encoder RNN and decoder RNN have the same hidden dimensions,
 
@@ -426,7 +425,9 @@ def init_weights(m):
 
 
 model.apply(init_weights)
-# Calculate the number of parameters. We get an increase of almost 50% in the amount of parameters from the last model. 
+
+
+# Calculate the number of parameters. We get an increase of almost 50% in the amount of parameters from the last model.
 
 
 def count_parameters(model):

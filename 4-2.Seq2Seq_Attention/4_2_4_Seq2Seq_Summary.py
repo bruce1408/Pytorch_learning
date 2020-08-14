@@ -19,7 +19,7 @@ clip = 5.0
 n_epochs = 50000
 plot_every = 200
 print_every = 1000
-attn_model = 'general'
+attn_model = 'concat'
 hidden_size = 500
 n_layers = 2
 dropout_p = 0.05
@@ -229,9 +229,9 @@ class EncoderRNN(nn.Module):
 #         return output, hidden, attn_weights
 
 
-class Attn(nn.Module):
+class Attention(nn.Module):
     def __init__(self, method, hidden_size, max_length=MAX_LENGTH):
-        super(Attn, self).__init__()
+        super(Attention, self).__init__()
 
         self.method = method
         self.hidden_size = hidden_size
@@ -241,7 +241,7 @@ class Attn(nn.Module):
 
         elif self.method == 'concat':
             self.attn = nn.Linear(self.hidden_size * 2, hidden_size)
-            self.other = nn.Parameter(torch.FloatTensor(1, hidden_size))
+            self.v = nn.Parameter(torch.FloatTensor(1, hidden_size))
 
     def forward(self, hidden, encoder_outputs):
         seq_len = len(encoder_outputs)
@@ -269,9 +269,9 @@ class Attn(nn.Module):
         return energy
 
 
-class AttnDecoderRNN(nn.Module):
+class DecoderRNN(nn.Module):
     def __init__(self, attn_model, hidden_size, output_size, n_layers=1, dropout_p=0.1):
-        super(AttnDecoderRNN, self).__init__()
+        super(DecoderRNN, self).__init__()
 
         # Keep parameters for reference
         self.attn_model = attn_model
@@ -287,11 +287,10 @@ class AttnDecoderRNN(nn.Module):
 
         # Choose attention model
         if attn_model != 'none':
-            self.attn = Attn(attn_model, hidden_size)
+            self.attn = Attention(attn_model, hidden_size)
 
     def forward(self, word_input, last_context, last_hidden, encoder_outputs):
         """
-
         :param word_input: decoder_input
         :param last_context: decoder_context
         :param last_hidden: decoder_hidden
@@ -439,7 +438,7 @@ def time_since(since, percent):
 
 # Initialize models
 encoder = EncoderRNN(input_lang.n_words, hidden_size, n_layers)
-decoder = AttnDecoderRNN(attn_model, hidden_size, output_lang.n_words, n_layers, dropout_p=dropout_p)
+decoder = DecoderRNN(attn_model, hidden_size, output_lang.n_words, n_layers, dropout_p=dropout_p)
 
 # Move models to GPU
 if USE_CUDA:
