@@ -101,6 +101,7 @@ train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'), fields=
 
 # Build the vocabulary.
 SRC.build_vocab(train_data, min_freq=2)
+
 TRG.build_vocab(train_data, min_freq=2)
 
 # Define the device.
