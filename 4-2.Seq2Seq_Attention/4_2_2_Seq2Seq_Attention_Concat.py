@@ -100,6 +100,7 @@ train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'), fields=
 
 # Build the vocabulary.
 SRC.build_vocab(train_data, min_freq=2)
+
 TRG.build_vocab(train_data, min_freq=2)
 
 # Define the device.
@@ -213,13 +214,12 @@ s_{t-1}, are then all passed into the decoder RNN, with $d(y_t)$ and w_t being c
 
 s_t = text{DecoderGRU}(d(y_t), w_t, s_{t-1})
 
-We then pass $d(y_t)$, $w_t$ and $s_t$ through the linear layer, $f$, to make a prediction of the next word 
+We then pass d(y_t), w_t and s_t through the linear layer, f, to make a prediction of the next word 
 
 in the target sentence, hat{y}_{t+1}. This is done by concatenating them all together.
 
 hat{y}_{t+1} = f(d(y_t), w_t, s_t), The image below shows decoding the first word in an example translation.
 
-![](assets/seq2seq10.png)
 
 The green/teal blocks show the forward/backward encoder RNNs which output $H$, the red block shows the 
 context vector, 
