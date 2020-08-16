@@ -248,7 +248,8 @@ class Attention(nn.Module):
 
         # Create variable to store attention energies
         attn_energies = torch.zeros(seq_len)  # B x 1 x S
-        if USE_CUDA: attn_energies = attn_energies.cuda()
+        if USE_CUDA:
+            attn_energies = attn_energies.cuda()
 
         # Calculate energies for each encoder output
         for i in range(seq_len):
@@ -258,12 +259,12 @@ class Attention(nn.Module):
         return F.softmax(attn_energies, dim=0).unsqueeze(0).unsqueeze(0)
 
     def score(self, hidden, encoder_output):
-        if self.method == 'dot':
+        if self.method == 'dot':  # ht * hs
             energy = torch.dot(hidden.view(-1), encoder_output.view(-1))
-        elif self.method == 'general':
+        elif self.method == 'general':  # ht * wa * hs
             energy = self.attn(encoder_output)
             energy = torch.dot(hidden.view(-1), energy.view(-1))
-        elif self.method == 'concat':
+        elif self.method == 'concat':  # wa * [ht, hs] 拼接结果
             energy = self.attn(torch.cat((hidden, encoder_output), 1))
             energy = torch.dot(self.v.view(-1), energy.view(-1))
         return energy
