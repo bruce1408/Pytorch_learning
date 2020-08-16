@@ -3,6 +3,7 @@ import torch.nn as nn
 from torchsummary import summary
 """
 实现pytorch ResNet50网络结构
+https://zhuanlan.zhihu.com/p/28124810
 """
 
 
