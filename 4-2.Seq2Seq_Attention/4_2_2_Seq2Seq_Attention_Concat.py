@@ -251,9 +251,16 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, input, hidden, encoder_outputs):
-        # input = [batch size]
-        # hidden = [batch size, dec hid dim] 第一个hidden 是 encoder 的 hidden
-        # encoder_outputs = [src len, batch size, enc hid dim * 2]
+        """
+        dot 计算的score是用当前的状态 hidden_t 计算当前的输出 yt, 而concat(Baha)的计算方式是使用上一个时刻的t来计算当前时刻的输出 yt
+        input = [batch size]
+        hidden = [batch size, dec hid dim] 第一个hidden 是 encoder 的 hidden
+        encoder_outputs = [src len, batch size, enc hid dim * 2]
+        :param input:
+        :param hidden:
+        :param encoder_outputs:
+        :return:
+        """
 
         input = input.unsqueeze(0)
 
