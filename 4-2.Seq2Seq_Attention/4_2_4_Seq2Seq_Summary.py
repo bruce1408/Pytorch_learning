@@ -304,6 +304,7 @@ class DecoderRNN(nn.Module):
 
         # Combine embedded input word and last context, run through RNN
         rnn_input = torch.cat((word_embedded, last_context.unsqueeze(0)), 2)
+
         rnn_output, hidden = self.gru(rnn_input, last_hidden)
 
         # Calculate attention from current RNN state and all encoder outputs; apply to encoder outputs

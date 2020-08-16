@@ -69,15 +69,11 @@ class Attention(nn.Module):
         
         """
         for i in range(n_step):
-            # dec_output[1, 1, 128] hidden = [1, 1, 128]
-            dec_output, hidden = self.dec_cell(dec_inputs[i].unsqueeze(0), hidden)
-            attn_weights = self.get_att_weight(dec_output, enc_outputs)  # attn_weights : [1, 1, n_step]
-            # print('atten_weight is: ', attn_weights)
-            trained_attn.append(attn_weights.squeeze().data.numpy())
-            # dec_output[1, 1, 128], hidden = [1, 1, 128],hidden 初始化使用encoder_hidden
+            # dec_output[1, 1, 128] hidden = [1, 1, 128], hidden = [1, 1, 128],hidden 初始化使用encoder_hidden
             dec_output, hidden = self.dec_cell(dec_inputs[i].unsqueeze(0), hidden)
 
-            attn_weights = self.get_att_weight(dec_output, enc_outputs)  # attn_weights : [1, 1, 5]
+            attn_weights = self.get_att_weight(dec_output, enc_outputs)  # attn_weights : [1, 1, n_step]
+            # print('atten_weight is: ', attn_weights)
 
             # [1,1,5] x [1,5,128] = [1,1,128]
             context = attn_weights.bmm(enc_outputs.transpose(0, 1))  # 得到的新context vector
