@@ -1,6 +1,6 @@
-import numpy as np
 import torch
 from torch import nn
+import numpy as np
 import torch.nn.functional as F
 
 
@@ -17,6 +17,7 @@ class EncoderRNN(nn.Module):
 
     def forward(self, input_seqs, input_lengths, hidden=None):
         """
+        没有加上pad_packed
         :param input_seqs:
             Variable of shape (num_step(T),batch_size(B)), sorted decreasingly by lengths(for packing)
         :param input:
@@ -27,11 +28,17 @@ class EncoderRNN(nn.Module):
             GRU outputs in shape (T,B,hidden_size(H))
             last hidden stat of RNN(i.e. last output for GRU)
         """
+
         embedded = self.embedding(input_seqs)
+
         packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lengths)
+
         outputs, hidden = self.gru(packed, hidden)
+
         outputs, output_lengths = torch.nn.utils.rnn.pad_packed_sequence(outputs)  # unpack (back to padded)
+
         outputs = outputs[:, :, :self.hidden_size] + outputs[:, :, self.hidden_size:]  # Sum bidirectional outputs
+
         return outputs, hidden
 
 
@@ -48,6 +55,7 @@ class DynamicEncoder(nn.Module):
 
     def forward(self, input_seqs, input_lens, hidden=None):
         """
+        增加了按照长度排序且使用pad_packed_sequence tricks
         forward procedure. **No need for inputs to be sorted**
         :param input_seqs: Variable of [T,B]
         :param hidden:
@@ -55,19 +63,33 @@ class DynamicEncoder(nn.Module):
         :return:
         """
         batch_size = input_seqs.size(1)
+
         embedded = self.embedding(input_seqs)
+
         embedded = embedded.transpose(0, 1)  # [B,T,E]
+
         sort_idx = np.argsort(-input_lens)
+
         unsort_idx = torch.LongTensor(np.argsort(sort_idx))
+
         input_lens = input_lens[sort_idx]
+
         sort_idx = torch.LongTensor(sort_idx)
+
         embedded = embedded[sort_idx].transpose(0, 1)  # [T,B,E]
+
         packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lens)
+
         outputs, hidden = self.gru(packed, hidden)
+
         outputs, _ = torch.nn.utils.rnn.pad_packed_sequence(outputs)
+
         outputs = outputs[:, :, :self.hidden_size] + outputs[:, :, self.hidden_size:]
+
         outputs = outputs.transpose(0, 1)[unsort_idx].transpose(0, 1).contiguous()
+
         hidden = hidden.transpose(0, 1)[unsort_idx].transpose(0, 1).contiguous()
+
         return outputs, hidden
 
 
@@ -92,10 +114,15 @@ class Attn(nn.Module):
         :return
             attention energies in shape (B,T)
         """
+
         max_len = encoder_outputs.size(0)
+
         this_batch_size = encoder_outputs.size(1)
+
         H = hidden.repeat(max_len, 1, 1).transpose(0, 1)
+
         encoder_outputs = encoder_outputs.transpose(0, 1)  # [B*T*H]
+
         attn_energies = self.score(H, encoder_outputs)  # compute attention score
 
         if src_len is not None:
@@ -108,9 +135,9 @@ class Attn(nn.Module):
         return F.softmax(attn_energies).unsqueeze(1)  # normalize with softmax
 
     def score(self, hidden, encoder_outputs):
-        energy = F.tanh(self.attn(torch.cat([hidden, encoder_outputs], 2)))  # [B*T*2H]->[B*T*H]
+        energy = F.tanh(self.attn(torch.cat([hidden, encoder_outputs], 2)))  # [B * T * 2H]->[B * T * H]
         energy = energy.transpose(2, 1)  # [B*H*T]
-        v = self.v.repeat(encoder_outputs.data.shape[0], 1).unsqueeze(1)  # [B*1*H]
+        v = self.v.repeat(encoder_outputs.data.shape[0], 1).unsqueeze(1)  # [B * 1 * H]
         energy = torch.bmm(v, energy)  # [B*1*T]
         return energy.squeeze(1)  # [B*T]
 
@@ -152,15 +179,22 @@ class BahdanauAttnDecoderRNN(nn.Module):
         """
         # Get the embedding of the current input word (last output word)
         word_embedded = self.embedding(word_input).view(1, word_input.size(0), -1)  # (1,B,V)
+
         word_embedded = self.dropout(word_embedded)
         # Calculate attention weights and apply to encoder outputs
+
         attn_weights = self.attn(last_hidden[-1], encoder_outputs)
+
         context = attn_weights.bmm(encoder_outputs.transpose(0, 1))  # (B,1,V)
+
         context = context.transpose(0, 1)  # (1,B,V)
+
         # Combine embedded input word and attended context, run through RNN
         rnn_input = torch.cat((word_embedded, context), 2)
+
         # rnn_input = self.attn_combine(rnn_input) # use it in case your size of rnn_input is different
         output, hidden = self.gru(rnn_input, last_hidden)
+
         output = output.squeeze(0)  # (1,B,V)->(B,V)
         # context = context.squeeze(0)
         # update: "context" input before final layer can be problematic.

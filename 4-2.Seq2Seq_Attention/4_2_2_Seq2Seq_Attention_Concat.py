@@ -251,9 +251,16 @@ class Decoder(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, input, hidden, encoder_outputs):
-        # input = [batch size]
-        # hidden = [batch size, dec hid dim]
-        # encoder_outputs = [src len, batch size, enc hid dim * 2]
+        """
+        dot 计算的score是用当前的状态 hidden_t 计算当前的输出 yt, 而concat(Baha)的计算方式是使用上一个时刻的t来计算当前时刻的输出 yt
+        input = [batch size]
+        hidden = [batch size, dec hid dim] 第一个hidden 是 encoder 的 hidden
+        encoder_outputs = [src len, batch size, enc hid dim * 2]
+        :param input:
+        :param hidden:
+        :param encoder_outputs:
+        :return:
+        """
 
         input = input.unsqueeze(0)
 
@@ -263,7 +270,7 @@ class Decoder(nn.Module):
 
         # embedded = [1, batch size, emb dim]
 
-        a = self.attention(hidden, encoder_outputs)
+        a = self.attention(hidden, encoder_outputs)  # 计算attention部分
 
         # a = [batch size, src len]
 
@@ -275,7 +282,7 @@ class Decoder(nn.Module):
 
         # encoder_outputs = [batch size, src len, enc hid dim * 2]
 
-        weighted = torch.bmm(a, encoder_outputs)
+        weighted = torch.bmm(a, encoder_outputs)  # 计算context vector = ati * hi (hi 表示 encoder_outputs)
 
         # weighted = [batch size, 1, enc hid dim * 2]
 
@@ -302,7 +309,7 @@ class Decoder(nn.Module):
         output = output.squeeze(0)
         weighted = weighted.squeeze(0)
 
-        prediction = self.fc_out(torch.cat((output, weighted, embedded), dim=1))
+        prediction = self.fc_out(torch.cat((output, weighted, embedded), dim=1))  # 添加一个全连接层去预测输出prediction
 
         # prediction = [batch size, output dim]
 
