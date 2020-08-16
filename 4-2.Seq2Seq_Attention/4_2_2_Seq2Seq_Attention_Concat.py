@@ -263,7 +263,7 @@ class Decoder(nn.Module):
 
         # embedded = [1, batch size, emb dim]
 
-        a = self.attention(hidden, encoder_outputs)
+        a = self.attention(hidden, encoder_outputs)  # 计算attention部分
 
         # a = [batch size, src len]
 
@@ -275,7 +275,7 @@ class Decoder(nn.Module):
 
         # encoder_outputs = [batch size, src len, enc hid dim * 2]
 
-        weighted = torch.bmm(a, encoder_outputs)
+        weighted = torch.bmm(a, encoder_outputs)  # 计算context vector = ati * hi (hi 表示 encoder_outputs)
 
         # weighted = [batch size, 1, enc hid dim * 2]
 
