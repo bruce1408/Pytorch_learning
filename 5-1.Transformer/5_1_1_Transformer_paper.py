@@ -264,9 +264,7 @@ class EncoderLayer(nn.Module):
 # ### Mutli Head Attention Layer
 # 
 # One of the key, novel concepts introduced by the Transformer paper is the *multi-head attention layer*. 
-# 
-# ![](assets/transformer-attention.png)
-# 
+#
 # Attention can be though of as *queries*, *keys* and *values* - where the query is used with the key to get an
 # attention vector (usually the output of a *softmax* operation and has all values between 0 and 1 which sum to 1)
 # which is then used to get a weighted sum of the values.
@@ -399,8 +397,6 @@ class MultiHeadAttentionLayer(nn.Module):
 # 
 # BERT uses the [GELU](https://arxiv.org/abs/1606.08415) activation function, which can be used by simply switching
 # `torch.relu` for `F.gelu`. Why did they use GELU? Again, it is never explained.
-
-# In[13]:
 
 
 class PositionwiseFeedforwardLayer(nn.Module):
