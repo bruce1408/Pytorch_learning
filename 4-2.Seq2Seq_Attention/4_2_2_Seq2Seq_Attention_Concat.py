@@ -252,7 +252,7 @@ class Decoder(nn.Module):
 
     def forward(self, input, hidden, encoder_outputs):
         # input = [batch size]
-        # hidden = [batch size, dec hid dim]
+        # hidden = [batch size, dec hid dim] 第一个hidden 是 encoder 的 hidden
         # encoder_outputs = [src len, batch size, enc hid dim * 2]
 
         input = input.unsqueeze(0)
@@ -302,7 +302,7 @@ class Decoder(nn.Module):
         output = output.squeeze(0)
         weighted = weighted.squeeze(0)
 
-        prediction = self.fc_out(torch.cat((output, weighted, embedded), dim=1))
+        prediction = self.fc_out(torch.cat((output, weighted, embedded), dim=1))  # 添加一个全连接层去预测输出prediction
 
         # prediction = [batch size, output dim]
 
