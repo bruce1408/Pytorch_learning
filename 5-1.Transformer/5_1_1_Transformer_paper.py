@@ -112,7 +112,6 @@ TRG = Field(tokenize=tokenize_en,
 train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'),
                                                     fields=(SRC, TRG))
 
-
 SRC.build_vocab(train_data, min_freq=2)
 TRG.build_vocab(train_data, min_freq=2)
 
@@ -121,13 +120,11 @@ TRG.build_vocab(train_data, min_freq=2)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
 BATCH_SIZE = 128
 
-train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
-    (train_data, valid_data, test_data),
-    batch_size=BATCH_SIZE,
-    device=device)
+train_iterator, valid_iterator, test_iterator = BucketIterator.splits((train_data, valid_data, test_data),
+                                                                      batch_size=BATCH_SIZE,
+                                                                      device=device)
 
 
 # ## Building the Model
@@ -176,15 +173,7 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 
 
 class Encoder(nn.Module):
-    def __init__(self,
-                 input_dim,
-                 hid_dim,
-                 n_layers,
-                 n_heads,
-                 pf_dim,
-                 dropout,
-                 device,
-                 max_length=100):
+    def __init__(self, input_dim, hid_dim, n_layers, n_heads, pf_dim, dropout, device, max_length=100):
         super().__init__()
 
         self.device = device
@@ -192,12 +181,7 @@ class Encoder(nn.Module):
         self.tok_embedding = nn.Embedding(input_dim, hid_dim)
         self.pos_embedding = nn.Embedding(max_length, hid_dim)
 
-        self.layers = nn.ModuleList([EncoderLayer(hid_dim,
-                                                  n_heads,
-                                                  pf_dim,
-                                                  dropout,
-                                                  device)
-                                     for _ in range(n_layers)])
+        self.layers = nn.ModuleList([EncoderLayer(hid_dim, n_heads, pf_dim, dropout, device) for _ in range(n_layers)])
 
         self.dropout = nn.Dropout(dropout)
 
@@ -245,20 +229,13 @@ class Encoder(nn.Module):
 
 
 class EncoderLayer(nn.Module):
-    def __init__(self,
-                 hid_dim,
-                 n_heads,
-                 pf_dim,
-                 dropout,
-                 device):
+    def __init__(self, hid_dim, n_heads, pf_dim, dropout, device):
         super().__init__()
 
         self.self_attn_layer_norm = nn.LayerNorm(hid_dim)
         self.ff_layer_norm = nn.LayerNorm(hid_dim)
         self.self_attention = MultiHeadAttentionLayer(hid_dim, n_heads, dropout, device)
-        self.positionwise_feedforward = PositionwiseFeedforwardLayer(hid_dim,
-                                                                     pf_dim,
-                                                                     dropout)
+        self.positionwise_feedforward = PositionwiseFeedforwardLayer(hid_dim, pf_dim, dropout)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, src, src_mask):
@@ -487,14 +464,7 @@ class PositionwiseFeedforwardLayer(nn.Module):
 
 class Decoder(nn.Module):
     def __init__(self,
-                 output_dim,
-                 hid_dim,
-                 n_layers,
-                 n_heads,
-                 pf_dim,
-                 dropout,
-                 device,
-                 max_length=100):
+                 output_dim, hid_dim, n_layers, n_heads, pf_dim, dropout, device, max_length=100):
         super().__init__()
 
         self.device = device
@@ -502,12 +472,7 @@ class Decoder(nn.Module):
         self.tok_embedding = nn.Embedding(output_dim, hid_dim)
         self.pos_embedding = nn.Embedding(max_length, hid_dim)
 
-        self.layers = nn.ModuleList([DecoderLayer(hid_dim,
-                                                  n_heads,
-                                                  pf_dim,
-                                                  dropout,
-                                                  device)
-                                     for _ in range(n_layers)])
+        self.layers = nn.ModuleList([DecoderLayer(hid_dim, n_heads, pf_dim, dropout, device) for _ in range(n_layers)])
 
         self.fc_out = nn.Linear(hid_dim, output_dim)
 
@@ -570,12 +535,7 @@ class Decoder(nn.Module):
 
 
 class DecoderLayer(nn.Module):
-    def __init__(self,
-                 hid_dim,
-                 n_heads,
-                 pf_dim,
-                 dropout,
-                 device):
+    def __init__(self, hid_dim, n_heads, pf_dim, dropout, device):
         super().__init__()
 
         self.self_attn_layer_norm = nn.LayerNorm(hid_dim)
@@ -583,9 +543,7 @@ class DecoderLayer(nn.Module):
         self.ff_layer_norm = nn.LayerNorm(hid_dim)
         self.self_attention = MultiHeadAttentionLayer(hid_dim, n_heads, dropout, device)
         self.encoder_attention = MultiHeadAttentionLayer(hid_dim, n_heads, dropout, device)
-        self.positionwise_feedforward = PositionwiseFeedforwardLayer(hid_dim,
-                                                                     pf_dim,
-                                                                     dropout)
+        self.positionwise_feedforward = PositionwiseFeedforwardLayer(hid_dim, pf_dim, dropout)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, trg, enc_src, trg_mask, src_mask):
@@ -666,12 +624,7 @@ class DecoderLayer(nn.Module):
 
 
 class Seq2Seq(nn.Module):
-    def __init__(self,
-                 encoder,
-                 decoder,
-                 src_pad_idx,
-                 trg_pad_idx,
-                 device):
+    def __init__(self, encoder, decoder, src_pad_idx, trg_pad_idx, device):
         super().__init__()
 
         self.encoder = encoder
@@ -748,21 +701,9 @@ DEC_PF_DIM = 512
 ENC_DROPOUT = 0.1
 DEC_DROPOUT = 0.1
 
-enc = Encoder(INPUT_DIM,
-              HID_DIM,
-              ENC_LAYERS,
-              ENC_HEADS,
-              ENC_PF_DIM,
-              ENC_DROPOUT,
-              device)
+enc = Encoder(INPUT_DIM, HID_DIM, ENC_LAYERS, ENC_HEADS, ENC_PF_DIM, ENC_DROPOUT, device)
 
-dec = Decoder(OUTPUT_DIM,
-              HID_DIM,
-              DEC_LAYERS,
-              DEC_HEADS,
-              DEC_PF_DIM,
-              DEC_DROPOUT,
-              device)
+dec = Decoder(OUTPUT_DIM, HID_DIM, DEC_LAYERS, DEC_HEADS, DEC_PF_DIM, DEC_DROPOUT, device)
 
 # Then, use them to define our whole sequence-to-sequence encapsulating model.
 
@@ -791,9 +732,6 @@ print(f'The model has {count_parameters(model):,} trainable parameters')
 def initialize_weights(m):
     if hasattr(m, 'weight') and m.weight.dim() > 1:
         nn.init.xavier_uniform_(m.weight.data)
-
-
-# In[21]:
 
 
 model.apply(initialize_weights);
@@ -1127,7 +1065,6 @@ print(f'trg = {trg}')
 translation, attention = translate_sentence(src, SRC, TRG, model, device)
 
 print(f'predicted trg = {translation}')
-
 
 display_attention(src, translation, attention)
 
