@@ -41,8 +41,6 @@
 # 
 # As always, let's import all the required modules and set the random seeds for reproducability.
 
-# In[1]:
-
 
 import torch
 import torch.nn as nn
