@@ -39,12 +39,14 @@ text = (
 sentences = re.sub("[.,!?\\-]", '', text.lower()).split('\n')  # filter '.', ',', '?', '!'
 word_list = list(set(" ".join(sentences).split()))
 word_dict = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
+
 for i, w in enumerate(word_list):
     word_dict[w] = i + 4
+
 number_dict = {i: w for i, w in enumerate(word_dict)}
 vocab_size = len(word_dict)
-
 token_list = list()
+
 for sentence in sentences:
     arr = [word_dict[s] for s in sentence.split()]
     token_list.append(arr)
@@ -254,7 +256,8 @@ print(text)
 print([number_dict[w] for w in input_ids if number_dict[w] != '[PAD]'])
 
 logits_lm, logits_clsf = model(torch.LongTensor([input_ids]), \
-                               torch.LongTensor([segment_ids]), torch.LongTensor([masked_pos]))
+                               torch.LongTensor([segment_ids]),
+                               torch.LongTensor([masked_pos]))
 logits_lm = logits_lm.data.max(2)[1][0].data.numpy()
 print('masked tokens list : ', [pos for pos in masked_tokens if pos != 0])
 print('predict masked tokens list : ', [pos for pos in logits_lm if pos != 0])
