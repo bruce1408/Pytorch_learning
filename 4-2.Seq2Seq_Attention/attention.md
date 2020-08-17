@@ -6,7 +6,7 @@
 - Luong的论文计算使用的是当期时刻 hs 和 ht 来计算 at
 
 
-#### luong attention:
+#### luong Attention:
 
 - 计算 decoder 每一步的 output，即 ht
 - 根据 ht 和 hs 计算 at
