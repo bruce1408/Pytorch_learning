@@ -605,13 +605,13 @@ class DecoderLayer(nn.Module):
 # subsequent tokens and the padding tokens cannot be attended to. For example if the last two tokens were `<pad>`
 # tokens the mask would look like:
 # 
-# $$\begin{matrix}
+# begin{matrix}
 # 1 & 0 & 0 & 0 & 0\\
 # 1 & 1 & 0 & 0 & 0\\
 # 1 & 1 & 1 & 0 & 0\\
 # 1 & 1 & 1 & 0 & 0\\
 # 1 & 1 & 1 & 0 & 0\\
-# \end{matrix}$$
+# \end{matrix}
 # 
 # After the masks are created, they used with the encoder and decoder along with the source and target sentences to
 # get our predicted target sentence, `output`, along with the decoder's attention over the source sequence.
@@ -768,15 +768,16 @@ criterion = nn.CrossEntropyLoss(ignore_index=TRG_PAD_IDX)
 # $y_i$ denotes predicted target sequence element. We then calculate our loss using the original `trg` tensor with
 # the `<sos>` token sliced off the front, leaving the `<eos>` token:
 # 
-# $$\begin{align*}
+# begin{align*}
 # \text{output} &= [y_1, y_2, y_3, eos]\\
 # \text{trg[1:]} &= [x_1, x_2, x_3, eos]
-# \end{align*}$$
+# \end{align*}
 # 
 # We then calculate our losses and update our parameters as is standard.
 
 
 def train(model, iterator, optimizer, criterion, clip):
+
     model.train()
 
     epoch_loss = 0
@@ -881,7 +882,7 @@ for epoch in range(N_EPOCHS):
         torch.save(model.state_dict(), 'tut6-model.pt')
 
     print(f'Epoch: {epoch + 1:02} | Time: {epoch_mins}m {epoch_secs}s')
-    print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
+    print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}', end="")
     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
 # We load our "best" parameters and manage to achieve a better test perplexity than all previous models.
@@ -1046,7 +1047,6 @@ display_attention(src, translation, attention)
 
 
 example_idx = 10
-
 src = vars(test_data.examples[example_idx])['src']
 trg = vars(test_data.examples[example_idx])['trg']
 
