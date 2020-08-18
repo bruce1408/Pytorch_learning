@@ -369,7 +369,7 @@ class MultiHeadAttentionLayer(nn.Module):
 
         # x = [batch size, n heads, query len, head dim]
 
-        x = x.permute(0, 2, 1, 3).contiguous()
+        x = x.permute(0, 2, 1, 3).contiguous()  # 底层一维数据连续性导致加上contiguous
 
         # x = [batch size, query len, n heads, head dim]
 
@@ -645,7 +645,7 @@ class Seq2Seq(nn.Module):
 
         trg_len = trg.shape[1]
 
-        trg_sub_mask = torch.tril(torch.ones((trg_len, trg_len), device=self.device)).bool()
+        trg_sub_mask = torch.tril(torch.ones((trg_len, trg_len), device=self.device)).bool()  # 下三角矩阵
 
         # trg_sub_mask = [trg len, trg len]
 
@@ -702,8 +702,9 @@ dec = Decoder(OUTPUT_DIM, HID_DIM, DEC_LAYERS, DEC_HEADS, DEC_PF_DIM, DEC_DROPOU
 # Then, use them to define our whole sequence-to-sequence encapsulating model.
 
 
-SRC_PAD_IDX = SRC.vocab.stoi[SRC.pad_token]
-TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]
+SRC_PAD_IDX = SRC.vocab.stoi[SRC.pad_token]  # 1
+TRG_PAD_IDX = TRG.vocab.stoi[TRG.pad_token]  # 1
+
 
 model = Seq2Seq(enc, dec, SRC_PAD_IDX, TRG_PAD_IDX, device).to(device)
 
@@ -761,17 +762,13 @@ criterion = nn.CrossEntropyLoss(ignore_index=TRG_PAD_IDX)
 # $x_i$ denotes actual target sequence element. We then feed this into the model to get a predicted sequence that
 # should hopefully predict the `<eos>` token:
 # 
-# $$\begin{align*}
-# \text{output} &= [y_1, y_2, y_3, eos]
-# \end{align*}$$
-# 
-# $y_i$ denotes predicted target sequence element. We then calculate our loss using the original `trg` tensor with
+# text_{output} &= [y_1, y_2, y_3, eos]
+#
+# y_i denotes predicted target sequence element. We then calculate our loss using the original `trg` tensor with
 # the `<sos>` token sliced off the front, leaving the `<eos>` token:
-# 
-# begin{align*}
-# \text{output} &= [y_1, y_2, y_3, eos]\\
-# \text{trg[1:]} &= [x_1, x_2, x_3, eos]
-# \end{align*}
+#
+# text_output = [y_1, y_2, y_3, eos]
+# text{trg[1:]} = [x_1, x_2, x_3, eos]
 # 
 # We then calculate our losses and update our parameters as is standard.
 
@@ -796,7 +793,7 @@ def train(model, iterator, optimizer, criterion, clip):
         output_dim = output.shape[-1]
 
         output = output.contiguous().view(-1, output_dim)
-        trg = trg[:, 1:].contiguous().view(-1)
+        trg = trg[:, 1:].contiguous().view(-1)  # trg 从sos开始的下一个开始算起
 
         # output = [batch size * trg len - 1, output dim]
         # trg = [batch size * trg len - 1]

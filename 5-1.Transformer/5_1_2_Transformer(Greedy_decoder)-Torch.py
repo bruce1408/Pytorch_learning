@@ -10,6 +10,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 import matplotlib.pyplot as plt
 
+
 dtype = torch.FloatTensor
 # S: Symbol that shows starting of decoding input
 # E: Symbol that shows starting of decoding output
@@ -56,11 +57,14 @@ def get_sinusoid_encoding_table(n_position, d_model):
 
 
 def get_attn_pad_mask(seq_q, seq_k):
-    # print(seq_q)
+
     batch_size, len_q = seq_q.size()
+
     batch_size, len_k = seq_k.size()
+
     # eq(zero) is PAD token
     pad_attn_mask = seq_k.data.eq(0).unsqueeze(1)  # batch_size x 1 x len_k(=len_q), one is masking
+
     return pad_attn_mask.expand(batch_size, len_q, len_k)  # batch_size x len_q x len_k
 
 
@@ -95,21 +99,27 @@ class MultiHeadAttention(nn.Module):
         # q: [batch_size x len_q x d_model], k: [batch_size x len_k x d_model], v: [batch_size x len_k x d_model]
         residual, batch_size = Q, Q.size(0)
         # (B, S, D) -proj-> (B, S, D) -split-> (B, S, H, W) -trans-> (B, H, S, W)
-        q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1,
-                                                                       2)  # q_s: [batch_size x n_heads x len_q x d_k]
-        k_s = self.W_K(K).view(batch_size, -1, n_heads, d_k).transpose(1,
-                                                                       2)  # k_s: [batch_size x n_heads x len_k x d_k]
-        v_s = self.W_V(V).view(batch_size, -1, n_heads, d_v).transpose(1,
-                                                                       2)  # v_s: [batch_size x n_heads x len_k x d_v]
 
-        attn_mask = attn_mask.unsqueeze(1).repeat(1, n_heads, 1,
-                                                  1)  # attn_mask : [batch_size x n_heads x len_q x len_k]
+        # q_s: [batch_size x n_heads x len_q x d_k]
+        q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1, 2)
+
+        # k_s: [batch_size x n_heads x len_k x d_k]
+        k_s = self.W_K(K).view(batch_size, -1, n_heads, d_k).transpose(1, 2)
+
+        # v_s: [batch_size x n_heads x len_k x d_v]
+        v_s = self.W_V(V).view(batch_size, -1, n_heads, d_v).transpose(1, 2)
+
+        # attn_mask : [batch_size x n_heads x len_q x len_k]
+        attn_mask = attn_mask.unsqueeze(1).repeat(1, n_heads, 1, 1)
 
         # context: [batch_size x n_heads x len_q x d_v], attn: [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
         context, attn = ScaledDotProductAttention()(q_s, k_s, v_s, attn_mask)
-        context = context.transpose(1, 2).contiguous().view(batch_size, -1,
-                                                            n_heads * d_v)  # context: [batch_size x len_q x n_heads * d_v]
+
+        # context: [batch_size x len_q x n_heads * d_v]
+        context = context.transpose(1, 2).contiguous().view(batch_size, -1, n_heads * d_v)
+
         output = nn.Linear(n_heads * d_v, d_model)(context)
+
         return nn.LayerNorm(d_model)(output + residual), attn  # output: [batch_size x len_q x d_model]
 
 
@@ -133,9 +143,13 @@ class EncoderLayer(nn.Module):
         self.pos_ffn = PoswiseFeedForwardNet()
 
     def forward(self, enc_inputs, enc_self_attn_mask):
-        enc_outputs, attn = self.enc_self_attn(enc_inputs, enc_inputs, enc_inputs,
-                                               enc_self_attn_mask)  # enc_inputs to same Q,K,V
-        enc_outputs = self.pos_ffn(enc_outputs)  # enc_outputs: [batch_size x len_q x d_model]
+
+        # enc_inputs to same Q,K,V
+        enc_outputs, attn = self.enc_self_attn(enc_inputs, enc_inputs, enc_inputs, enc_self_attn_mask)
+
+        # enc_outputs: [batch_size x len_q x d_model]
+        enc_outputs = self.pos_ffn(enc_outputs)
+
         return enc_outputs, attn
 
 
@@ -202,9 +216,13 @@ class Transformer(nn.Module):
         self.projection = nn.Linear(d_model, tgt_vocab_size, bias=False)
 
     def forward(self, enc_inputs, dec_inputs):
+
         enc_outputs, enc_self_attns = self.encoder(enc_inputs)
+
         dec_outputs, dec_self_attns, dec_enc_attns = self.decoder(dec_inputs, enc_inputs, enc_outputs)
+
         dec_logits = self.projection(dec_outputs)  # dec_logits : [batch_size x src_vocab_size x tgt_vocab_size]
+
         return dec_logits.view(-1, dec_logits.size(-1)), enc_self_attns, dec_self_attns, dec_enc_attns
 
 
