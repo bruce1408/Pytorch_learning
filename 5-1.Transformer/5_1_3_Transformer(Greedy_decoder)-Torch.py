@@ -287,4 +287,4 @@ print('first head of last state dec_self_attns')
 showgraph(dec_self_attns)
 
 print('first head of last state dec_enc_attns')
-showgraph(dec_enc_attns)
+# showgraph(dec_enc_attns)
