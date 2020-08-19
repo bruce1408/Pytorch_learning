@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
 # # 6 - Attention is All You Need
-# 
+#
+# 参考博客
+# reference: https://zhuanlan.zhihu.com/p/63191028
+
 # In this notebook we will be implementing a (slightly modified version) of the Transformer model from the [Attention
 # is All You Need](https://arxiv.org/abs/1706.03762) paper. All images in this notebook will be taken from the
 # Transformer paper. For more information about the Transformer,
