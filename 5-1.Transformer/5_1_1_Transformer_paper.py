@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+
 # # 6 - Attention is All You Need
-# 
+#
+# 参考博客
+# reference: https://zhuanlan.zhihu.com/p/63191028
+
 # In this notebook we will be implementing a (slightly modified version) of the Transformer model from the [Attention
 # is All You Need](https://arxiv.org/abs/1706.03762) paper. All images in this notebook will be taken from the
 # Transformer paper. For more information about the Transformer,
@@ -10,8 +14,7 @@
 # https://jalammar.github.io/illustrated-transformer/) [three](http://nlp.seas.harvard.edu/2018/04/03/attention.html)
 # articles.
 # 
-# ![](assets/transformer1.png)
-# 
+#
 # ## Introduction
 # 
 # Similar to the Convolutional Sequence-to-Sequence model, the Transformer does not use any recurrence. It also does
