@@ -49,8 +49,9 @@ class TextCNN(nn.Module):
 
     def forward(self, X):
         embedded_chars = self.W[X]  # [batch_size, sequence_length, sequence_length]
-        embedded_chars = embedded_chars.unsqueeze(
-            1)  # add channel(=1) [batch, channel(=1), sequence_length, embedding_size]
+
+        # add channel(=1) [batch, channel(=1), sequence_length, embedding_size]
+        embedded_chars = embedded_chars.unsqueeze(1)
 
         pooled_outputs = []
         for filter_size in filter_sizes:
@@ -63,10 +64,11 @@ class TextCNN(nn.Module):
             pooled = mp(h).permute(0, 3, 2, 1)
             pooled_outputs.append(pooled)
 
-        h_pool = torch.cat(pooled_outputs, len(
-            filter_sizes))  # [batch_size(=6), output_height(=1), output_width(=1), output_channel(=3) * 3]
-        h_pool_flat = torch.reshape(h_pool, [-1,
-                                             self.num_filters_total])  # [batch_size(=6), output_height * output_width * (output_channel * 3)]
+        # [batch_size(=6), output_height(=1), output_width(=1), output_channel(=3) * 3]
+        h_pool = torch.cat(pooled_outputs, len(filter_sizes))
+
+        # [batch_size(=6), output_height * output_width * (output_channel * 3)]
+        h_pool_flat = torch.reshape(h_pool, [-1, self.num_filters_total])
 
         model = torch.mm(h_pool_flat, self.Weight) + self.Bias  # [batch_size, num_classes]
         return model
