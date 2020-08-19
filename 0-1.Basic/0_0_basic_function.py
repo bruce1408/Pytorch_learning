@@ -73,10 +73,15 @@ from torch.autograd import Variable
 # print(embeds(torch.LongTensor([1, 4, 3])))
 # print(embeds(torch.LongTensor([[1, 4, 3], [2, 3, 1]])).shape)
 
-
 # inputs = torch.randint(1, 7, (3, 3))
 # print(embeds(inputs).shape)
 # print(embeds(inputs))
+
+# weight = torch.FloatTensor([[1, 2.3, 3], [4, 5.1, 6.3]])
+# embedding = nn.Embedding.from_pretrained(weight)
+# print(embedding)
+# input = torch.LongTensor([1])
+# print(embedding(input))
 
 """
 torch.mm  矩阵乘法
@@ -98,7 +103,7 @@ e = torch.matmul(a, b)
 print("广播乘法 matmul is:\n", e)
 f = torch.dot(a1, a2)
 print('一维点乘 dot is:\n', f)
-print("="*50)
+print("=" * 50)
 """
 print 格式化输出
 """
@@ -158,3 +163,6 @@ tensor([[[          5,           5,           5,           5],
          [          2,           2,           2,           2],
          [          3,           3,           3,           3]]])
 """
+
+'''转换向量过程'''
+
