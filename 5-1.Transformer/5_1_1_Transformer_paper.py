@@ -14,8 +14,7 @@
 # https://jalammar.github.io/illustrated-transformer/) [three](http://nlp.seas.harvard.edu/2018/04/03/attention.html)
 # articles.
 # 
-# ![](assets/transformer1.png)
-# 
+#
 # ## Introduction
 # 
 # Similar to the Convolutional Sequence-to-Sequence model, the Transformer does not use any recurrence. It also does
