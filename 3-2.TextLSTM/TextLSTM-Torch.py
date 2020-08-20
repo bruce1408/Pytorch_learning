@@ -1,6 +1,6 @@
-'''
+"""
   code by Tae Hwan Jung(Jeff Jung) @graykode
-'''
+"""
 import numpy as np
 import torch
 import torch.nn as nn
@@ -12,7 +12,7 @@ dtype = torch.FloatTensor
 char_arr = [c for c in 'abcdefghijklmnopqrstuvwxyz']
 word_dict = {n: i for i, n in enumerate(char_arr)}
 number_dict = {i: w for i, w in enumerate(char_arr)}
-n_class = len(word_dict) # number of class(=number of vocab)
+n_class = len(word_dict)  # number of class(=number of vocab)
 
 seq_data = ['make', 'need', 'coal', 'word', 'love', 'hate', 'live', 'home', 'hash', 'star']
 
@@ -20,16 +20,23 @@ seq_data = ['make', 'need', 'coal', 'word', 'love', 'hate', 'live', 'home', 'has
 n_step = 3
 n_hidden = 128
 
+
 def make_batch(seq_data):
     input_batch, target_batch = [], []
 
     for seq in seq_data:
-        input = [word_dict[n] for n in seq[:-1]] # 'm', 'a' , 'k' is input
-        target = word_dict[seq[-1]] # 'e' is target
+
+        input = [word_dict[n] for n in seq[:-1]]  # 'm', 'a' , 'k' is input
+
+        # 'e' is target
+        target = word_dict[seq[-1]]
+
         input_batch.append(np.eye(n_class)[input])
+
         target_batch.append(target)
 
-    return Variable(torch.Tensor(input_batch)), Variable(torch.LongTensor(target_batch))
+    return torch.Tensor(input_batch), torch.LongTensor(target_batch)
+
 
 class TextLSTM(nn.Module):
     def __init__(self):
@@ -42,13 +49,17 @@ class TextLSTM(nn.Module):
     def forward(self, X):
         input = X.transpose(0, 1)  # X : [n_step, batch_size, n_class]
 
-        hidden_state = Variable(torch.zeros(1, len(X), n_hidden))   # [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
-        cell_state = Variable(torch.zeros(1, len(X), n_hidden))     # [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
+        # [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
+        hidden_state = torch.zeros(1, len(X), n_hidden)
+
+        # [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
+        cell_state = torch.zeros(1, len(X), n_hidden)
 
         outputs, (_, _) = self.lstm(input, (hidden_state, cell_state))
         outputs = outputs[-1]  # [batch_size, n_hidden]
         model = torch.mm(outputs, self.W) + self.b  # model : [batch_size, n_class]
         return model
+
 
 input_batch, target_batch = make_batch(seq_data)
 
