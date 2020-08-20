@@ -49,7 +49,7 @@ def get_sinusoid_encoding_table(n_position, d_model):
     def get_posi_angle_vec(position):
         return [cal_angle(position, hid_j) for hid_j in range(d_model)]
 
-    sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(n_position)])
+    sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(n_position)])  # [6, 512]
     sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
     sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
     return torch.FloatTensor(sinusoid_table)
@@ -75,8 +75,8 @@ class ScaledDotProductAttention(nn.Module):
         super(ScaledDotProductAttention, self).__init__()
 
     def forward(self, Q, K, V, attn_mask):
-        scores = torch.matmul(Q, K.transpose(-1, -2)) / np.sqrt(
-            d_k)  # scores : [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
+        # scores : [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
+        scores = torch.matmul(Q, K.transpose(-1, -2)) / np.sqrt(d_k)
         scores.masked_fill_(attn_mask, -1e9)  # Fills elements of self tensor with value where mask is one.
         attn = nn.Softmax(dim=-1)(scores)
         context = torch.matmul(attn, V)
@@ -128,9 +128,12 @@ class EncoderLayer(nn.Module):
         self.pos_ffn = PoswiseFeedForwardNet()
 
     def forward(self, enc_inputs, enc_self_attn_mask):
-        enc_outputs, attn = self.enc_self_attn(enc_inputs, enc_inputs, enc_inputs,
-                                               enc_self_attn_mask)  # enc_inputs to same Q,K,V
+
+        # enc_inputs to same Q, K, V
+        enc_outputs, attn = self.enc_self_attn(enc_inputs, enc_inputs, enc_inputs, enc_self_attn_mask)
+
         enc_outputs = self.pos_ffn(enc_outputs)  # enc_outputs: [batch_size x len_q x d_model]
+
         return enc_outputs, attn
 
 
@@ -173,19 +176,28 @@ class Decoder(nn.Module):
         self.layers = nn.ModuleList([DecoderLayer() for _ in range(n_layers)])
 
     def forward(self, dec_inputs, enc_inputs, enc_outputs):  # dec_inputs : [batch_size x target_len]
+
         dec_outputs = self.tgt_emb(dec_inputs) + self.pos_emb(torch.LongTensor([[5, 1, 2, 3, 4]]))
+
         dec_self_attn_pad_mask = get_attn_pad_mask(dec_inputs, dec_inputs)
+
         dec_self_attn_subsequent_mask = get_attn_subsequent_mask(dec_inputs)
+
         dec_self_attn_mask = torch.gt((dec_self_attn_pad_mask + dec_self_attn_subsequent_mask), 0)
 
         dec_enc_attn_mask = get_attn_pad_mask(dec_inputs, enc_inputs)
 
         dec_self_attns, dec_enc_attns = [], []
+
         for layer in self.layers:
-            dec_outputs, dec_self_attn, dec_enc_attn = layer(dec_outputs, enc_outputs, dec_self_attn_mask,
+            dec_outputs, dec_self_attn, dec_enc_attn = layer(dec_outputs, enc_outputs,
+                                                             dec_self_attn_mask,
                                                              dec_enc_attn_mask)
+
             dec_self_attns.append(dec_self_attn)
+
             dec_enc_attns.append(dec_enc_attn)
+
         return dec_outputs, dec_self_attns, dec_enc_attns
 
 
@@ -197,9 +209,14 @@ class Transformer(nn.Module):
         self.projection = nn.Linear(d_model, tgt_vocab_size, bias=False)
 
     def forward(self, enc_inputs, dec_inputs):
+
         enc_outputs, enc_self_attns = self.encoder(enc_inputs)
+
         dec_outputs, dec_self_attns, dec_enc_attns = self.decoder(dec_inputs, enc_inputs, enc_outputs)
-        dec_logits = self.projection(dec_outputs)  # dec_logits : [batch_size x src_vocab_size x tgt_vocab_size]
+
+        # dec_logits : [batch_size x src_vocab_size x tgt_vocab_size]
+        dec_logits = self.projection(dec_outputs)
+
         return dec_logits.view(-1, dec_logits.size(-1)), enc_self_attns, dec_self_attns, dec_enc_attns
 
 
@@ -235,10 +252,10 @@ predict = predict.data.max(1, keepdim=True)[1]
 print(sentences[0], '->', [number_dict[n.item()] for n in predict.squeeze()])
 
 print('first head of last state enc_self_attns')
-showgraph(enc_self_attns)
+# showgraph(enc_self_attns)
 
 print('first head of last state dec_self_attns')
-showgraph(dec_self_attns)
+# showgraph(dec_self_attns)
 
 print('first head of last state dec_enc_attns')
-showgraph(dec_enc_attns)
+# showgraph(dec_enc_attns)

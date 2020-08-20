@@ -46,31 +46,33 @@
 
 
 import torch
+import random
+import math
+import time
+import spacy
+import numpy as np
 import torch.nn as nn
-import torch.optim as optim
 
 import torchtext
 from torchtext.datasets import Multi30k
 from torchtext.data import Field, BucketIterator
 
+import torch.optim as optim
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
-import spacy
-import numpy as np
 
-import random
-import math
-import time
+def randomSeed(SEED):
+
+    random.seed(SEED)
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+    torch.cuda.manual_seed(SEED)
+    torch.backends.cudnn.deterministic = True
+
 
 SEED = 1234
-
-random.seed(SEED)
-np.random.seed(SEED)
-torch.manual_seed(SEED)
-torch.cuda.manual_seed(SEED)
-torch.backends.cudnn.deterministic = True
-
+randomSeed(SEED)
 # We'll then create our tokenizers as before.
 
 
@@ -179,8 +181,8 @@ class Encoder(nn.Module):
 
         self.device = device
 
-        self.tok_embedding = nn.Embedding(input_dim, hid_dim)
-        self.pos_embedding = nn.Embedding(max_length, hid_dim)
+        self.tok_embedding = nn.Embedding(input_dim, hid_dim)  # hid_dim = 256
+        self.pos_embedding = nn.Embedding(max_length, hid_dim)  # hid_dim = 256
 
         self.layers = nn.ModuleList([EncoderLayer(hid_dim, n_heads, pf_dim, dropout, device) for _ in range(n_layers)])
 
@@ -189,6 +191,7 @@ class Encoder(nn.Module):
         self.scale = torch.sqrt(torch.FloatTensor([hid_dim])).to(device)
 
     def forward(self, src, src_mask):
+
         # src = [batch size, src len]
         # src_mask = [batch size, src len]
 
@@ -427,11 +430,9 @@ class PositionwiseFeedforwardLayer(nn.Module):
 # 
 # The objective of the decoder is to take the encoded representation of the source sentence, $Z$, and convert it into
 # predicted tokens in the target sentence, $\hat{Y}$. We then compare $\hat{Y}$ with the actual tokens in the target
-# sentence, $Y$, to calculate our loss, which will be used to calculate the gradients of our parameters and then use
+# sentence, Y, to calculate our loss, which will be used to calculate the gradients of our parameters and then use
 # our optimizer to update our weights in order to improve our predictions.
-# 
-# ![](assets/transformer-decoder.png)
-# 
+#
 # The decoder is similar to encoder, however it now has two multi-head attention layers. A *masked multi-head
 # attention layer* over the target sequence, and a multi-head attention layer which uses the decoder representation
 # as the query and the encoder representation as the key and value.
@@ -651,8 +652,8 @@ class Seq2Seq(nn.Module):
         trg_sub_mask = torch.tril(torch.ones((trg_len, trg_len), device=self.device)).bool()  # 下三角矩阵
 
         # trg_sub_mask = [trg len, trg len]
-
-        trg_mask = trg_pad_mask & trg_sub_mask
+        # trg_pad_mask = [128, 1, ,1, 20], trg_mask = [20, 20]
+        trg_mask = trg_pad_mask & trg_sub_mask  # [128， 1， 20， 20]
 
         # trg_mask = [batch size, 1, trg len, trg len]
 
@@ -665,8 +666,10 @@ class Seq2Seq(nn.Module):
         src_mask = self.make_src_mask(src)
         trg_mask = self.make_trg_mask(trg)
 
-        # src_mask = [batch size, 1, 1, src len]
-        # trg_mask = [batch size, 1, trg len, trg len]
+        # src = [batch_size, src_len] = [128, 23]
+        # trg = [batch_size, trg_len] = [128, 20]
+        # src_mask = [batch size, 1, 1, src len] = [128, 1, 1, 23]
+        # trg_mask = [batch size, 1, trg len, trg len] = [128, 1, 20, 20]
 
         enc_src = self.encoder(src, src_mask)
 
@@ -757,21 +760,19 @@ criterion = nn.CrossEntropyLoss(ignore_index=TRG_PAD_IDX)
 # As we want our model to predict the `<eos>` token but not have it be an input into our model we simply slice the
 # `<eos>` token off the end of the sequence. Thus:
 # 
-# $$\begin{align*}
-# \text{trg} &= [sos, x_1, x_2, x_3, eos]\\
-# \text{trg[:-1]} &= [sos, x_1, x_2, x_3]
-# \end{align*}$$
-# 
-# $x_i$ denotes actual target sequence element. We then feed this into the model to get a predicted sequence that
+# text_trg = [sos, x_1, x_2, x_3, eos]
+# text_trg[:-1] = [sos, x_1, x_2, x_3]
+#
+# x_i denotes actual target sequence element. We then feed this into the model to get a predicted sequence that
 # should hopefully predict the `<eos>` token:
 # 
-# text_{output} &= [y_1, y_2, y_3, eos]
+# text_output = [y_1, y_2, y_3, eos]
 #
 # y_i denotes predicted target sequence element. We then calculate our loss using the original `trg` tensor with
 # the `<sos>` token sliced off the front, leaving the `<eos>` token:
 #
 # text_output = [y_1, y_2, y_3, eos]
-# text{trg[1:]} = [x_1, x_2, x_3, eos]
+# text_trg[1:] = [x_1, x_2, x_3, eos]
 # 
 # We then calculate our losses and update our parameters as is standard.
 
@@ -783,7 +784,7 @@ def train(model, iterator, optimizer, criterion, clip):
     epoch_loss = 0
 
     for i, batch in enumerate(iterator):
-        src = batch.src
+        src = batch.src  # batch_size , seq_len
         trg = batch.trg
 
         optimizer.zero_grad()

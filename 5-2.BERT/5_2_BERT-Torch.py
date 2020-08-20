@@ -56,9 +56,9 @@ for sentence in sentences:
 def make_batch():
     batch = []
     positive = negative = 0
+    # sample random index in sentences
     while positive != batch_size / 2 or negative != batch_size / 2:
-        tokens_a_index, tokens_b_index = randrange(len(sentences)), randrange(
-            len(sentences))  # sample random index in sentences
+        tokens_a_index, tokens_b_index = randrange(len(sentences)), randrange(len(sentences))
         tokens_a, tokens_b = token_list[tokens_a_index], token_list[tokens_b_index]
         input_ids = [word_dict['[CLS]']] + tokens_a + [word_dict['[SEP]']] + tokens_b + [word_dict['[SEP]']]
         segment_ids = [0] * (1 + len(tokens_a) + 1) + [1] * (len(tokens_b) + 1)
@@ -134,11 +134,16 @@ class ScaledDotProductAttention(nn.Module):
         super(ScaledDotProductAttention, self).__init__()
 
     def forward(self, Q, K, V, attn_mask):
-        scores = torch.matmul(Q, K.transpose(-1, -2)) / np.sqrt(
-            d_k)  # scores : [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
+
+        # scores : [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
+        scores = torch.matmul(Q, K.transpose(-1, -2)) / np.sqrt(d_k)
+
         scores.masked_fill_(attn_mask, -1e9)  # Fills elements of self tensor with value where mask is one.
+
         attn = nn.Softmax(dim=-1)(scores)
+
         context = torch.matmul(attn, V)
+
         return context, attn
 
 
@@ -153,17 +158,27 @@ class MultiHeadAttention(nn.Module):
         # q: [batch_size x len_q x d_model], k: [batch_size x len_k x d_model], v: [batch_size x len_k x d_model]
         residual, batch_size = Q, Q.size(0)
         # (B, S, D) -proj-> (B, S, D) -split-> (B, S, H, W) -trans-> (B, H, S, W)
-        q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1,2)  # q_s: [batch_size x n_heads x len_q x d_k]
-        k_s = self.W_K(K).view(batch_size, -1, n_heads, d_k).transpose(1,2)  # k_s: [batch_size x n_heads x len_k x d_k]
-        v_s = self.W_V(V).view(batch_size, -1, n_heads, d_v).transpose(1,2)  # v_s: [batch_size x n_heads x len_k x d_v]
 
-        attn_mask = attn_mask.unsqueeze(1).repeat(1, n_heads, 1,1)  # attn_mask : [batch_size x n_heads x len_q x len_k]
+        # q_s: [batch_size x n_heads x len_q x d_k]
+        q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1, 2)
+
+        # k_s: [batch_size x n_heads x len_k x d_k]
+        k_s = self.W_K(K).view(batch_size, -1, n_heads, d_k).transpose(1, 2)
+
+        # v_s: [batch_size x n_heads x len_k x d_v]
+        v_s = self.W_V(V).view(batch_size, -1, n_heads, d_v).transpose(1, 2)
+
+        # attn_mask : [batch_size x n_heads x len_q x len_k]
+        attn_mask = attn_mask.unsqueeze(1).repeat(1, n_heads, 1, 1)
 
         # context: [batch_size x n_heads x len_q x d_v], attn: [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
         context, attn = ScaledDotProductAttention()(q_s, k_s, v_s, attn_mask)
-        context = context.transpose(1, 2).contiguous().view(batch_size, -1,
-                                                            n_heads * d_v)  # context: [batch_size x len_q x n_heads * d_v]
+
+        # context: [batch_size x len_q x n_heads * d_v]
+        context = context.transpose(1, 2).contiguous().view(batch_size, -1, n_heads * d_v)
+
         output = nn.Linear(n_heads * d_v, d_model)(context)
+
         return nn.LayerNorm(d_model)(output + residual), attn  # output: [batch_size x len_q x d_model]
 
 
@@ -213,20 +228,30 @@ class BERT(nn.Module):
         self.decoder_bias = nn.Parameter(torch.zeros(n_vocab))
 
     def forward(self, input_ids, segment_ids, masked_pos):
+
         output = self.embedding(input_ids, segment_ids)
+
         enc_self_attn_mask = get_attn_pad_mask(input_ids, input_ids)
+
         for layer in self.layers:
             output, enc_self_attn = layer(output, enc_self_attn_mask)
         # output : [batch_size, len, d_model], attn : [batch_size, n_heads, d_mode, d_model]
+
         # it will be decided by first token(CLS)
         h_pooled = self.activ1(self.fc(output[:, 0]))  # [batch_size, d_model]
+
         logits_clsf = self.classifier(h_pooled)  # [batch_size, 2]
 
-        masked_pos = masked_pos[:, :, None].expand(-1, -1, output.size(-1))  # [batch_size, max_pred, d_model]
-        # get masked position from final output of transformer.
-        h_masked = torch.gather(output, 1, masked_pos)  # masking position [batch_size, max_pred, d_model]
+        # [batch_size, max_pred, d_model]
+        masked_pos = masked_pos[:, :, None].expand(-1, -1, output.size(-1))
+
+        # get masked position from final output of transformer. masking position [batch_size, max_pred, d_model]
+        h_masked = torch.gather(output, 1, masked_pos)
+
         h_masked = self.norm(self.activ2(self.linear(h_masked)))
-        logits_lm = self.decoder(h_masked) + self.decoder_bias  # [batch_size, max_pred, n_vocab]
+
+        # [batch_size, max_pred, n_vocab]
+        logits_lm = self.decoder(h_masked) + self.decoder_bias
 
         return logits_lm, logits_clsf
 
@@ -237,9 +262,11 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 batch = make_batch()
 input_ids, segment_ids, masked_tokens, masked_pos, isNext = zip(*batch)
-input_ids, segment_ids, masked_tokens, masked_pos, isNext = \
-    torch.LongTensor(input_ids), torch.LongTensor(segment_ids), torch.LongTensor(masked_tokens), \
-    torch.LongTensor(masked_pos), torch.LongTensor(isNext)
+input_ids, segment_ids, masked_tokens, masked_pos, isNext = torch.LongTensor(input_ids),\
+                                                            torch.LongTensor(segment_ids),\
+                                                            torch.LongTensor(masked_tokens), \
+                                                            torch.LongTensor(masked_pos),\
+                                                            torch.LongTensor(isNext)
 
 for epoch in range(100):
     optimizer.zero_grad()
@@ -261,6 +288,7 @@ print([number_dict[w] for w in input_ids if number_dict[w] != '[PAD]'])
 logits_lm, logits_clsf = model(torch.LongTensor([input_ids]), \
                                torch.LongTensor([segment_ids]),
                                torch.LongTensor([masked_pos]))
+
 logits_lm = logits_lm.data.max(2)[1][0].data.numpy()
 print('masked tokens list : ', [pos for pos in masked_tokens if pos != 0])
 print('predict masked tokens list : ', [pos for pos in logits_lm if pos != 0])
