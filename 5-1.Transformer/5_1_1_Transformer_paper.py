@@ -1045,7 +1045,6 @@ display_attention(src, translation, attention)
 
 # Finally, we'll look at an example from the test data.
 
-
 example_idx = 10
 src = vars(test_data.examples[example_idx])['src']
 trg = vars(test_data.examples[example_idx])['trg']
