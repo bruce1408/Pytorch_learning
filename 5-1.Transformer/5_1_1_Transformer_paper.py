@@ -991,7 +991,6 @@ def display_attention(sentence, translation, attention, n_heads=8, n_rows=4, n_c
 
 # First, we'll get an example from the training set.
 
-
 example_idx = 8
 
 src = vars(train_data.examples[example_idx])['src']
