@@ -54,6 +54,13 @@ module 是深度优先遍历打印出网络结构,而 children是只打印出网
 #
 #
 # model = Net(in_dim, n_hidden_1, n_hidden_2, out_dim)
+"""
+torch.eq函数
+"""
+a = torch.FloatTensor([1, 2, 3])
+b = torch.FloatTensor([2, 21, 3])
+print(b.eq(a.data).cpu())
+# output is [false, false, True]
 
 """
 embedding vector
@@ -125,7 +132,7 @@ print(a)
 b = F.softmax(a, dim=0)
 print(b)
 print(-np.inf)
-print("#############################################3")
+print("#"*10)
 a = torch.tensor([[[5, 5, 5, 5], [6, 6, 6, 6], [7, 7, 7, 7]], [[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3]]])
 print(a)
 print(a.size())
@@ -134,7 +141,7 @@ print(mask.size())
 b = a.masked_fill(mask, value=torch.tensor(-1e9))
 print(b)
 print(b.size())
-print("#############################################3")
+print("#"*10)
 
 a = torch.tensor([[[5, 5, 5, 5], [6, 6, 6, 6], [7, 7, 7, 7]], [[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3]]])
 print(a)

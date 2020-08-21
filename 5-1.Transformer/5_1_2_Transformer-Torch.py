@@ -50,8 +50,8 @@ def get_sinusoid_encoding_table(n_position, d_model):
         return [cal_angle(position, hid_j) for hid_j in range(d_model)]
 
     sinusoid_table = np.array([get_posi_angle_vec(pos_i) for pos_i in range(n_position)])  # [6, 512]
-    sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i
-    sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1
+    sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i 偶数列
+    sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1 奇数列
     return torch.FloatTensor(sinusoid_table)
 
 
@@ -59,8 +59,9 @@ def get_attn_pad_mask(seq_q, seq_k):
     batch_size, len_q = seq_q.size()
     batch_size, len_k = seq_k.size()
     # eq(zero) is PAD token
-    pad_attn_mask = seq_k.data.eq(0).unsqueeze(1)  # batch_size x 1 x len_k(=len_q), one is masking
-    return pad_attn_mask.expand(batch_size, len_q, len_k)  # batch_size x len_q x len_k
+    pad_attn_mask = seq_k.data.eq(0).unsqueeze(1)  # [batch_size, 1, len_k] one is masking
+    # [batch, 1, len_k] -> [batch, len_q, len_k] = [1, 5, 5] 重复复制
+    return pad_attn_mask.expand(batch_size, len_q, len_k)
 
 
 def get_attn_subsequent_mask(seq):
@@ -75,10 +76,12 @@ class ScaledDotProductAttention(nn.Module):
         super(ScaledDotProductAttention, self).__init__()
 
     def forward(self, Q, K, V, attn_mask):
-        # scores : [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
+
+        # Q = [1, 8, 5, 64], attn_mask = [1, 8, 5, 5]
+        # scores : [batch_size, n_heads, len_q, len_k]
         scores = torch.matmul(Q, K.transpose(-1, -2)) / np.sqrt(d_k)
         scores.masked_fill_(attn_mask, -1e9)  # Fills elements of self tensor with value where mask is one.
-        attn = nn.Softmax(dim=-1)(scores)
+        attn = nn.Softmax(dim=-1)(scores)  # [1, 8, 5, 5]
         context = torch.matmul(attn, V)
         return context, attn
 
@@ -86,23 +89,26 @@ class ScaledDotProductAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     def __init__(self):
         super(MultiHeadAttention, self).__init__()
-        self.W_Q = nn.Linear(d_model, d_k * n_heads)
-        self.W_K = nn.Linear(d_model, d_k * n_heads)
-        self.W_V = nn.Linear(d_model, d_v * n_heads)
+        self.W_Q = nn.Linear(d_model, d_k * n_heads)  # 512, 512
+        self.W_K = nn.Linear(d_model, d_k * n_heads)  # 512, 512
+        self.W_V = nn.Linear(d_model, d_v * n_heads)  # 512, 512
 
     def forward(self, Q, K, V, attn_mask):
         # q: [batch_size x len_q x d_model], k: [batch_size x len_k x d_model], v: [batch_size x len_k x d_model]
         residual, batch_size = Q, Q.size(0)
-        # (B, S, D) -proj-> (B, S, D) -split-> (B, S, H, W) -trans-> (B, H, S, W)
-        q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1, 2)  # q_s:[batch_size x n_heads x len_q x d_k]
-        k_s = self.W_K(K).view(batch_size, -1, n_heads, d_k).transpose(1, 2)  # k_s:[batch_size x n_heads x len_k x d_k]
-        v_s = self.W_V(V).view(batch_size, -1, n_heads, d_v).transpose(1, 2)  # v_s:[batch_size x n_heads x len_k x d_v]
 
-        attn_mask = attn_mask.unsqueeze(1).repeat(1, n_heads, 1, 1)  # attn_mask: [batch_size x n_heads x len_q x len_k]
+        # (B, S, D) -proj-> (B, S, D) -split-> [B, S, H, W] -trans-> [B, H, src_len, W] = [1, 8, 5, 64]
+        q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1, 2)  # q_s:[batch_size, n_heads, len_q, d_k]
+        k_s = self.W_K(K).view(batch_size, -1, n_heads, d_k).transpose(1, 2)  # k_s:[batch_size, n_heads, len_k, d_k]
+        v_s = self.W_V(V).view(batch_size, -1, n_heads, d_v).transpose(1, 2)  # v_s:[batch_size, n_heads, len_k, d_v]
 
-        # context: [batch_size x n_heads x len_q x d_v], attn: [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
+        # [batch_size, n_heads, len_q, len_k] = [1, 8, 5, 5]
+        attn_mask = attn_mask.unsqueeze(1).repeat(1, n_heads, 1, 1)
+
+        # context: [batch_size, n_heads, len_q, d_v], attn: [batch_size, n_heads, len_q(=len_k), len_k(=len_q)]
         context, attn = ScaledDotProductAttention()(q_s, k_s, v_s, attn_mask)
-        # context:[batch_size x len_q x n_heads * d_v]
+
+        # context:[batch_size, len_q, n_heads, d_v] = [1, 5, 8, 64]
         context = context.transpose(1, 2).contiguous().view(batch_size, -1, n_heads * d_v)
         output = nn.Linear(n_heads * d_v, d_model)(context)
         return nn.LayerNorm(d_model)(output + residual), attn  # output: [batch_size x len_q x d_model]
@@ -129,10 +135,10 @@ class EncoderLayer(nn.Module):
 
     def forward(self, enc_inputs, enc_self_attn_mask):
 
-        # enc_inputs to same Q, K, V
+        # enc_inputs to same Q, K, V = [batch, src_len], enc_self_attn_mask = [batch, q_len, k_len]
         enc_outputs, attn = self.enc_self_attn(enc_inputs, enc_inputs, enc_inputs, enc_self_attn_mask)
 
-        enc_outputs = self.pos_ffn(enc_outputs)  # enc_outputs: [batch_size x len_q x d_model]
+        enc_outputs = self.pos_ffn(enc_outputs)  # [batch_size, len_q, d_model]
 
         return enc_outputs, attn
 
@@ -155,17 +161,23 @@ class Encoder(nn.Module):
     def __init__(self):
         super(Encoder, self).__init__()
         self.src_emb = nn.Embedding(src_vocab_size, d_model)
+        # get_sinusoid_encoding_table 返回的是一个[6, 512]的torch的tensor
         self.pos_emb = nn.Embedding.from_pretrained(get_sinusoid_encoding_table(src_len + 1, d_model), freeze=True)
         self.layers = nn.ModuleList([EncoderLayer() for _ in range(n_layers)])
 
     def forward(self, enc_inputs):  # enc_inputs : [batch_size x source_len]
-        enc_outputs = self.src_emb(enc_inputs) + self.pos_emb(torch.LongTensor([[1, 2, 3, 4, 0]]))
+
+        # pos是按照索引取值, 可以直接换成enc_inputs, enc_embed = [1, 5, 512]
+        enc_embed = self.src_emb(enc_inputs) + self.pos_emb(torch.LongTensor([[1, 2, 3, 4, 0]]))
+
+        # enc_self_attn_mask = [batch_size, len_q, len_k]
         enc_self_attn_mask = get_attn_pad_mask(enc_inputs, enc_inputs)
+
         enc_self_attns = []
         for layer in self.layers:
-            enc_outputs, enc_self_attn = layer(enc_outputs, enc_self_attn_mask)
+            enc_embed, enc_self_attn = layer(enc_embed, enc_self_attn_mask)
             enc_self_attns.append(enc_self_attn)
-        return enc_outputs, enc_self_attns
+        return enc_embed, enc_self_attns
 
 
 class Decoder(nn.Module):
@@ -175,22 +187,27 @@ class Decoder(nn.Module):
         self.pos_emb = nn.Embedding.from_pretrained(get_sinusoid_encoding_table(tgt_len + 1, d_model), freeze=True)
         self.layers = nn.ModuleList([DecoderLayer() for _ in range(n_layers)])
 
-    def forward(self, dec_inputs, enc_inputs, enc_outputs):  # dec_inputs : [batch_size x target_len]
+    def forward(self, enc_inputs, dec_inputs, enc_outputs):  # dec_inputs : [batch_size x target_len]
 
         dec_outputs = self.tgt_emb(dec_inputs) + self.pos_emb(torch.LongTensor([[5, 1, 2, 3, 4]]))
 
+        # dec部分的mask
         dec_self_attn_pad_mask = get_attn_pad_mask(dec_inputs, dec_inputs)
 
+        # [batch_size, len_q, len_k]
         dec_self_attn_subsequent_mask = get_attn_subsequent_mask(dec_inputs)
 
+        # TODO 这里是两个mask相加的, 不是很明白为什么?然后结果和0进行比较,如果大于0的话,那么返回1,否则,返回的是0
         dec_self_attn_mask = torch.gt((dec_self_attn_pad_mask + dec_self_attn_subsequent_mask), 0)
 
+        # dec 和 enc 部分的联合mask
         dec_enc_attn_mask = get_attn_pad_mask(dec_inputs, enc_inputs)
 
         dec_self_attns, dec_enc_attns = [], []
 
         for layer in self.layers:
-            dec_outputs, dec_self_attn, dec_enc_attn = layer(dec_outputs, enc_outputs,
+            dec_outputs, dec_self_attn, dec_enc_attn = layer(dec_outputs,
+                                                             enc_outputs,
                                                              dec_self_attn_mask,
                                                              dec_enc_attn_mask)
 
@@ -212,7 +229,7 @@ class Transformer(nn.Module):
 
         enc_outputs, enc_self_attns = self.encoder(enc_inputs)
 
-        dec_outputs, dec_self_attns, dec_enc_attns = self.decoder(dec_inputs, enc_inputs, enc_outputs)
+        dec_outputs, dec_self_attns, dec_enc_attns = self.decoder(enc_inputs, dec_inputs, enc_outputs)
 
         # dec_logits : [batch_size x src_vocab_size x tgt_vocab_size]
         dec_logits = self.projection(dec_outputs)
@@ -252,10 +269,10 @@ predict = predict.data.max(1, keepdim=True)[1]
 print(sentences[0], '->', [number_dict[n.item()] for n in predict.squeeze()])
 
 print('first head of last state enc_self_attns')
-# showgraph(enc_self_attns)
+showgraph(enc_self_attns)
 
 print('first head of last state dec_self_attns')
-# showgraph(dec_self_attns)
+showgraph(dec_self_attns)
 
 print('first head of last state dec_enc_attns')
-# showgraph(dec_enc_attns)
+showgraph(dec_enc_attns)
