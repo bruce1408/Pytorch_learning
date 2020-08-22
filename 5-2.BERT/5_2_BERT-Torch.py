@@ -1,7 +1,9 @@
 """
-  code by Tae Hwan Jung(Jeff Jung) @graykode
-  Reference : https://github.com/jadore801120/attention-is-all-you-need-pytorch
+    code by Tae Hwan Jung(Jeff Jung) @graykode
+    Reference : https://github.com/jadore801120/attention-is-all-you-need-pytorch
               https://github.com/JayParks/transformer, https://github.com/dhlee347/pytorchic-bert
+    using bert to predict next sentence
+
 """
 import os
 import math
@@ -60,7 +62,9 @@ def make_batch():
     while positive != batch_size / 2 or negative != batch_size / 2:
         tokens_a_index, tokens_b_index = randrange(len(sentences)), randrange(len(sentences))
         tokens_a, tokens_b = token_list[tokens_a_index], token_list[tokens_b_index]
+        # 在预测下一个句子的任务中, CLS符号将对应的文本语义表示,还对输入的两句话用一个SEP符号分割,并分别对两句话附加两个不同的文本向量区分
         input_ids = [word_dict['[CLS]']] + tokens_a + [word_dict['[SEP]']] + tokens_b + [word_dict['[SEP]']]
+
         segment_ids = [0] * (1 + len(tokens_a) + 1) + [1] * (len(tokens_b) + 1)
 
         # MASK LM
