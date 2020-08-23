@@ -38,8 +38,9 @@ text = (
     'Thanks you Romeo'
 )
 
+# 所有的标点符号全部替换成空格,且大写变小写
 sentences = re.sub("[.,!?\\-]", '', text.lower()).split('\n')  # filter '.', ',', '?', '!'
-word_list = list(set(" ".join(sentences).split()))
+word_list = list(set(" ".join(sentences).split()))  # word vocabulary 单词的词典
 word_dict = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
 
 for i, w in enumerate(word_list):
