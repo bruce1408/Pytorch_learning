@@ -22,7 +22,7 @@ img2 = np.transpose(img2, (1, 2, 0))
 
 print("img1 = ", img1)
 cv2.imshow('img2 ', img2)
-cv2.waitKey()
+# cv2.waitKey(0)
 
 # PIL 读取图像
 img = Image.open(img_path).convert('RGB')  # 读取图像
@@ -30,5 +30,5 @@ img2 = transform1(img)  # 归一化到 [0.0,1.0]
 print("img2 = ", img2)  # 转化为PILImage并显示
 img_2 = transforms.ToPILImage()(img2).convert('RGB')
 print("img_2 = ", img_2)
-img_2.show()
+# img_2.show()
 
