@@ -1,9 +1,8 @@
 """
     code by Tae Hwan Jung(Jeff Jung) @graykode
-    Reference : https://github.com/jadore801120/attention-is-all-you-need-pytorch
+    Reference:https://github.com/jadore801120/attention-is-all-you-need-pytorch
               https://github.com/JayParks/transformer, https://github.com/dhlee347/pytorchic-bert
     using bert to predict next sentence
-
 """
 import os
 import math
@@ -38,8 +37,6 @@ text = (
     'Thanks you Romeo'
 )
 
-<<<<<<< HEAD:5-2.BERT/5_2_BERT-Torch.py
-
 def randomSeed(SEED):
 
     seed(SEED)
@@ -52,9 +49,7 @@ def randomSeed(SEED):
 SEED = 1234
 randomSeed(SEED)
 
-=======
 # 所有的标点符号全部替换成空格,且大写变小写
->>>>>>> a109019d1fd94f1b99ba2f6952c08c8f6fb26fcd:NLP/5-2.BERT/5_2_BERT-Torch.py
 sentences = re.sub("[.,!?\\-]", '', text.lower()).split('\n')  # filter '.', ',', '?', '!'
 word_list = list(set(" ".join(sentences).split()))  # word vocabulary 单词的词典
 # 单词对应的index编号
