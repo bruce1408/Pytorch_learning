@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from utils.text_loader import TextDataset
+from CV.utils import TextDataset
 
 hidden_size = 100
 n_layers = 3

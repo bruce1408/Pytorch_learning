@@ -38,6 +38,7 @@ text = (
     'Thanks you Romeo'
 )
 
+<<<<<<< HEAD:5-2.BERT/5_2_BERT-Torch.py
 
 def randomSeed(SEED):
 
@@ -51,16 +52,20 @@ def randomSeed(SEED):
 SEED = 1234
 randomSeed(SEED)
 
+=======
+# 所有的标点符号全部替换成空格,且大写变小写
+>>>>>>> a109019d1fd94f1b99ba2f6952c08c8f6fb26fcd:NLP/5-2.BERT/5_2_BERT-Torch.py
 sentences = re.sub("[.,!?\\-]", '', text.lower()).split('\n')  # filter '.', ',', '?', '!'
-word_list = list(set(" ".join(sentences).split()))
+word_list = list(set(" ".join(sentences).split()))  # word vocabulary 单词的词典
+# 单词对应的index编号
 word_dict = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
 
 for i, w in enumerate(word_list):
     word_dict[w] = i + 4
-
+# 数字对应的单词字典,和word_dict正好相反
 number_dict = {i: w for i, w in enumerate(word_dict)}
-vocab_size = len(word_dict)
-token_list = list()
+vocab_size = len(word_dict)  # 29
+token_list = list()  # 每个sentence的index的list
 
 for sentence in sentences:
     arr = [word_dict[s] for s in sentence.split()]
@@ -73,17 +78,19 @@ def make_batch():
     positive = negative = 0
     # sample random index in sentences
     while positive != batch_size / 2 or negative != batch_size / 2:
+        # 随机选择数据中的两个句子,a 和 b
         tokens_a_index, tokens_b_index = randrange(len(sentences)), randrange(len(sentences))
         tokens_a, tokens_b = token_list[tokens_a_index], token_list[tokens_b_index]
-        # 在预测下一个句子的任务中, CLS符号将对应的文本语义表示,还对输入的两句话用一个SEP符号分割,并分别对两句话附加两个不同的文本向量区分
+        # 在预测下一个句子的任务中, CLS符号将对应的文本语义表示,对两句话用一个SEP符号分割,并分别对两句话附加两个不同的文本向量区分
         input_ids = [word_dict['[CLS]']] + tokens_a + [word_dict['[SEP]']] + tokens_b + [word_dict['[SEP]']]
 
         segment_ids = [0] * (1 + len(tokens_a) + 1) + [1] * (len(tokens_b) + 1)
 
-        # MASK LM
+        # MASK LM, mask_pred = 5
         n_pred = min(max_pred, max(1, int(round(len(input_ids) * 0.15))))  # 15 % of tokens in one sentence
         cand_maked_pos = [i for i, token in enumerate(input_ids)
                           if token != word_dict['[CLS]'] and token != word_dict['[SEP]']]
+        # cand_mask_pos = [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15] # 不包含CLS 和 SEP 的句子index
         shuffle(cand_maked_pos)
         masked_tokens, masked_pos = [], []
         for pos in cand_maked_pos[:n_pred]:
@@ -95,7 +102,7 @@ def make_batch():
                 index = randint(0, vocab_size - 1)  # random index in vocabulary
                 input_ids[pos] = word_dict[number_dict[index]]  # replace
 
-        # Zero Paddings
+        # Zero Paddings, max_len = 30
         n_pad = maxlen - len(input_ids)
         input_ids.extend([0] * n_pad)
         segment_ids.extend([0] * n_pad)
@@ -118,11 +125,17 @@ def make_batch():
 # Proprecessing Finished
 
 def get_attn_pad_mask(seq_q, seq_k):
+    """
+    seq_k的数据是否等于0,如果等于0的话就返回true,然后生成的是一个atten的mask
+    :param seq_q:
+    :param seq_k:
+    :return:
+    """
     batch_size, len_q = seq_q.size()
     batch_size, len_k = seq_k.size()
     # eq(zero) is PAD token
-    pad_attn_mask = seq_k.data.eq(0).unsqueeze(1)  # batch_size x 1 x len_k(=len_q), one is masking
-    return pad_attn_mask.expand(batch_size, len_q, len_k)  # batch_size x len_q x len_k
+    pad_attn_mask = seq_k.data.eq(0).unsqueeze(1)  # [batch_size, 1, len_k(=len_q)], one is masking
+    return pad_attn_mask.expand(batch_size, len_q, len_k)  # [batch_size, len_q, len_k]
 
 
 def gelu(x):
@@ -142,6 +155,9 @@ class Embedding(nn.Module):
         seq_len = x.size(1)
         pos = torch.arange(seq_len, dtype=torch.long)
         pos = pos.unsqueeze(0).expand_as(x)  # (seq_len,) -> (batch_size, seq_len)
+        input_emb = self.tok_embed(x)  # [6, 30, 768]
+        pos_emb = self.pos_embed(pos)
+        seg_emb = self.seg_embed(seg)
         embedding = self.tok_embed(x) + self.pos_embed(pos) + self.seg_embed(seg)
         return self.norm(embedding)
 
@@ -152,11 +168,12 @@ class ScaledDotProductAttention(nn.Module):
 
     def forward(self, Q, K, V, attn_mask):
 
-        # scores : [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
+        # scores : [batch_size, n_heads, len_q(=len_k), len_k(=len_q)] = [6, 12, 30, 30]
         scores = torch.matmul(Q, K.transpose(-1, -2)) / np.sqrt(d_k)
 
         scores.masked_fill_(attn_mask, -1e9)  # Fills elements of self tensor with value where mask is one.
 
+        # 进行一个归一化操作之后
         attn = nn.Softmax(dim=-1)(scores)
 
         context = torch.matmul(attn, V)
@@ -176,7 +193,7 @@ class MultiHeadAttention(nn.Module):
         residual, batch_size = Q, Q.size(0)
         # (B, S, D) -proj-> (B, S, D) -split-> (B, S, H, W) -trans-> (B, H, S, W)
 
-        # q_s: [batch_size x n_heads x len_q x d_k]
+        # q_s: [batch_size, n_heads, len_q, d_k] = [6, 12, 30, 64]
         q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1, 2)
 
         # k_s: [batch_size x n_heads x len_k x d_k]
@@ -185,13 +202,13 @@ class MultiHeadAttention(nn.Module):
         # v_s: [batch_size x n_heads x len_k x d_v]
         v_s = self.W_V(V).view(batch_size, -1, n_heads, d_v).transpose(1, 2)
 
-        # attn_mask : [batch_size x n_heads x len_q x len_k]
+        # attn_mask : [batch_size, n_heads, len_q, len_k] , 把他 repeat n_heads 份
         attn_mask = attn_mask.unsqueeze(1).repeat(1, n_heads, 1, 1)
 
         # context: [batch_size x n_heads x len_q x d_v], attn: [batch_size x n_heads x len_q(=len_k) x len_k(=len_q)]
         context, attn = ScaledDotProductAttention()(q_s, k_s, v_s, attn_mask)
 
-        # context: [batch_size x len_q x n_heads * d_v]
+        # context: [batch_size, len_q, n_heads * d_v]
         context = context.transpose(1, 2).contiguous().view(batch_size, -1, n_heads * d_v)
 
         output = nn.Linear(n_heads * d_v, d_model)(context)
@@ -218,6 +235,7 @@ class EncoderLayer(nn.Module):
 
     def forward(self, enc_inputs, enc_self_attn_mask):
 
+        # 第一次的enc_inputs 是 pos + seg + word embedding 三者相加得到的,维度是[6, 30, 768]
         # enc_inputs to same Q,K,V
         enc_outputs, attn = self.enc_self_attn(enc_inputs, enc_inputs, enc_inputs, enc_self_attn_mask)
 
@@ -237,6 +255,7 @@ class BERT(nn.Module):
         self.activ2 = gelu
         self.norm = nn.LayerNorm(d_model)
         self.classifier = nn.Linear(d_model, 2)
+
         # decoder is shared with embedding layer
         embed_weight = self.embedding.tok_embed.weight
         n_vocab, n_dim = embed_weight.size()
@@ -248,22 +267,22 @@ class BERT(nn.Module):
 
         output = self.embedding(input_ids, segment_ids)
 
-        enc_self_attn_mask = get_attn_pad_mask(input_ids, input_ids)
+        enc_self_attn_mask = get_attn_pad_mask(input_ids, input_ids)  # [6, 30, 30]
 
         for layer in self.layers:
             output, enc_self_attn = layer(output, enc_self_attn_mask)
         # output : [batch_size, len, d_model], attn : [batch_size, n_heads, d_mode, d_model]
 
         # it will be decided by first token(CLS)
-        h_pooled = self.activ1(self.fc(output[:, 0]))  # [batch_size, d_model]
+        h_pooled = self.activ1(self.fc(output[:, 0]))  # [batch_size, d_model], 只是对第一个token cls进行处理
 
         logits_clsf = self.classifier(h_pooled)  # [batch_size, 2]
 
-        # [batch_size, max_pred, d_model]
+        # [batch_size, max_pred, d_model] = [6, 5, 768]
         masked_pos = masked_pos[:, :, None].expand(-1, -1, output.size(-1))
 
         # get masked position from final output of transformer. masking position [batch_size, max_pred, d_model]
-        h_masked = torch.gather(output, 1, masked_pos)
+        h_masked = torch.gather(output, 1, masked_pos)  # 从masked_pos中选取对应的output, 维度和masked_pos一样
 
         h_masked = self.norm(self.activ2(self.linear(h_masked)))
 

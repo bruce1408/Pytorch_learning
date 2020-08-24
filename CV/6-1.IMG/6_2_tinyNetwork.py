@@ -1,25 +1,21 @@
 import os
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.autograd import Variable
-from torch.optim.lr_scheduler import *
 import torchvision.transforms as transforms
 from torchsummary import summary
 # from dataset.Custom import CustomData
-from utils.DataSet_train_val_test import CustomData
+from CV.utils.DataSet_train_val_test import CustomData
 from torchvision.models import vgg11
 # from utils.Custom import CustomData
 
-
 # parameters
+os.environ["CUDA_VISIBLE_DEVICES"] = '2'
 save_path = "./model.pt"
 gamma = 0.96
 num_workers = 2
-batchsize = 128
-epochs = 2
-learning_rate = 0.001
-os.environ["CUDA_VISIBLE_DEVICES"] = '2'
+batchsize = 64
+epochs = 20
+learning_rate = 0.0001
 
 transform_train = transforms.Compose([
     transforms.Resize((256, 256)),
@@ -36,7 +32,11 @@ transform_val = transforms.Compose([
 ])
 
 trainset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_train)
-valset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_val, train=False, val=True, test=False, splitnum=0.8)
+valset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_val,
+                    train=False,
+                    val=True,
+                    test=False,
+                    splitnum=0.8)
 
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchsize, shuffle=True, num_workers=num_workers)
 valloader = torch.utils.data.DataLoader(valset, batch_size=batchsize, shuffle=False, num_workers=num_workers)
@@ -76,12 +76,9 @@ class Net(nn.Module):
 
 
 pretrain_model = vgg11()
-print(vgg11)
-model = Net()
-model.cuda()
+model = Net().cuda()
 optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
-
 criterion = nn.CrossEntropyLoss()
 criterion.cuda()
 
@@ -123,10 +120,13 @@ def val(epoch):
     print("Acc: %f " % ((1.0 * correct.numpy()) / total))
 
 
-# if torch.cuda.is_available():
-#     torch.set_default_tensor_type('torch.cuda.FloatTensor')
-#     net = Net()
-#     summary(net, (3, 224, 224))
+if __name__ == '__main__':
+    model = Net()
+    print(model)
+    if torch.cuda.is_available():
+        summary(model.cuda(), (3, 224, 224))
+    else:
+        summary(model, (3, 224, 224))
 if os.path.exists(save_path):
     model.load_state_dict(torch.load(save_path))
     print("======== load the model from %s ========" % save_path)
