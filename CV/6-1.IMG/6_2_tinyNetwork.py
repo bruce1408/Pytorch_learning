@@ -1,13 +1,9 @@
 import os
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.autograd import Variable
-from torch.optim.lr_scheduler import *
 import torchvision.transforms as transforms
-from torchsummary import summary
 # from dataset.Custom import CustomData
-from utils.DataSet_train_val_test import CustomData
+from CV.utils.DataSet_train_val_test import CustomData
 from torchvision.models import vgg11
 # from utils.Custom import CustomData
 
