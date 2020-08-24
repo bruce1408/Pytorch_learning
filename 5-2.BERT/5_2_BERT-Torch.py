@@ -38,6 +38,19 @@ text = (
     'Thanks you Romeo'
 )
 
+
+def randomSeed(SEED):
+
+    seed(SEED)
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+    torch.cuda.manual_seed(SEED)
+    torch.backends.cudnn.deterministic = True
+
+
+SEED = 1234
+randomSeed(SEED)
+
 sentences = re.sub("[.,!?\\-]", '', text.lower()).split('\n')  # filter '.', ',', '?', '!'
 word_list = list(set(" ".join(sentences).split()))
 word_dict = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
@@ -272,7 +285,7 @@ input_ids, segment_ids, masked_tokens, masked_pos, isNext = torch.LongTensor(inp
                                                             torch.LongTensor(masked_pos),\
                                                             torch.LongTensor(isNext)
 
-for epoch in range(100):
+for epoch in range(1000):
     optimizer.zero_grad()
     logits_lm, logits_clsf = model(input_ids, segment_ids, masked_pos)
     loss_lm = criterion(logits_lm.transpose(1, 2), masked_tokens)  # for masked LM
