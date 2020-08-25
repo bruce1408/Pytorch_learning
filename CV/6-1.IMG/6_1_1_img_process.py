@@ -11,7 +11,6 @@ transform1 = transforms.Compose([transforms.ToTensor()])
 
 # 直接读取：numpy.ndarray
 img = cv2.imread(img_path)
-print("img = ", img[0])  # 只输出其中一个通道
 print("img.shape = ", img.shape)
 
 # 归一化，转化为numpy.ndarray并显示
@@ -21,7 +20,7 @@ img2 = img2.astype('uint8')
 img2 = np.transpose(img2, (1, 2, 0))
 
 print("img1 = ", img1)
-cv2.imshow('img2 ', img2)
+# cv2.imshow('img2 ', img2)
 # cv2.waitKey(0)
 
 # PIL 读取图像

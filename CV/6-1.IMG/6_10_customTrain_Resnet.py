@@ -14,30 +14,30 @@ os.environ['CUDA_VISIBLES_DEVICES'] = '3'
 batchsize = 64
 num_works = 4
 epochs = 2000
-learning_rate = 0.0001
+learning_rate = 0.001
 gamma = 0.96
 
-transforms_train = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.RandomCrop((224, 224)),
-    transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
-    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
-])
-
-
-transforms_val = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
-])
-
-
-transform_test = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-])
+# transforms_train = transforms.Compose([
+#     transforms.Resize((224, 224)),
+#     transforms.RandomCrop((224, 224)),
+#     transforms.RandomHorizontalFlip(),
+#     transforms.ToTensor(),
+#     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
+# ])
+#
+#
+# transforms_val = transforms.Compose([
+#     transforms.Resize((224, 224)),
+#     transforms.ToTensor(),
+#     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
+# ])
+#
+#
+# transform_test = transforms.Compose([
+#     transforms.Resize((224, 224)),
+#     transforms.ToTensor(),
+#     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+# ])
 
 trainData = DogCat('/raid/bruce/datasets/dogs_cats/train')
 valData = DogCat("/raid/bruce/datasets/dogs_cats/train", train=False, test=True)

@@ -49,5 +49,10 @@ if __name__ == '__main__':
     net = AlexNet()
     if torch.cuda.is_available():
         summary(net.cuda(), (3, 224, 224))
+        # input [batch_size, channel, width, heigth]
+        x = torch.rand(size=(8, 3, 224, 224)).to('cuda')
+        output = net(x)
+        print('the output shape is: ', output.size())
     else:
         summary(net, (3, 224, 224))
+

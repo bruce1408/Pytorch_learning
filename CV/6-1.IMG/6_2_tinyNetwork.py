@@ -12,23 +12,26 @@ from torchvision.models import vgg11
 os.environ["CUDA_VISIBLE_DEVICES"] = '2'
 save_path = "./model.pt"
 gamma = 0.96
-num_workers = 2
+num_workers = 4
 batchsize = 64
 epochs = 20
-learning_rate = 0.0001
+learning_rate = 0.001
+
+mean = [0.485, 0.456, 0.406]
+std = [0.229, 0.224, 0.225]
 
 transform_train = transforms.Compose([
     transforms.Resize((256, 256)),
     transforms.RandomCrop((224, 224)),
-    transforms.RandomHorizontalFlip(),
+    transforms.RandomHorizontalFlip(),  # 随机水平翻转
     transforms.ToTensor(),
-    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+    transforms.Normalize(mean, std)
 ])
 
 transform_val = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
-    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+    transforms.Normalize(mean, std),
 ])
 
 trainset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_train)
@@ -89,9 +92,10 @@ def update_lr(optimizer, lr):
 
 
 def train(epoch):
+    model.train()
+    optimizer.zero_grad()
     print('\nEpoch: %d' % epoch)
     scheduler.step()
-    model.train()
     for batch_idx, (img, label) in enumerate(trainloader):
         image = img.cuda()
         label = label.cuda()
@@ -99,7 +103,10 @@ def train(epoch):
         out = model(image)
         loss = criterion(out, label)
         loss.backward()
+
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
         optimizer.step()
+
         print("Epoch:%d [%d|%d] loss:%f, lr:%f" % (epoch, batch_idx, len(trainloader), loss.mean(), scheduler.get_lr()[0]))
 
 

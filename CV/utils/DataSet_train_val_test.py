@@ -13,6 +13,7 @@ class CustomData(data.Dataset):
         self.val = val
         self.test = test
         self.transform = transform
+
         imgs = [os.path.join(imgFolder, imgFile) for imgFile in os.listdir(imgFolder)]
         self.imgnum = len(imgs)
         self.imgs = sorted(imgs, key=lambda x: int(x.split('.')[-2]))

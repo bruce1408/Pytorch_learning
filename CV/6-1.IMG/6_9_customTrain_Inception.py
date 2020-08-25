@@ -7,7 +7,7 @@ from CV.utils.dog_cat import DogCat
 
 from CV.utils import Inception_v1
 import torch.utils.data as data
-# from utils.inception_advance import Inception_v1
+from CV.utils.inception_advance import Inception_v1
 seed = 0
 torch.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
@@ -17,30 +17,30 @@ os.environ['CUDA_VISIBLES_DEVICES'] = '1'
 batchsize = 64
 num_works = 2
 epochs = 2000
-learning_rate = 0.001
+learning_rate = 0.01
 gamma = 0.96
 
-transforms_train = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.RandomCrop((224, 224)),
-    transforms.RandomHorizontalFlip(),
-    transforms.ToTensor(),
-    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
-])
-
-
-transforms_val = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
-])
-
-
-transform_test = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-])
+# transforms_train = transforms.Compose([
+#     transforms.Resize((224, 224)),
+#     transforms.RandomCrop((224, 224)),
+#     transforms.RandomHorizontalFlip(),
+#     transforms.ToTensor(),
+#     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
+# ])
+#
+#
+# transforms_val = transforms.Compose([
+#     transforms.Resize((224, 224)),
+#     transforms.ToTensor(),
+#     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
+# ])
+#
+#
+# transform_test = transforms.Compose([
+#     transforms.Resize((224, 224)),
+#     transforms.ToTensor(),
+#     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+# ])
 
 trainData = DogCat('/raid/bruce/datasets/dogs_cats/train')
 valData = DogCat("/raid/bruce/datasets/dogs_cats/train", train=False, test=True)
@@ -48,7 +48,6 @@ valData = DogCat("/raid/bruce/datasets/dogs_cats/train", train=False, test=True)
 
 trainloader = torch.utils.data.DataLoader(trainData, batch_size=batchsize, shuffle=True, num_workers=num_works)
 valloader = torch.utils.data.DataLoader(valData, batch_size=batchsize, shuffle=False, num_workers=num_works)
-# testloader = torch.utils.data.DataLoader(testData, batch_size=batchsize, shuffle=False, num_workers=num_works)
 
 
 def get_acc(pred, label):
@@ -61,7 +60,7 @@ def get_acc(pred, label):
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # model = Inception_v1(2).to(device)
-# model = VGGNet16().to(device)
+# # model = VGGNet16().to(device)
 # # model = vgg16_bn().to(device)
 # criterion = nn.CrossEntropyLoss()
 # optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -88,21 +87,22 @@ def update_lr(optimizer, lr):
 #         loss.backward()
 #         optimizer.step()
 #
-#         print("Epoch [{}/{}], Step [{}/{}] Loss: {:.4f}, lr: {:.6f}".format(epoch + 1, epochs, index + 1, total_step, loss.item(), curr_lr))
-
-        # if (index + 1) % 500 == 0:
-        #     curr_lr /= 3
-        #     update_lr(optimizer, curr_lr)
+#         print("Epoch [{}/{}], Step [{}/{}] Loss: {:.4f}, lr: {:.6f}".format(epoch + 1, epochs,
+#         index + 1, total_step, loss.item(), curr_lr))
+#
+#         if (index + 1) % 500 == 0:
+#             curr_lr /= 3
+#             update_lr(optimizer, curr_lr)
 def train(model, epoch, lr):
     print("start training the models ")
     model.train()
-
+    lr.step()
     lr_ = lr.get_lr()[0]
     for index, (img, label) in enumerate(trainloader):
         img = img.to(device)
         label = label.to(device)
         optimizer.zero_grad()
-        aux1, aux2, out = model(img)
+        out = model(img)
         loss = criterion(out, label)
         loss.backward()
         optimizer.step()

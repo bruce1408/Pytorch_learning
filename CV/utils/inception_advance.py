@@ -41,10 +41,10 @@ def layer_init(m):
 
 
 class LRN(nn.Module):
-    '''
+    """
     Implementing Local Response Normalization layer. Implemention adapted
     from https://github.com/jiecaoyu/pytorch_imagenet/blob/master/networks/model_list/alexnet.py
-    '''
+    """
 
     def __init__(self, local_size=1, alpha=1.0, beta=0.75, k=1, ACROSS_CHANNELS=False):
         super(LRN, self).__init__()
@@ -146,7 +146,7 @@ class Inception_v1(nn.Module):
         self.inception_5b = Inception_base(1, 832, [[384], [192, 384], [48, 128], [3, 128]])  # 5b
         self.avg_pool5 = nn.AvgPool2d(kernel_size=7, stride=1, padding=0)
 
-        self.dropout_layer = nn.Dropout(0.4)
+        self.dropout_layer = nn.Dropout(0.6)
         self.fc = nn.Linear(1024, num_classes)
 
         self.apply(layer_init)
