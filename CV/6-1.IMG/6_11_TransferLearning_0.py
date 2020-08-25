@@ -8,7 +8,7 @@ torch.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
 
 
-# toy feed-forward net
+# define the simple model structure
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -28,14 +28,12 @@ class Net(nn.Module):
 random_input = torch.randn(10,)
 random_target = torch.randn(1,)
 
-# define net
+# ===== before train the model, the fc2 para is: =======
 net = Net()
-print()
-# print fc2 weight
-print('fc2 weight before train:')
+print(30*"=" + 'fc2 weight before train:' + 30 * "=")
 print(net.fc2.weight)
 
-# train the net
+# =========== begin to train the model ==================
 criterion = nn.MSELoss()
 optimizer = optim.SGD(net.parameters(), lr=0.1)
 for i in range(100):
@@ -45,22 +43,22 @@ for i in range(100):
     loss.backward()
     optimizer.step()
 
-# print the trained fc2 weight
-print('fc2 weight after train:')
+# ===== after train the model, fc2 has been changed =====
+print(30*"="+'fc2 weight after train:' + "="*30)
 print(net.fc2.weight)
 
 # save the net
-torch.save(net.state_dict(), 'model')
+torch.save(net.state_dict(), 'model.pt')
 
 # delete and redefine the net
 del net
 net = Net()
 
 # load the weight
-net.load_state_dict(torch.load('model'))
+net.load_state_dict(torch.load('model.pt'))
 
 # print the pre-trained fc2 weight
-print('fc2 pretrained weight (same as the one above):')
+print(30*"=" + 'fc2 pretrained weight (same as the one above):'+20*"=")
 print(net.fc2.weight)
 
 # define new random data
@@ -88,7 +86,7 @@ for i in range(100):
 
 # print the retrained fc2 weight
 # note that the weight is same as the one before retraining: only fc1 & fc3 changed
-print('fc2 weight (frozen) after retrain:')
+print(30*"="+'fc2 weight (frozen) after retrain:'+30*"=")
 print(net.fc2.weight)
 
 # let's unfreeze the fc2 layer this time for extra tuning
@@ -108,5 +106,5 @@ for i in range(100):
 
 # print the re-retrained fc2 weight
 # note that this time the fc2 weight also changed
-print('fc2 weight (unfrozen) after re-retrain:')
+print(30*"="+'fc2 weight (unfrozen) after re-retrain:'+30*"=")
 print(net.fc2.weight)

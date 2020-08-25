@@ -20,9 +20,7 @@ class CustomData(data.Dataset):
         self.val = val
         self.train = train
         self.transform = transform
-        # imgs为一个储存了所有数据集绝对路径的列表
         imgs = [os.path.join(root, img) for img in os.listdir(root)]
-
         if self.val:
             imgs = sorted(imgs, key=lambda x: int(x.split('.')[-2].split('/')[-1]))
         else:
@@ -113,7 +111,7 @@ def train(epoch):
 
 
 def val(epoch):
-    print("\n Validation Epoch: %d" % epoch)
+    print(5*"="+"Validation Epoch: %d"+5*"=" % epoch)
     print(len(valloader))
     model.eval()
     total = 0
@@ -134,7 +132,7 @@ def val(epoch):
 
 if __name__ == '__main__':
     # 修改最后一全连接层输出维度，但是参数全部要更新训练
-    resnet = resnet18(pretrained=True)  # 直接用 resnet 在 ImageNet 上训练好的参数
+    resnet = resnet18(pretrained=False, progress=True)  # 直接用 resnet 在 ImageNet 上训练好的参数
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # 若能使用cuda，则使用cuda
     model = Net(resnet)  # 修改全连接层
     model = model.to(device)  # 放到 GPU 上跑

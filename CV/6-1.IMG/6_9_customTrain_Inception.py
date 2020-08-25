@@ -14,7 +14,7 @@ torch.cuda.manual_seed_all(seed)
 
 # parameters
 os.environ['CUDA_VISIBLES_DEVICES'] = '1'
-batchsize = 64
+batchsize = 16
 num_works = 2
 epochs = 2000
 learning_rate = 0.01
@@ -136,6 +136,6 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     for epoch in range(epochs):
         train(model, epoch, lr)
-        # val(model, epoch)
+        val(model, epoch)
         lr.step()
     torch.save(model, 'model_cat_dog.pt')

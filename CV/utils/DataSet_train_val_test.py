@@ -23,14 +23,14 @@ class CustomData(data.Dataset):
             self.imgs = imgs[int(splitnum * self.imgnum):]
         else:
             self.imgs = imgs
-
         random.shuffle(self.imgs)
 
     def __getitem__(self, index):
         img_path = self.imgs[index]
         label = 1 if 'dog' in img_path.split('/')[-1] else 0
         imgdata = Image.open(img_path)
-        imgdata = self.transform(imgdata)
+        if self.transform is not None:
+            imgdata = self.transform(imgdata)
         return imgdata, label
 
     def __len__(self):
@@ -39,4 +39,4 @@ class CustomData(data.Dataset):
 
 if __name__ == '__main__':
     data = CustomData('/raid/bruce/datasets/dogs_cats/train')
-
+    print(data[0])

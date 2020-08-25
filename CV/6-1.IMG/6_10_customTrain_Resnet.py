@@ -11,37 +11,15 @@ from CV.utils.ResNet import ResNet50
 
 # parameters
 os.environ['CUDA_VISIBLES_DEVICES'] = '3'
-batchsize = 64
+batchsize = 32
 num_works = 4
 epochs = 2000
 learning_rate = 0.001
 gamma = 0.96
 
-# transforms_train = transforms.Compose([
-#     transforms.Resize((224, 224)),
-#     transforms.RandomCrop((224, 224)),
-#     transforms.RandomHorizontalFlip(),
-#     transforms.ToTensor(),
-#     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
-# ])
-#
-#
-# transforms_val = transforms.Compose([
-#     transforms.Resize((224, 224)),
-#     transforms.ToTensor(),
-#     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
-# ])
-#
-#
-# transform_test = transforms.Compose([
-#     transforms.Resize((224, 224)),
-#     transforms.ToTensor(),
-#     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
-# ])
 
 trainData = DogCat('/raid/bruce/datasets/dogs_cats/train')
 valData = DogCat("/raid/bruce/datasets/dogs_cats/train", train=False, test=True)
-# testData = CustomData("/raid/bruce/datasets/dogs_cats/train", transform=transform_test, train=False, val=False)
 
 trainloader = torch.utils.data.DataLoader(trainData, batch_size=batchsize, shuffle=True, num_workers=num_works)
 valloader = torch.utils.data.DataLoader(valData, batch_size=batchsize, shuffle=False, num_workers=num_works)
@@ -100,6 +78,6 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     for epoch in range(epochs):
         train(model, epoch, lr)
-        # val(model, epoch)
-        # lr.step()
+        val(model, epoch)
+        lr.step()
     torch.save(model, 'model_cat_dog.pt')

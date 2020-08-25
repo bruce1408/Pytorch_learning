@@ -1,28 +1,33 @@
 import os
+import sys
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 from torchsummary import summary
 # from dataset.Custom import CustomData
-from CV.utils.DataSet_train_val_test import CustomData
 from torchvision.models import vgg11
+from CV.utils.DataSet_train_val_test import CustomData
+from CV.utils.AlexNet import AlexNet
+from CV.utils.VGGNet import VGGNet16
+from CV.utils.ResNet import ResNet50
+from CV.utils.Inception_v1 import Inception_v1
 # from utils.Custom import CustomData
 
 # parameters
-os.environ["CUDA_VISIBLE_DEVICES"] = '2'
-save_path = "./model.pt"
+os.environ["CUDA_VISIBLE_DEVICES"] = '1, 2, 3'
+save_path = "./self_resnet50.pt"
 gamma = 0.96
 num_workers = 4
-batchsize = 64
-epochs = 20
-learning_rate = 0.001
+batchsize = 32  # batch_size 不要太大
+epochs = 50
+learning_rate = 0.01
 
 mean = [0.485, 0.456, 0.406]
-std = [0.229, 0.224, 0.225]
+std = [0.2459, 0.2424, 0.2603115]
 
 transform_train = transforms.Compose([
-    transforms.Resize((256, 256)),
-    transforms.RandomCrop((224, 224)),
+    transforms.Resize((224, 224)),
+    transforms.RandomCrop((224, 224), padding=4),
     transforms.RandomHorizontalFlip(),  # 随机水平翻转
     transforms.ToTensor(),
     transforms.Normalize(mean, std)
@@ -42,7 +47,7 @@ valset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_
                     splitnum=0.8)
 
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchsize, shuffle=True, num_workers=num_workers)
-valloader = torch.utils.data.DataLoader(valset, batch_size=batchsize, shuffle=False, num_workers=num_workers)
+valloader = torch.utils.data.DataLoader(valset, batch_size=batchsize, shuffle=True, num_workers=num_workers)
 
 
 class Net(nn.Module):
@@ -78,12 +83,15 @@ class Net(nn.Module):
         return output
 
 
-pretrain_model = vgg11()
-model = Net().cuda()
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
-scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
-criterion = nn.CrossEntropyLoss()
-criterion.cuda()
+# pretrain_model = vgg11()
+# model = AlexNet(n_class=2).cuda()
+# model = VGGNet16(num_classes=2, init_weights=True).cuda()
+# model = ResNet50([3, 4, 6, 3], num_classes=2)
+# model = Inception_v1(num_classes=2)
+# optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
+# scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
+# criterion = nn.CrossEntropyLoss()
+# criterion.cuda()
 
 
 def update_lr(optimizer, lr):
@@ -91,27 +99,29 @@ def update_lr(optimizer, lr):
         param_group['lr'] = lr
 
 
-def train(epoch):
+def train(model, epoch):
     model.train()
     optimizer.zero_grad()
-    print('\nEpoch: %d' % epoch)
     scheduler.step()
     for batch_idx, (img, label) in enumerate(trainloader):
         image = img.cuda()
         label = label.cuda()
         optimizer.zero_grad()
         out = model(image)
+        # print(a1.shape, a2.shape, out.shape)
         loss = criterion(out, label)
         loss.backward()
 
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
         optimizer.step()
+        sys.stdout.write('\033[1;36m \r>>Train Epoch:%d [%d|%d] loss:%f, lr:%f \033[0m' %
+                         (epoch, batch_idx, len(trainloader), loss.mean(), scheduler.get_lr()[0]))
+        sys.stdout.flush()
+    sys.stdout.write('\n')
+    sys.stdout.flush()
 
-        print("Epoch:%d [%d|%d] loss:%f, lr:%f" % (epoch, batch_idx, len(trainloader), loss.mean(), scheduler.get_lr()[0]))
 
-
-def val(epoch):
-    print("\nValidation Epoch: %d" % epoch)
+def val(model, epoch):
     model.eval()
     total = 0
     correct = 0
@@ -123,24 +133,38 @@ def val(epoch):
             _, predicted = torch.max(out.data, 1)
             total += image.size(0)
             correct += predicted.data.eq(label.data).cpu().sum()
-            print("Epoch:%d [%d|%d] total:%d correct:%d" % (epoch, batch_idx, len(valloader), total, correct.numpy()))
+            sys.stdout.write('\033[1;35m \r>>Validation Epoch:%d [%d|%d] total:%d, corretc:%d \033[0m' %
+                             (epoch, batch_idx, len(valloader), total, correct.numpy()))
+            sys.stdout.flush()
+        # sys.stdout.write('\n')
+        sys.stdout.flush()
     print("Acc: %f " % ((1.0 * correct.numpy()) / total))
 
 
 if __name__ == '__main__':
-    model = Net()
+    # model = Net()
+    # model = Inception_v1(num_classes=2)
+    model = ResNet50([3, 4, 6, 3], num_classes=2)
+    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
+    criterion = nn.CrossEntropyLoss()
+    criterion.cuda()
+
+    # ============ model structure ===========
     print(model)
     if torch.cuda.is_available():
         summary(model.cuda(), (3, 224, 224))
     else:
         summary(model, (3, 224, 224))
-if os.path.exists(save_path):
-    model.load_state_dict(torch.load(save_path))
-    print("======== load the model from %s ========" % save_path)
-else:
-    print("======== train the net from srcatch ==========")
-for epoch in range(epochs):
-    train(epoch)
-    val(epoch)
-torch.save(model.state_dict(), save_path)
+    # ============= load the model ============
+    if os.path.exists(save_path):
+        model.load_state_dict(torch.load(save_path))
+        print("======== load the model from %s ========" % save_path)
+    else:
+        print("======== train the net from srcatch ==========")
+    # ============ train the model =============
+    for epoch in range(epochs):
+        train(model, epoch)
+        val(model, epoch)
+        torch.save(model.state_dict(), save_path)
 

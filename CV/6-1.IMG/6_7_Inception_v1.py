@@ -129,7 +129,10 @@ class Inception_v1(nn.Module):
 
 
 if __name__ == '__main__':
+    net = Inception_v1()
     if torch.cuda.is_available():
-        torch.set_default_tensor_type('torch.cuda.FloatTensor')
-        net = Inception_v1(10, 'train')
+        summary(net.cuda(), (3, 224, 224))
+    else:
         summary(net, (3, 224, 224))
+
+

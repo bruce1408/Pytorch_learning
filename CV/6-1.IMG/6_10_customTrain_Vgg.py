@@ -16,7 +16,7 @@ torch.backends.cudnn.benchmark = True
 
 # parameters
 os.environ['CUDA_VISIBLES_DEVICES'] = '1'
-batchsize = 64
+batchsize = 32
 num_works = 4
 epochs = 2000
 learning_rate = 0.0001
