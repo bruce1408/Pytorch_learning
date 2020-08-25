@@ -21,7 +21,6 @@ class CustomData(data.Dataset):
         self.val = val
         self.train = train
         self.transform = transform
-        # imgs为一个储存了所有数据集绝对路径的列表
         imgs = [os.path.join(root, img) for img in os.listdir(root)]
 
         if self.val:
@@ -42,7 +41,7 @@ class CustomData(data.Dataset):
     # 作为迭代器必须有的方法
     def __getitem__(self, index):
         img_path = self.imgs[index]
-        label = 1 if 'dog' in img_path.split('/')[-1] else 0  # 狗的label设为1，猫的设为0
+        label = 1 if "dog" in img_path.split('/')[-1] else 0  # 狗的label设为1，猫的设为0
         data = Image.open(img_path)
         data = self.transform(data)
         return data, label
@@ -55,7 +54,7 @@ class CustomData(data.Dataset):
 transform_train = transforms.Compose([
     transforms.Resize((256, 256)),  # 先调整图片大小至256x256
     transforms.RandomCrop((224, 224)),  # 再随机裁剪到224x224
-    transforms.RandomHorizontalFlip(),  # 随机的图像水平翻转，通俗讲就是图像的左右对调
+    transforms.RandomHorizontalFlip(),  # 随机的图像水平翻转
     transforms.ToTensor(),  # Convert a ``PIL Image`` or ``numpy.ndarray`` to tensor.
     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))  # 归一化，数值是用ImageNet给出的数值
 ])
@@ -100,7 +99,7 @@ def train(epoch):
 
 
 def val(epoch):
-    print("\n Validation Epoch: %d" % epoch)
+    print("Validation Epoch: %d" % epoch)
     print(len(valloader))
     model.eval()
     total = 0
@@ -123,15 +122,22 @@ if __name__ == '__main__':
 
     # 除了最后一层的全连接层，其他都是冻层之后，只更新最后一层参数，而不是全部参数都更新
     model = resnet18(pretrained=True)  # 直接用 resnet 在 ImageNet 上训练好的参数
+    print(model)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # 若能使用cuda，则使用cuda
+
+    # 全部冻层,然后得到最后一层全连接的输入参数是num_features = 512
     for param in model.parameters():
         param.requires_grad = False
-    num_features = model.fc.in_features
+    num_features = model.fc.in_features  # input_size = 512
     model.fc = nn.Linear(num_features, 2)
     # 只更新fc参数
     model = model.to(device)  # 放到 GPU 上跑
+
+    # 只训练fc层的param参数即可
     optimizer = torch.optim.SGD(model.fc.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)  # 设置训练细节
+
     criterion = nn.CrossEntropyLoss()  # 分类问题用交叉熵普遍
+
     for epoch in range(20):
         train(epoch)
         val(epoch)

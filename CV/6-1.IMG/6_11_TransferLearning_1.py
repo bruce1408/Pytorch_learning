@@ -75,9 +75,14 @@ valloader = torch.utils.data.DataLoader(valset, batch_size=batchsize, shuffle=Fa
 
 class Net(nn.Module):
     def __init__(self, model):
+        """
+        定义一个Net网络,封装之前的model,然后去掉最后一层,修改最后一层的值为分类数目即可.
+        :param model:
+        """
         super(Net, self).__init__()
         # 去掉model的最后1层
         self.resnet_layer = nn.Sequential(*list(model.children())[:-1])
+        print('self resnet layers: \n', self.resnet_layer)
         self.Linear_layer = nn.Linear(512, 2)  # 加上一层参数修改好的全连接层
 
     def forward(self, x):
@@ -99,9 +104,9 @@ def train(epoch):
     #     scheduler.step()
     model.train()
     for batch_idx, (img, label) in enumerate(trainloader):  # 迭代器，一次迭代 batch_size 个数据进去
+        optimizer.zero_grad()
         image = img.to(device)
         label = label.to(device)
-        optimizer.zero_grad()
         out = model(image)
         loss = criterion(out, label)
         loss.backward()
@@ -111,7 +116,7 @@ def train(epoch):
 
 
 def val(epoch):
-    print(5*"="+"Validation Epoch: %d"+5*"=" % epoch)
+    print(5*"="+"Validation Epoch: %d" % epoch)
     print(len(valloader))
     model.eval()
     total = 0

@@ -12,7 +12,7 @@ from PIL import Image
 import torch.utils.data as data
 import torchvision.transforms as transforms
 """
-冻结预训练部分卷积层(靠近输入的多数卷积层),然后训练剩下的卷积层(靠近输出的部分)和全连接层
+冻结预训练部分卷积层(靠近输入的多数卷积层),然后训练剩下的卷积层(靠近输出的部分)和全连接层,只更新最后三层的全连接层
 https://cloud.tencent.com/developer/article/1435646
 """
 # parameters
@@ -26,7 +26,6 @@ class CustomData(data.Dataset):
         self.val = val
         self.train = train
         self.transform = transform
-        # imgs为一个储存了所有数据集绝对路径的列表
         imgs = [os.path.join(root, img) for img in os.listdir(root)]
 
         if self.val:
@@ -88,8 +87,11 @@ class Net(nn.Module):
     def __init__(self, model):
         super(Net, self).__init__()
         self.model = model
+
+        # 13个卷积层, 但是不包含3个全连接层
         self.vgg_layer = nn.Sequential(*list(model.children())[:-1])
-        print('the vgg layers is: ', self.vgg_layer)
+
+        # 加上自己定义的新的3个全连接层
         self.layers = nn.Sequential(
             nn.Linear(25088, 4096),
             nn.ReLU(),
