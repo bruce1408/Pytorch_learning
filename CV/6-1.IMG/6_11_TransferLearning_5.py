@@ -7,8 +7,7 @@ import torch.utils.model_zoo as model_zoo
 from torchvision.models import vgg11, resnet50
 
 """
-加载部分的预训练模型,首先写一个自己的模型,保留想要迁移过来的网络结果名称,然后在加上自己定制
-的网络结构层,这里以resnet50为例子
+加载部分的预训练模型,首先写一个自己的模型,保留想要迁移过来的网络结果名称,然后在加上自己定制的网络结构层,这里以resnet50为例子
 resnet50官网代码地址:https://pytorch.org/docs/stable/_modules/torchvision/models/resnet.html#resnet18
 """
 
@@ -90,8 +89,7 @@ class CNN(nn.Module):
         """
         self.inplanes = 64
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
-                               bias=False)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -158,14 +156,19 @@ class CNN(nn.Module):
 # 加载model
 resnet50 = models.resnet50(pretrained=True)
 cnn = CNN(Bottleneck, [3, 4, 6, 3])
+print("==================== before convert the params the value is: \n", cnn)
+print('==================== the model resnet50 is: \n', resnet50)
+
 # 读取参数
 pretrained_dict = resnet50.state_dict()
 model_dict = cnn.state_dict()
+
 # 将pretrained_dict里不属于model_dict的键剔除掉
 pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+
 # 更新现有的model_dict
 model_dict.update(pretrained_dict)
-# 加载我们真正需要的state_dict
+
+# 加载我们真正需要的state_dict, 替换了原来的 avgpool 层和 fc 层
 cnn.load_state_dict(model_dict)
-# print(resnet50)
-print(cnn)
+print("=================== after convert the params the value is: \n", cnn)

@@ -19,7 +19,7 @@ save_path = "./self_resnet50.pt"
 gamma = 0.96
 num_workers = 4
 batchsize = 32  # batch_size 不要太大
-epochs = 50
+epochs = 100
 learning_rate = 0.01
 
 mean = [0.485, 0.456, 0.406]
@@ -136,7 +136,7 @@ def val(model, epoch):
             sys.stdout.write('\033[1;35m \r>>Validation Epoch:%d [%d|%d] total:%d, corretc:%d \033[0m' %
                              (epoch, batch_idx, len(valloader), total, correct.numpy()))
             sys.stdout.flush()
-        # sys.stdout.write('\n')
+        sys.stdout.write('\n')
         sys.stdout.flush()
     print("Acc: %f " % ((1.0 * correct.numpy()) / total))
 
