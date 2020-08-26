@@ -172,4 +172,12 @@ tensor([[[          5,           5,           5,           5],
 """
 
 '''转换向量过程'''
+"""
+repeat 和 expand 两个函数的区别
+"""
+a = torch.tensor([1, 2, 3, 4])
+a1 = a.expand(8, 4)  # 不会分配新内存,只是创建一个新的视图,且智能扩展维度是1的张量
+print(a1.shape)  # [8, 4]
+b1 = a.repeat(3, 2)  # 沿着特定维度重复张量
+print(b1.shape)  # shape =[3, 8]
 
