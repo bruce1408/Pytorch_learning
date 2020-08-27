@@ -94,3 +94,7 @@ for key in sorted(modelB_dict.keys()):
     print(parameter.size())
     print(parameter)
     print("="*40)
+
+for k, v in dict(modelB.named_parameters()).items():
+    print('the k is:\n', k)
+    print("the v is:\n", v)

@@ -12,12 +12,17 @@ class Bottleneck(nn.Module):
         self.dim = dim
         self.downsampling = downsampling
         self.bottleneck = nn.Sequential(
+            # 卷积层1
             nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=1),  # 默认padding=0
             nn.BatchNorm2d(out_channel),
             nn.ReLU(),
+
+            # 卷积层2
             nn.Conv2d(out_channel, out_channel, kernel_size=3, stride=stride, padding=1),
             nn.BatchNorm2d(out_channel),
             nn.ReLU(),
+
+            # 卷积层3
             nn.Conv2d(out_channel, out_channel*dim, kernel_size=1, stride=1),
             nn.BatchNorm2d(out_channel*dim)
         )

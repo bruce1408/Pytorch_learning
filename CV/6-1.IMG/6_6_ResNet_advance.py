@@ -14,11 +14,9 @@ __all__ = ['ResNet50', 'ResNet101', 'ResNet152']
 # 卷积块1,对照图中,卷积核为7*7,
 def Conv1(in_planes, places, stride=2):
     return nn.Sequential(
-        # 卷积核为7 * 7,stride = 2 padding为3
         nn.Conv2d(in_channels=in_planes, out_channels=places, kernel_size=7, stride=stride, padding=3, bias=False),
         nn.BatchNorm2d(places),
         nn.ReLU(inplace=True),
-        # 最大池化层 3*3,stride =2
         nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
     )
 
@@ -26,10 +24,13 @@ def Conv1(in_planes, places, stride=2):
 class Bottleneck(nn.Module):
     def __init__(self, in_places, places, stride=1, downsampling=False, expansion=4):
         super(Bottleneck, self).__init__()
+
         # 维度扩张数
         self.expansion = expansion
-        # 是否降采用
+
+        # 是否降采用, 就是在残差块使用卷积来做
         self.downsampling = downsampling
+
         # 构建 图中各层的1*1,3*3,1*1的卷积块
         self.bottleneck = nn.Sequential(
             nn.Conv2d(in_channels=in_places, out_channels=places, kernel_size=1, stride=1, bias=False),
@@ -67,7 +68,7 @@ class ResNet(nn.Module):
         super(ResNet, self).__init__()
         self.expansion = expansion
         self.conv1 = Conv1(in_planes=3, places=64)
-        # 层数
+        # 4 个block 块
         self.layer1 = self.make_layer(in_places=64, places=64, block=blocks[0], stride=1)
         self.layer2 = self.make_layer(in_places=256, places=128, block=blocks[1], stride=2)
         self.layer3 = self.make_layer(in_places=512, places=256, block=blocks[2], stride=2)
@@ -87,7 +88,7 @@ class ResNet(nn.Module):
     def make_layer(self, in_places, places, block, stride):
         layers = list()
         # 第1个
-        layers.append(Bottleneck(in_places, places, stride, downsampling=True))
+        layers.append(Bottleneck(in_places, places, stride, downsampling=True))  # 进行shortcut 步骤卷积过程
         for i in range(1, block):
             layers.append(Bottleneck(places * self.expansion, places))
 
