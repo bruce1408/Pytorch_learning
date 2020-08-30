@@ -108,6 +108,7 @@ def train(model, epoch):
         label = label.cuda()
         optimizer.zero_grad()
         out = model(image)
+        print('the out shape is: ', out.shape)
         # print(a1.shape, a2.shape, out.shape)
         loss = criterion(out, label)
         loss.backward()

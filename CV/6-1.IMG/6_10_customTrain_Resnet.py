@@ -11,9 +11,9 @@ from CV.utils.ResNet import ResNet50
 
 # parameters
 os.environ['CUDA_VISIBLES_DEVICES'] = '3'
-batchsize = 32
+batchsize = 16
 num_works = 4
-epochs = 2000
+epochs = 200
 learning_rate = 0.001
 gamma = 0.96
 
@@ -23,7 +23,6 @@ valData = DogCat("/raid/bruce/datasets/dogs_cats/train", train=False, test=True)
 
 trainloader = torch.utils.data.DataLoader(trainData, batch_size=batchsize, shuffle=True, num_workers=num_works)
 valloader = torch.utils.data.DataLoader(valData, batch_size=batchsize, shuffle=False, num_workers=num_works)
-# testloader = torch.utils.data.DataLoader(testData, batch_size=batchsize, shuffle=False, num_workers=num_works)
 
 
 def get_acc(pred, label):
