@@ -17,7 +17,7 @@ save_path = "./transform_resnet50.pt"
 gamma = 0.96
 num_workers = 4
 batchsize = 32  # batch_size 不要太大
-epochs = 100
+epochs = 10
 learning_rate = 0.01
 
 
