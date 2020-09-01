@@ -63,3 +63,4 @@ class Custom(data.Dataset):
 if __name__ == '__main__':
     data = Custom('train', '/raid/bruce/datasets/dogs_cats')
     print(data.__len__())
+    print(data[0])
