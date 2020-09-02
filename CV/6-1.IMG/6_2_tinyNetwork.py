@@ -83,17 +83,6 @@ class Net(nn.Module):
         return output
 
 
-# pretrain_model = vgg11()
-# model = AlexNet(n_class=2).cuda()
-# model = VGGNet16(num_classes=2, init_weights=True).cuda()
-# model = ResNet50([3, 4, 6, 3], num_classes=2)
-# model = Inception_v1(num_classes=2)
-# optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
-# scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
-# criterion = nn.CrossEntropyLoss()
-# criterion.cuda()
-
-
 def update_lr(optimizer, lr):
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
