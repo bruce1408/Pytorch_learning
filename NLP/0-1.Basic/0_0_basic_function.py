@@ -181,3 +181,16 @@ print(a1.shape)  # [8, 4]
 b1 = a.repeat(3, 2)  # 沿着特定维度重复张量
 print(b1.shape)  # shape =[3, 8]
 
+"""
+meshgrid函数使用,构成一个坐标系可用,选择两个行列坐标的值,然后最后生成的坐标
+x和y轴的参数mn分别是较小的值作为行,大的作为列
+"""
+x = np.linspace(0, 1, 5)
+y = np.linspace(0, 1, 3)
+xc, yc = np.meshgrid(x, y)
+print(xc)
+print(yc)
+xc = xc.reshape(-1, 1)
+yc = yc.reshape(-1, 1)
+c = np.concatenate((xc, yc), axis=1)
+print(c)
