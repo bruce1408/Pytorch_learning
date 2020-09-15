@@ -194,3 +194,15 @@ xc = xc.reshape(-1, 1)
 yc = yc.reshape(-1, 1)
 c = np.concatenate((xc, yc), axis=1)
 print(c)
+
+"""
+torch.floor不超过这个数的最大整数
+tensor([[ 0.0461,  0.4024, -1.0115],
+        [ 0.2167, -0.6123,  0.5036]])
+tensor([[ 0.,  0., -2.],
+        [ 0., -1.,  0.]])
+"""
+a = torch.randn((2, 3))
+b = torch.floor(a)
+print(a)
+print(b)
