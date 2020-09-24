@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+from torchsummary import summary
 
 class toyModel(nn.Module):
     def __init__(self):
@@ -24,8 +24,13 @@ class toyModel(nn.Module):
 
 
 if __name__ == "__main__":
-    net = toyModel()
-    print(net)
+
+    model = toyModel()
+    if torch.cuda.is_available():
+        summary(model.cuda(), (3, 224, 224))
+    else:
+        summary(model, (3, 224, 224))
+    print(model)
     x = torch.rand((2, 3, 224, 224))
-    output = net(x)
+    output = model(x).cuda()
     print(output.shape)
