@@ -214,7 +214,23 @@ hout = (hin-1)*stride - 2 * padding + kernel + output_padding
 参考链接https://blog.csdn.net/qq_27261889/article/details/86304061
 
 nn.Unsample 上采样没有参数,速度更快,采样策略给定
+
+参考链接 
+https://www.shuzhiduo.com/A/gGdX9OPWz4/
+https://blog.csdn.net/wangweiwells/article/details/101820932
+https://zhuanlan.zhihu.com/p/87572724(详解 align_corners=False, True用法)
+双线性插值算法
+https://juejin.im/post/6844903924999127047
+https://zhuanlan.zhihu.com/p/110754637
 """
 input = torch.ones((2, 2, 3, 4))
 output = nn.ConvTranspose2d(2, 4, kernel_size=4, stride=1, padding=0, bias=False)
-print(output.shape)  # [2, 4, 6, 7]
+# [2, 4, 6, 7]
+print(output(input).shape)
+
+input = torch.arange(1, 5, dtype=torch.float32).view(1, 1, 2, 2)
+m = nn.Upsample(scale_factor=2, mode="nearest")
+output = m(input)
+print(output)
+m = nn.Upsample(scale_factor=2, mode='bilinear',align_corners=False)
+output = m(input)
