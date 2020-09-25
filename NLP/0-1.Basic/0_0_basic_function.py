@@ -1,3 +1,4 @@
+# coding=utf-8
 import torch
 from torch import nn
 import numpy as np
@@ -206,3 +207,14 @@ a = torch.randn((2, 3))
 b = torch.floor(a)
 print(a)
 print(b)
+"""
+上采样函数
+nn.ConvTranspose2d,有参数可以训练
+hout = (hin-1)*stride - 2 * padding + kernel + output_padding
+参考链接https://blog.csdn.net/qq_27261889/article/details/86304061
+
+nn.Unsample 上采样没有参数,速度更快,采样策略给定
+"""
+input = torch.ones((2, 2, 3, 4))
+output = nn.ConvTranspose2d(2, 4, kernel_size=4, stride=1, padding=0, bias=False)
+print(output.shape)  # [2, 4, 6, 7]
