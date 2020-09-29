@@ -6,7 +6,10 @@ from torchsummary import summary
 
 
 class DoubleConv(nn.Module):
-    """(convolution => [BN] => ReLU) * 2"""
+    """
+    (convolution => [BN] => ReLU) * 2
+    两层卷积网络
+    """
 
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -104,7 +107,7 @@ class UNet(nn.Module):
 
 if __name__ == "__main__":
 
-    net = UNet(3, 32)
+    net = UNet(3, 2)
     if torch.cuda.is_available():
         summary(net.cuda(), (3, 224, 224))
         x1 = torch.rand((2, 3, 224, 224)).to('cuda')
