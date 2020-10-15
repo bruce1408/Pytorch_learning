@@ -33,7 +33,6 @@ vectorized_seqs = [[vocab.index(tok) for tok in seq] for seq in seqs]  # 字符�
 seq_lengths = torch.LongTensor([x for x in map(len, vectorized_seqs)])  # 得到的是[10, 6, 11]的list然后转tensor
 
 
-# dump padding everywhere, and place seqs on the left.
 # 对每个batch按照最长的lengths，然后进行对齐
 seq_tensor = torch.zeros((len(vectorized_seqs), seq_lengths.max()), dtype=torch.long)  # shape是[3 x 11]的零向量
 for idx, (seq, seqlen) in enumerate(zip(vectorized_seqs, seq_lengths)):
