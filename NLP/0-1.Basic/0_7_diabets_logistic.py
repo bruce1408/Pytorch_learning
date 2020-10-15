@@ -35,6 +35,7 @@ class Model(torch.nn.Module):
         y_pred = self.sigmoid(self.l3(out2))
         return y_pred
 
+
 # our model
 model = Model()
 
@@ -42,12 +43,13 @@ model = Model()
 # Construct our loss function and an Optimizer. The call to model.parameters()
 # in the SGD constructor will contain the learnable parameters of the two
 # nn.Linear modules which are members of the model.
-criterion = torch.nn.BCELoss(size_average=True)
+criterion = torch.nn.BCELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
 # Training loop
-for epoch in range(100):
-        # Forward pass: Compute predicted y by passing x to the model
+for epoch in range(500):
+    optimizer.zero_grad()
+    # Forward pass: Compute predicted y by passing x to the model
     y_pred = model(x_data)
 
     # Compute and print loss
@@ -55,6 +57,5 @@ for epoch in range(100):
     print(epoch, loss.data[0])
 
     # Zero gradients, perform a backward pass, and update the weights.
-    optimizer.zero_grad()
     loss.backward()
     optimizer.step()

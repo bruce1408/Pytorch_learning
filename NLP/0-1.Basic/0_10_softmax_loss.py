@@ -43,17 +43,13 @@ print("Y_pred2=", torch.max(Y_pred2.data, 1)[1])
 # target is of size nBatch
 # each element in target has to have 0 <= value < nClasses (0-2)
 # Input is class, not one-hot
-Y = Variable(torch.LongTensor([2, 0, 1]), requires_grad=False)
+Y = torch.LongTensor([2, 0, 1])
 
 # input is of size nBatch x nClasses = 2 x 4
 # Y_pred are logits (not softmax)
-Y_pred1 = Variable(torch.Tensor([[0.1, 0.2, 0.9],
-                                 [1.1, 0.1, 0.2],
-                                 [0.2, 2.1, 0.1]]))
+Y_pred1 = torch.Tensor([[0.1, 0.2, 0.9], [1.1, 0.1, 0.2], [0.2, 2.1, 0.1]])
 
-Y_pred2 = Variable(torch.Tensor([[0.8, 0.2, 0.3],
-                                 [0.2, 0.3, 0.5],
-                                 [0.2, 0.2, 0.5]]))
+Y_pred2 = torch.Tensor([[0.8, 0.2, 0.3], [0.2, 0.3, 0.5], [0.2, 0.2, 0.5]])
 
 l1 = loss(Y_pred1, Y)
 l2 = loss(Y_pred2, Y)
