@@ -14,6 +14,9 @@
 import torch
 import torch.nn as nn
 import math
+"""
+参考资料
+"""
 
 criterion = nn.CrossEntropyLoss()
 output = torch.randn(1, 5, requires_grad=True)
