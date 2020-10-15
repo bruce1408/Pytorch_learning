@@ -20,7 +20,7 @@ w_list = []
 mse_list = []
 
 for w in np.arange(0.0, 4.1, 0.1):
-    print("w = %.2f"%w)
+    print("w = %.2f" % w)
     l_sum = 0
     for x_val, y_val in zip(x_data, y_data):
         print(x_val, y_val)
