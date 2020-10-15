@@ -1,4 +1,4 @@
-# References
+# 参考资料
 # https://github.com/yunjey/pytorch-tutorial/blob/master/tutorials/01-basics/pytorch_basics/main.py
 # http://pytorch.org/tutorials/beginner/data_loading_tutorial.html#dataset-class
 import torch
