@@ -75,9 +75,9 @@ class GradientReversal(torch.nn.Module):
 Grl = GRL()
 s = 6 * f.sum()
 s = Grl.apply(s)
-print('s ', s)
+print('s: ', s)
 s.backward()
-print('x ', x)
+print('x: ', x)
 print('x grad: ', x.grad)
 
 
