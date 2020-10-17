@@ -18,7 +18,6 @@ from data import MNISTM, BSDS500
 from models import Net
 from utils import GrayscaleToRgb, GradientReversal
 
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -87,7 +86,7 @@ def main(args):
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Domain adaptation using RevGrad')
     # arg_parser.add_argument('MODEL_FILE', default="PATH", help='A model in trained_models')
-    arg_parser.add_argument('--batch-size', type=int, default=2)
+    arg_parser.add_argument('--batch-size', type=int, default=32)
     arg_parser.add_argument('--epochs', dest='epochs', type=int, default=150)
     args = arg_parser.parse_args()
     main(args)
