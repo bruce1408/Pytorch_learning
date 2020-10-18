@@ -18,6 +18,7 @@ from data import MNISTM, BSDS500
 from models import Net
 from utils import GrayscaleToRgb, GradientReversal
 
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -50,31 +51,32 @@ def main(args):
     optim = torch.optim.Adam(list(discriminator.parameters()) + list(model.parameters()))
 
     for epoch in range(1, args.epochs+1):
-        batches = zip(source_loader, target_loader)
+        # batches = zip(source_loader, target_loader)
         n_batches = min(len(source_loader), len(target_loader))
-
+        # n_batches = 313
+        # print("n batch is: ", n_batches)
         total_domain_loss = total_label_accuracy = 0
-        for (source_x, source_labels), (target_x, _) in batches:
-                x = torch.cat([source_x, target_x])
-                x = x.to(device)
-                domain_y = torch.cat([torch.ones(source_x.shape[0]), torch.zeros(target_x.shape[0])])
-                domain_y = domain_y.to(device)
-                label_y = source_labels.to(device)
+        for (source_x, source_labels), (target_x, _) in zip(source_loader, target_loader):
+            x = torch.cat([source_x, target_x])  # [batch * 2, 3, 28, 28]
+            x = x.to(device)
+            domain_y = torch.cat([torch.ones(source_x.shape[0]), torch.zeros(target_x.shape[0])])
+            domain_y = domain_y.to(device)
+            label_y = source_labels.to(device)
 
-                features = feature_extractor(x).view(x.shape[0], -1)
-                domain_preds = discriminator(features).squeeze()
-                label_preds = clf(features[:source_x.shape[0]])
-                
-                domain_loss = F.binary_cross_entropy_with_logits(domain_preds, domain_y)
-                label_loss = F.cross_entropy(label_preds, label_y)
-                loss = domain_loss + label_loss
+            features = feature_extractor(x).view(x.shape[0], -1)  # [4, 320]
+            domain_preds = discriminator(features).squeeze()  # [4]
+            label_preds = clf(features[:source_x.shape[0]])  # [2, 10]
 
-                optim.zero_grad()
-                loss.backward()
-                optim.step()
+            domain_loss = F.binary_cross_entropy_with_logits(domain_preds, domain_y)
+            label_loss = F.cross_entropy(label_preds, label_y)
+            loss = domain_loss + label_loss
 
-                total_domain_loss += domain_loss.item()
-                total_label_accuracy += (label_preds.max(1)[1] == label_y).float().mean().item()
+            optim.zero_grad()
+            loss.backward()
+            optim.step()
+
+            total_domain_loss += domain_loss.item()
+            total_label_accuracy += (label_preds.max(1)[1] == label_y).float().mean().item()
 
         mean_loss = total_domain_loss / n_batches
         mean_accuracy = total_label_accuracy / n_batches
