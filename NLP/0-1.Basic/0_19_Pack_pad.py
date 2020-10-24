@@ -1,4 +1,3 @@
-# Original source from
 # https://gist.github.com/Tushar-N/dfca335e370a2bc3bc79876e6270099e
 """
 主要介绍 pack_padded_sequence 函数 和 pad_packed_sequence 函数的用法

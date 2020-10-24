@@ -27,22 +27,28 @@ class BiLSTM_Attention(nn.Module):
         input = self.embedding(X)  # input : [batch_size, len_seq, embedding_dim]
         input = input.permute(1, 0, 2)  # input : [len_seq, batch_size, embedding_dim]
 
-        hidden_state = torch.zeros(1 * 2, len(X),
-                                   self.n_hidden)  # [num_layers(=1) * num_directions(=2), batch_size, n_hidden]
-        cell_state = torch.zeros(1 * 2, len(X),
-                                 self.n_hidden)  # [num_layers(=1) * num_directions(=2), batch_size, n_hidden]
+        # [num_layers(=1) * num_directions(=2), batch_size, n_hidden]
+        hidden_state = torch.zeros(1 * 2, len(X), self.n_hidden)
+
+        # [num_layers(=1) * num_directions(=2), batch_size, n_hidden]
+        cell_state = torch.zeros(1 * 2, len(X), self.n_hidden)
 
         # final_hidden_state, final_cell_state : [num_layers(=1) * num_directions(=2), batch_size, n_hidden]
         output, (final_hidden_state, final_cell_state) = self.lstm(input, (hidden_state, cell_state))
-        output = output.permute(1, 0, 2)  # output : [batch_size, len_seq, n_hidden]
+
+        # output : [batch_size, len_seq, n_hidden]
+        output = output.permute(1, 0, 2)
         attn_output, attention = self.attention_net(output, final_hidden_state)
-        return self.out(attn_output), attention  # model : [batch_size, num_classes], attention : [batch_size, n_step]
+
+        # model : [batch_size, num_classes], attention : [batch_size, n_step]
+        return self.out(attn_output), attention
 
 
 if __name__ == "__main__":
-    inputs = torch.randn((5, 10))
+    inputs = torch.rand((5, 10))
     net = BiLSTM_Attention(100, 10, 6, 2)
     print(net)
-
+    outputs = net(inputs)
+    print(outputs.shape)
 
 

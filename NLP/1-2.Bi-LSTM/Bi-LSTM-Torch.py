@@ -16,11 +16,11 @@ dtype = torch.FloatTensor
 sentence = (
     'Lorem ipsum dolor sit amet consectetur adipisicing elit '
     'sed do eiusmod tempor incididunt ut labore et dolore magna '
-    'aliqua Ut enim ad minim veniam quis nostrud exercitation')
+    'aliqua Ut enim ad minim veniam quis nostrud exercitation et dolore')
 
-word_dict = {w: i for i, w in enumerate(list(set(sentence.split())))}
-number_dict = {i: w for i, w in enumerate(list(set(sentence.split())))}
-n_class = len(word_dict)
+word2idx = {w: i for i, w in enumerate(list(set(sentence.split())))}
+idx2word = {i: w for i, w in enumerate(list(set(sentence.split())))}
+n_class = len(word2idx)
 max_len = len(sentence.split())
 n_hidden = 5
 
@@ -31,9 +31,9 @@ def make_batch(sentence):
 
     words = sentence.split()
     for i, word in enumerate(words[:-1]):
-        input = [word_dict[n] for n in words[:(i + 1)]]
+        input = [word2idx[n] for n in words[:(i + 1)]]
         input = input + [0] * (max_len - len(input))
-        target = word_dict[words[i + 1]]
+        target = word2idx[words[i + 1]]
         input_batch.append(np.eye(n_class)[input])
         target_batch.append(target)
 
@@ -91,4 +91,4 @@ for epoch in range(10000):
 
 predict = model(input_batch).data.max(1, keepdim=True)[1]
 print(sentence)
-print([number_dict[n.item()] for n in predict.squeeze()])
+print([idx2word[n.item()] for n in predict.squeeze()])
