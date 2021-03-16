@@ -15,7 +15,7 @@ torch.cuda.manual_seed_all(seed)
 os.environ['CUDA_VISIBLES_DEVICES'] = '1,2'
 batchsize = 32
 num_works = 2
-epochs = 1
+epochs = 30
 learning_rate = 0.01
 gamma = 0.96
 
@@ -71,7 +71,6 @@ def val(model, epoch):
             label = label.to(device)
             out = model(img)
             _, pred = torch.max(out.data, 1)
-            print(pred.shape)
             total += img.shape[0]
             correct += pred.eq(label.data).cpu().sum()
             print("Epoch:%d [%d|%d] total:%d correct:%d" % (epoch, index, len(valloader), total, correct.numpy()))

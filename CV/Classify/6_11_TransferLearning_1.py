@@ -65,8 +65,8 @@ transform_val = transforms.Compose([
 ])
 
 # 生成训练集和验证集
-trainset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_train)
-valset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_val, train=False, val=True)
+trainset = CustomData('../../Dataset/dogs_cats/train', transform=transform_train)
+valset = CustomData('../../Dataset/dogs_cats/train', transform=transform_val, train=False, val=True)
 # 将训练集和验证集放到 DataLoader 中去，shuffle 进行打乱顺序（在多个 epoch 的情况下）
 # num_workers 加载数据用多少的子线程（windows不能用这个参数）
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchsize, shuffle=True, num_workers=num_workers)

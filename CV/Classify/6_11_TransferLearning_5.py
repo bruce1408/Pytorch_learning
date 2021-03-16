@@ -1,8 +1,9 @@
 # coding=UTF-8
-import torchvision.models as models
 import torch
-import torch.nn as nn
 import math
+import torchvision.models as models
+import torch.nn as nn
+import torchvision.models as models
 import torch.utils.model_zoo as model_zoo
 from torchvision.models import vgg11, resnet50
 
@@ -156,8 +157,8 @@ class CNN(nn.Module):
 # 加载model
 resnet50 = models.resnet50(pretrained=True)
 cnn = CNN(Bottleneck, [3, 4, 6, 3])
-print("==================== before convert the params the value is: \n", cnn)
-print('==================== the model resnet50 is: \n', resnet50)
+print("="*10 + "before convert the params the value is: \n", cnn)
+print("="*10 + ' the model resnet50 is: \n', resnet50)
 
 # 读取参数
 pretrained_dict = resnet50.state_dict()
@@ -171,4 +172,4 @@ model_dict.update(pretrained_dict)
 
 # 加载我们真正需要的state_dict, 替换了原来的 avgpool 层和 fc 层
 cnn.load_state_dict(model_dict)
-print("=================== after convert the params the value is: \n", cnn)
+print("="*10+" after convert the params the value is: \n", cnn)

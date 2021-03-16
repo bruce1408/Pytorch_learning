@@ -15,10 +15,10 @@ torch.cuda.manual_seed_all(seed)
 torch.backends.cudnn.benchmark = True
 
 # parameters
-os.environ['CUDA_VISIBLES_DEVICES'] = '1'
+os.environ['CUDA_VISIBLES_DEVICES'] = '2,3'
 batchsize = 32
 num_works = 4
-epochs = 2000
+epochs = 1
 learning_rate = 0.0001
 gamma = 0.96
 save_path = "./model_cat_dog.pt"
@@ -45,8 +45,8 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
 ])
 
-trainData = DogCat('/raid/bruce/datasets/dogs_cats/train')
-valData = DogCat("/raid/bruce/datasets/dogs_cats/train", train=False, test=True)
+trainData = DogCat('../../Dataset/dogs_cats/train')
+valData = DogCat("../../Dataset/dogs_cats/train", train=False, test=True)
 # testData = CustomData("/raid/bruce/datasets/dogs_cats/train", transform=transform_test, train=False, val=False)
 
 trainloader = torch.utils.data.DataLoader(trainData, batch_size=batchsize, shuffle=True, num_workers=num_works)
@@ -104,13 +104,13 @@ def val(model, epoch):
 if __name__ == '__main__':
     # 所有参数全部更新
     model = VGGNet16(num_classes=2)
-    device = torch.device('cuda:1' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # also use cuda: Num
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.9)
     lr = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
     criterion = nn.CrossEntropyLoss()
     for epoch in range(epochs):
         train(model, epoch, lr)
-        # val(model, epoch)
+        val(model, epoch)
         # lr.step()
     torch.save(model.state_dict(), save_path)

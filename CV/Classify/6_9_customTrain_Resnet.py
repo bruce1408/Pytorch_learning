@@ -18,8 +18,8 @@ learning_rate = 0.001
 gamma = 0.96
 
 
-trainData = DogCat('/raid/bruce/datasets/dogs_cats/train')
-valData = DogCat("/raid/bruce/datasets/dogs_cats/train", train=False, test=True)
+trainData = DogCat('../../Dataset/dogs_cats/train')
+valData = DogCat("../../Dataset/dogs_cats/train", train=False, test=True)
 
 trainloader = torch.utils.data.DataLoader(trainData, batch_size=batchsize, shuffle=True, num_workers=num_works)
 valloader = torch.utils.data.DataLoader(valData, batch_size=batchsize, shuffle=False, num_workers=num_works)

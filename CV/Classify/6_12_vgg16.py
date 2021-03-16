@@ -5,7 +5,7 @@ import torchvision.datasets as dsets
 import torchvision.transforms as transforms
 from CV.utils.DataSet_train_val_test import CustomData
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 BATCH_SIZE = 32
 LEARNING_RATE = 0.01
 EPOCH = 50
@@ -22,8 +22,8 @@ transform = transforms.Compose([
 # trainData = dsets.ImageFolder('/raid/bruce/datasets/dogs_cats/train', transform)
 # testData = dsets.ImageFolder('/raid/bruce/datasets/dogs_cats/train', transform)
 
-trainset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform)
-valset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform,
+trainset = CustomData('../../Dataset/dogs_cats/train', transform=transform)
+valset = CustomData('../../Dataset/dogs_cats/train', transform=transform,
                     train=False,
                     val=True,
                     test=False,
@@ -112,7 +112,7 @@ for epoch in range(EPOCH):
         loss = cost(outputs, labels)
         avg_loss += loss.item()
         cnt += 1
-        print("[E: %d] loss: %f, avg_loss: %f" % (epoch, loss.data, avg_loss / cnt))
+        print("[Epoch: %d] loss: %f, avg_loss: %f" % (epoch, loss.data, avg_loss / cnt))
         loss.backward()
         optimizer.step()
     scheduler.step(avg_loss)

@@ -39,8 +39,8 @@ transform_val = transforms.Compose([
 ])
 
 
-trainset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_train)
-valset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_val,
+trainset = CustomData('../../Dataset/dogs_cats/train', transform=transform_train)
+valset = CustomData('../../Dataset/dogs_cats/train', transform=transform_val,
                     train=False, val=True, test=False, splitnum=0.8)
 
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchsize, shuffle=True, num_workers=num_workers)
