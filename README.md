@@ -1,10 +1,6 @@
 
 # Pytorch_learning
 
-* [Youtube](http://bit.ly/PyTorchVideo)
-* [Bilibili](https://www.bilibili.com/video/av15823922/)
-
-## Slides
 
 [![](https://img.shields.io/badge/version-1.0.0-brightgreen.svg)](https://github.com/bruce1408/Pytorch_learning)
 ![](https://img.shields.io/badge/platform-pytorch-brightgreen.svg)
@@ -30,10 +26,10 @@ which computes the gradient of all input Variables involved in computation of th
 
 This repository contains:
 
-1. [Computer Vision(CV)](cv.md) Implement complex computer vision algorithms.
+1. [Computer Vision(CV)](./cv.md) Implement complex computer vision algorithms.
 2. [Natural language processing(NLP)](nlp.md) Examples to show how NLP can tacke real problem.Including the source code,
 dataset, state-of-the art in NLP.
-3. [Dataset](data.md) All the data you can use in this project are under this directory.
+3. [Dataset](../data.md) All the data you can use in this project are under this directory.
 4. [Reference](ref.md) Other reference materials for this project.
 
 
