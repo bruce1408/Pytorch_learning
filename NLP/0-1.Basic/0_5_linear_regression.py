@@ -1,4 +1,3 @@
-
 import torch
 from torch.autograd import Variable
 
@@ -34,7 +33,7 @@ criterion = torch.nn.MSELoss(size_average=False)
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
 # Training loop
-for epoch in range(1000):
+for epoch in range(100):
     # Forward pass: Compute predicted y by passing x to the model
     optimizer.zero_grad()
     y_pred = model(x_data)

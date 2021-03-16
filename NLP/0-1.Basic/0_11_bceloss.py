@@ -39,3 +39,4 @@ def bcelossWithmannual():
     print("自己的计算结果：")
     print(res)
 
+bcelossWithmannual()

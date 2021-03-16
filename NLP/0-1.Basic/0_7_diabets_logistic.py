@@ -1,9 +1,8 @@
-
 import torch
 from torch.autograd import Variable
 import numpy as np
 
-xy = np.loadtxt('./Dataset/diabetes.csv.gz', delimiter=',', dtype=np.float32)
+xy = np.loadtxt('../../Dataset/diabetes.csv.gz', delimiter=',', dtype=np.float32)
 x_data = Variable(torch.from_numpy(xy[:, 0:-1]))
 y_data = Variable(torch.from_numpy(xy[:, [-1]]))
 
@@ -54,7 +53,7 @@ for epoch in range(500):
 
     # Compute and print loss
     loss = criterion(y_pred, y_data)
-    print(epoch, loss.data[0])
+    print("Epoch: ", epoch, "loss: ", loss.data.item())
 
     # Zero gradients, perform a backward pass, and update the weights.
     loss.backward()

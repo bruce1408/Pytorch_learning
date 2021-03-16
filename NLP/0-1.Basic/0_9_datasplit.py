@@ -7,12 +7,15 @@ import torch.nn.functional as F
 from torchvision import datasets, transforms, models
 from torch.utils.data.sampler import SubsetRandomSampler
 
-# 1/1/19 - Basic sklearn style splitter to randomize train/test Dataset from a single folder.  SKlearn has this built in, pytorch does not.
-# credit for this goes to Chris Fotache, from this article.  https://towardsdatascience.com/how-to-train-an-image-classifier-in-pytorch-and-use-it-to-perform-basic-inference-on-single-images-99465a1e9bf5
+# 1/1/19 - Basic sklearn style splitter to randomize train/test Dataset from a single folder.
+# SKlearn has this built in, pytorch does not.
+# credit for this goes to Chris Fotache, from this article.
+# https://towardsdatascience.com/how-to-train-an-image-classifier-in-pytorch-and-use-it-to-perform-basic-
+# inference-on-single-images-99465a1e9bf5
 # added in constants to make adjustments easier.
 
 # constants
-DATA_DIR = '/raid/bruce/datasets/dogs_cats/train'
+DATA_DIR = '../../Dataset/dogs_cats/train'
 BATCH_SIZE = 64
 IMG_RESIZE_TO = 224
 

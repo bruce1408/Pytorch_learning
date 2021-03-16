@@ -130,7 +130,7 @@ def train(epoch):
                        100. * batch_idx / len(source_loader), loss.item(), constant))
 
 
-def test(epoch):
+def val(epoch):
     global best_prec1
     model.eval()
     loss = 0
@@ -192,7 +192,7 @@ def adjust_learning_rate(optimizer, epoch, step_in_epoch, total_steps_in_epoch):
 try:
     for epoch in range(1, args.epochs + 1):
         train(epoch)
-        test(epoch)
+        val(epoch)
     print("------Best Result-------")
     utils.cal_acc(best_gt_y, best_pred_y, NUM_CLASSES)
 except KeyboardInterrupt:
