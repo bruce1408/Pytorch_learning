@@ -1,8 +1,3 @@
-"""
-  code by Tae Hwan Jung(Jeff Jung) @graykode, Derek Miller @dmmiller612
-  Reference : https://github.com/jadore801120/attention-is-all-you-need-pytorch
-              https://github.com/JayParks/transformer
-"""
 import numpy as np
 import torch
 import torch.nn as nn

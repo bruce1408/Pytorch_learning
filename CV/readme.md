@@ -21,3 +21,4 @@ from thetype of images which are relevant for a specific applica-tion. Depending
 or theperspective of the sensor, the entire captured scene mightgreatly differ from pictures on the Internet. The two 
 typesof images are therefore in two different domains, namely thesource and target domain. In order to classify the 
 images inthe target domain using the annotated images in the sourcedomain, the source and target domains can be aligned.
+
