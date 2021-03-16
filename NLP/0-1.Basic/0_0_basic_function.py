@@ -234,3 +234,18 @@ https://zhuanlan.zhihu.com/p/110754637
 # print(output)
 # m = nn.Upsample(scale_factor=2, mode='bilinear',align_corners=False)
 # output = m(input)
+
+"""
+使用交叉熵函数
+"""
+# import torch
+# import torch.nn as nn
+# import math
+#
+# entroy=nn.CrossEntropyLoss()
+# input=torch.Tensor([[-0.7715, -0.6205, -0.2562]])
+# target = torch.tensor([0])
+#
+# output = entroy(input, target)
+# print(output)
+# #根据公式计算

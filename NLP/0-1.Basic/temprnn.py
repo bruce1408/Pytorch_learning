@@ -1,6 +1,6 @@
-from torchvision.models.resnet import resnet18
-import torch.nn as nn
 import torch
+import torch.nn as nn
+from torchvision.models.resnet import resnet18
 
 model = resnet18(pretrained=True)
 print(model)

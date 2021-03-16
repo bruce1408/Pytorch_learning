@@ -1,10 +1,9 @@
-# https://github.com/pytorch/examples/blob/master/mnist/main.py
 from __future__ import print_function
-import argparse
 import torch
+import argparse
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
+import torch.nn.functional as F
 from torchvision import datasets, transforms
 from torch.autograd import Variable
 
@@ -12,12 +11,12 @@ from torch.autograd import Variable
 batch_size = 64
 
 # MNIST Dataset
-train_dataset = datasets.MNIST(root='./Dataset/',
+train_dataset = datasets.MNIST(root='../../Dataset/MNIST_data',
                                train=True,
                                transform=transforms.ToTensor(),
                                download=True)
 
-test_dataset = datasets.MNIST(root='./Dataset/',
+test_dataset = datasets.MNIST(root='../../Dataset/MNIST_data',
                               train=False,
                               transform=transforms.ToTensor())
 
@@ -104,10 +103,10 @@ def train(epoch):
         if batch_idx % 10 == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset),
-                100. * batch_idx / len(train_loader), loss.data[0]))
+                100. * batch_idx / len(train_loader), loss.item()))
 
 
-def test():
+def val():
     model.eval()
     test_loss = 0
     correct = 0
@@ -128,4 +127,4 @@ def test():
 
 for epoch in range(1, 10):
     train(epoch)
-    test()
+    val()

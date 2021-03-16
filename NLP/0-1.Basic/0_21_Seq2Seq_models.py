@@ -1,19 +1,15 @@
-# Original code from
-# https://github.com/spro/practical-pytorch/blob/master/seq2seq-translation/seq2seq-translation.ipynb
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
 MAX_LENGTH = 100
-
 SOS_token = chr(0)
 EOS_token = 1
 
+
 # Helper function to create Variable based on
 # the cuda availability
-
-
 def cuda_variable(tensor):
     # Do cuda() before wrapping with variable
     if torch.cuda.is_available():

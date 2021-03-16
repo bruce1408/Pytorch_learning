@@ -11,12 +11,13 @@ from torch.autograd import Variable
 batch_size = 64
 
 # MNIST Dataset
-train_dataset = datasets.MNIST(root='./mnist_data/',
+
+train_dataset = datasets.MNIST(root='../../Dataset/MNIST_data',
                                train=True,
                                transform=transforms.ToTensor(),
                                download=True)
 
-test_dataset = datasets.MNIST(root='./mnist_data/',
+test_dataset = datasets.MNIST(root='../../Dataset/MNIST_data',
                               train=False,
                               transform=transforms.ToTensor())
 
@@ -61,8 +62,8 @@ def train(epoch):
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
-        print(output.shape)
-        print(target.shape)
+        # print(output.shape)
+        # print(target.shape)
         loss.backward()
         optimizer.step()
         if batch_idx % 10 == 0:
@@ -71,25 +72,24 @@ def train(epoch):
                 100. * batch_idx / len(train_loader), loss.data))
 
 
-# def test():
-#     model.eval()
-#     test_loss = 0
-#     correct = 0
-#     for Dataset, target in test_loader:
-#         Dataset, target = Variable(Dataset, volatile=True), Variable(target)
-#         output = model(Dataset)
-#         # sum up batch loss
-#         test_loss += criterion(output, target).Dataset
-#         # get the index of the max
-#         pred = output.Dataset.max(1, keepdim=True)[1]
-#         correct += pred.eq(target.Dataset.view_as(pred)).cpu().sum()
-#
-#     test_loss /= len(test_loader.dataset)
-#     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
-#         test_loss, correct, len(test_loader.dataset),
-#         100. * correct / len(test_loader.dataset)))
+def val():
+    model.eval()
+    test_loss = 0
+    correct = 0
+    for Dataset, target in test_loader:
+        Dataset, target = Variable(Dataset, volatile=True), Variable(target)
+        output = model(Dataset)
+        # sum up batch loss
+        test_loss += criterion(output, target)
+        # get the index of the max
+        pred = output.data.max(1, keepdim=True)[1]
+        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+
+    test_loss /= len(test_loader.dataset)
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(test_loader.dataset), 100. * correct / len(test_loader.dataset)))
 
 
 for epoch in range(1, 10):
     train(epoch)
-    # test()
+    val()
