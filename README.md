@@ -61,6 +61,14 @@ dataset, state-of-the art in NLP.
 
 #### Natural language processing
 
+- Basic Knowledge
+- Bi-LSTM
+- Bi-LSTM Attention
+- Seq2Seq
+- Seq2Seq Attention
+- Transformer
+- Bert
+
 ## Install
 
 This project uses [PyTorch](https://pytorch.org/). Go check them out if you don't have them locally installed and 
@@ -72,38 +80,17 @@ $ pip install -r requirements.txt
 
 ## Usage
 
-All data for this project can be found in [Baidu Cloud Disk]()
+All data for this project can be found in [Baidu Cloud Disk](https://pan.baidu.com/s/1kjj5Uq3w9MsNJyLoHGmXRg) 密码: 2hbd
 
-### Generator
-
-To use the generator, look at [generator-standard-readme](https://github.com/RichardLitt/generator-standard-readme). There is a global executable to run the generator in that package, aliased as `standard-readme`.
-
-
-## Example Readmes
-
-To see how the specification has been applied, see the [example-readmes](example-readmes/).
 
 ## Related Efforts
 
-- [Art of Readme](https://github.com/noffle/art-of-readme) - 💌 Learn the art of writing quality READMEs.
-- [open-source-template](https://github.com/davidbgk/open-source-template/) - A README template to encourage open-source contributions.
+- [graykode](https://github.com/graykode/nlp-tutorial) - Learn the code quality.
+- [yunjey](https://github.com/yunjey/pytorch-tutorial) - A tutorial code to encourage open-source contributions.
 
-## Maintainers
 
-[@RichardLitt](https://github.com/RichardLitt).
-
-## Contributing
-
-Feel free to dive in! [Open an issue](https://github.com/RichardLitt/standard-readme/issues/new) or submit PRs.
-
-Standard Readme follows the [Contributor Covenant](http://contributor-covenant.org/version/1/3/0/) Code of Conduct.
 
 ### Contributors
 
 This project exists thanks to all the people who contribute. 
-<a href="https://github.com/RichardLitt/standard-readme/graphs/contributors"><img src="https://opencollective.com/standard-readme/contributors.svg?width=890&button=false" /></a>
-
-
-## License
-
-[MIT](LICENSE) © Richard Littauer
+Everyone is welcome to submit code contributions
