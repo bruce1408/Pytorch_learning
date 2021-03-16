@@ -10,7 +10,7 @@ from gensim.models.word2vec import PathLineSentences
 def seg_words():
     # 定义一些常量值，多次调用的文件路径放在这里，容易修改
     origin_file = "Dataset/Dataset.txt"  # 初代文件
-    stop_words_file = "/home/bruce/PycharmProjects/stopwords/cn_stopwords.txt"  # 停用词路径
+    stop_words_file = "stopwords/cn_stopwords.txt"  # 停用词路径
     user_dict_file = "Dataset/user_dict.txt"  # 用户自定义词典路径
     stop_words = list()
     # 加载停用词

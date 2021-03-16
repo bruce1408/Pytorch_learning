@@ -8,7 +8,7 @@ import multiprocessing
 
 
 def readData():
-    path = "/home/bruce/bigVolumn/Datasets/IMDB/"
+    path = "Datasets/IMDB/"
     with open(os.path.join(path, "unlabeledTrainData.tsv"), 'r') as f:
         unlabeledTrain = [line.strip().split("\t") for line in f.readlines() if len(line.strip().split("\t")) == 2]
 

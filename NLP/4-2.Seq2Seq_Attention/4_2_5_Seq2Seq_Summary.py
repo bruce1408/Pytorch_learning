@@ -1,5 +1,6 @@
 import unicodedata
 import re
+import os
 import random
 import time
 import math
@@ -8,7 +9,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from torch import optim
 import torch.nn.functional as F
-
+os.environ['CUDA_VISIBLE_DEVICES'] = '2,3'
 
 # Configuring training
 USE_CUDA = True
@@ -75,7 +76,7 @@ def read_langs(lang1, lang2, reverse=False):
     print("Reading lines...")
 
     # Read the file and split into lines
-    lines = open('../eng-fra/%s-%s.txt' % (lang1, lang2)).read().strip().split('\n')
+    lines = open('./eng-fra/%s-%s.txt' % (lang1, lang2)).read().strip().split('\n')
     # Split every line into pairs and normalize
 
     pairs = [[normalize_string(s) for s in l.split('\t')[0:2]] for l in lines]

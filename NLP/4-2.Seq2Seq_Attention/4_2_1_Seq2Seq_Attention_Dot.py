@@ -1,4 +1,3 @@
-# code by Tae Hwan Jung(Jeff Jung) @graykode
 # Reference : https://github.com/hunkim/PyTorchZeroToAll/blob/master/14_2_seq2seq_att.py
 # https://lilianweng.github.io/lil-log/2018/06/24/attention-attention.html
 import numpy as np

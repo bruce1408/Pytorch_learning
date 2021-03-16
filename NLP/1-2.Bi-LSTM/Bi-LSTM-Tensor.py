@@ -1,6 +1,3 @@
-'''
-  code by Tae Hwan Jung(Jeff Jung) @graykode
-'''
 import tensorflow as tf
 import numpy as np
 
@@ -18,6 +15,7 @@ n_class = len(word_dict)
 n_step = len(sentence.split())
 n_hidden = 5
 
+
 def make_batch(sentence):
     input_batch = []
     target_batch = []
@@ -31,6 +29,7 @@ def make_batch(sentence):
         target_batch.append(np.eye(n_class)[target])
 
     return input_batch, target_batch
+
 
 # Bi-LSTM Model
 X = tf.placeholder(tf.float32, [None, n_step, n_class])
@@ -47,7 +46,7 @@ outputs, _ = tf.nn.bidirectional_dynamic_rnn(lstm_fw_cell,lstm_bw_cell, X, dtype
 
 outputs = tf.concat([outputs[0], outputs[1]], 2) # output[0] : lstm_fw, output[1] : lstm_bw
 outputs = tf.transpose(outputs, [1, 0, 2]) # [n_step, batch_size, n_hidden]
-outputs = outputs[-1] # [batch_size, n_hidden]
+outputs = outputs[-1]  # [batch_size, n_hidden]
 
 model = tf.matmul(outputs, W) + b
 

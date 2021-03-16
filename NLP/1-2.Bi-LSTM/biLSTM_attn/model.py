@@ -72,7 +72,7 @@ class bilstm_attn(torch.nn.Module):
 
         attn_output = torch.sum(state * alphas_reshape, 1)
         # print(attn_output.size()) = (batch_size, hidden_size*layer_size)
-        print('the w_omega is: ', self.w_omega)
+        # print('the w_omega is: ', self.w_omega)
         return attn_output
 
     def forward(self, input_sentences, batch_size=None):

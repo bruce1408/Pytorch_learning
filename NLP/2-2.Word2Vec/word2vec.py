@@ -59,9 +59,9 @@ class Vocab:
         self.__sort(min_count)
 
         #assert self.word_count == sum([t.count for t in self.vocab_items]), 'word_count and sum of t.count do not agree'
-        print 'Total words in training file: %d' % self.word_count
-        print 'Total bytes in training file: %d' % self.bytes
-        print 'Vocab size: %d' % len(self)
+        print("Total words in training file: %d" % self.word_count)
+        print('Total bytes in training file: %d' % self.bytes)
+        print('Vocab size: %d' % len(self))
 
     def __getitem__(self, i):
         return self.vocab_items[i]
@@ -98,8 +98,7 @@ class Vocab:
         self.vocab_items = tmp
         self.vocab_hash = vocab_hash
 
-        print
-        print 'Unknown vocab size:', count_unk
+        print('Unknown vocab size:', count_unk)
 
     def indices(self, tokens):
         return [self.vocab_hash[token] if token in self else self.vocab_hash['<unk>'] for token in tokens]
@@ -114,7 +113,7 @@ class Vocab:
         pos1 = vocab_size - 1
         pos2 = vocab_size
 
-        for i in xrange(vocab_size - 1):
+        for i in range(vocab_size - 1):
             # Find min1
             if pos1 >= 0:
                 if count[pos1] < count[pos2]:
@@ -174,7 +173,7 @@ class UnigramTable:
         table_size = 1e8 # Length of the unigram table
         table = np.zeros(table_size, dtype=np.uint32)
 
-        print 'Filling unigram table'
+        print('Filling unigram table')
         p = 0 # Cumulative probability
         i = 0
         for j, unigram in enumerate(vocab):
@@ -308,7 +307,7 @@ def train_process(pid):
     fi.close()
 
 def save(vocab, syn0, fo, binary):
-    print 'Saving model to', fo
+    print('Saving model to', fo)
     dim = len(syn0[0])
     if binary:
         fo = open(fo, 'wb')
@@ -350,10 +349,10 @@ def train(fi, fo, cbow, neg, dim, alpha, win, min_count, num_processes, binary):
     global_word_count = Value('i', 0)
     table = None
     if neg > 0:
-        print 'Initializing unigram table'
+        print('Initializing unigram table')
         table = UnigramTable(vocab)
     else:
-        print 'Initializing Huffman tree'
+        print('Initializing Huffman tree')
         vocab.encode_huffman()
 
     # Begin training using num_processes workers
@@ -363,18 +362,19 @@ def train(fi, fo, cbow, neg, dim, alpha, win, min_count, num_processes, binary):
                           win, num_processes, global_word_count, fi))
     pool.map(train_process, range(num_processes))
     t1 = time.time()
-    print
-    print 'Completed training. Training took', (t1 - t0) / 60, 'minutes'
+    print('Completed training. Training took', (t1 - t0) / 60, 'minutes')
 
     # Save model to file
     save(vocab, syn0, fo, binary)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-train', help='Training file', dest='fi', required=True)
     parser.add_argument('-model', help='Output model file', dest='fo', required=True)
     parser.add_argument('-cbow', help='1 for CBOW, 0 for skip-gram', dest='cbow', default=1, type=int)
-    parser.add_argument('-negative', help='Number of negative examples (>0) for negative sampling, 0 for hierarchical softmax', dest='neg', default=5, type=int)
+    parser.add_argument('-negative', help='Number of negative examples (>0) for negative sampling,'
+                                          ' 0 for hierarchical softmax', dest='neg', default=5, type=int)
     parser.add_argument('-dim', help='Dimensionality of word embeddings', dest='dim', default=100, type=int)
     parser.add_argument('-alpha', help='Starting alpha', dest='alpha', default=0.025, type=float)
     parser.add_argument('-window', help='Max window length', dest='win', default=5, type=int) 

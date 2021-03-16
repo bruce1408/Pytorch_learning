@@ -45,7 +45,7 @@ for xt in xs:
 # 查看一下最终输出的h, 其shape还是<batch, hidden_len>
 print(h.shape)  # torch.Size([3, 20])
 
-# 多层rnn cell 单元
+# 多层RNN Cell 单元
 # 例子 2
 # 第0层和第1层的计算单元
 cell_l0 = nn.RNNCell(100, 30)  # feature_len=100, hidden_len_l0=30

@@ -39,7 +39,6 @@ class LSTM(nn.Module):
         c_0 = torch.zeros(self.num_layers, self.batch_size, self.hidden_size)
         output, _, = self.LSTM(emb, (h_0, c_0))
         # self.fc(output.view(-1, hidden_size))
-
         return output.view(-1, self.num_class)
 
 

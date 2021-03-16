@@ -10,7 +10,7 @@ batch_size = 16
 seed = 1111
 cuda_able = True
 save = './bilstm_attn_model'
-data = './Dataset/corpus.pt'
+data = './w2v_data/corpus.pt'
 dropout = 0.5
 embed_dim = 64
 hidden_size = 32
@@ -83,10 +83,8 @@ def train():
         total_loss += loss.item()
     return total_loss/training_data.sents_size
 
-#################################################
+
 # saving
-
-
 best_acc = None
 total_start_time = time.time()
 

@@ -1,4 +1,3 @@
-# Lab 12 RNN
 import torch
 import torch.nn as nn
 from torch.autograd import Variable

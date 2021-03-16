@@ -1,15 +1,33 @@
 # https://github.com/spro/practical-pytorch
 import torch
+import gzip
 import torch.nn as nn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from CV.utils import TextDataset
+# from CV.utils import TextDataset
 
 hidden_size = 100
 n_layers = 3
 batch_size = 1
 n_epochs = 100
 n_characters = 128  # ASCII
+
+
+class TextDataset():
+    # Initialize your Dataset, download, etc.
+
+    def __init__(self, filename="../../Dataset/shakespeare.txt.gz"):
+        self.len = 0
+        with gzip.open(filename, 'rt') as f:
+            self.targetLines = [x.strip() for x in f if x.strip()]
+            self.srcLines = [x.lower().replace(' ', '') for x in self.targetLines]
+            self.len = len(self.srcLines)
+
+    def __getitem__(self, index):
+        return self.srcLines[index], self.targetLines[index]
+
+    def __len__(self):
+        return self.len
 
 
 class RNN(nn.Module):

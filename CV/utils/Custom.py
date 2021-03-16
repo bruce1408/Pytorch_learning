@@ -47,4 +47,4 @@ class CustomData(data.Dataset):
 
 
 if __name__ == '__main__':
-    trainset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=None)
+    trainset = CustomData('../../Dataset/dogs_cats/train', transform=None)
