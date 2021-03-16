@@ -19,7 +19,7 @@ save_path = "./self_resnet50.pt"
 gamma = 0.96
 num_workers = 4
 batchsize = 32  # batch_size 不要太大
-epochs = 100
+epochs = 10
 learning_rate = 0.01
 
 mean = [0.485, 0.456, 0.406]
@@ -39,8 +39,8 @@ transform_val = transforms.Compose([
     transforms.Normalize(mean, std),
 ])
 
-trainset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_train)
-valset = CustomData('/raid/bruce/datasets/dogs_cats/train', transform=transform_val,
+trainset = CustomData('../../Dataset/dogs_cats/train', transform=transform_train)
+valset = CustomData('../../Dataset/dogs_cats/train', transform=transform_val,
                     train=False,
                     val=True,
                     test=False,

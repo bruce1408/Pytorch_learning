@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torchsummary import summary
 
+
 class toyModel(nn.Module):
     def __init__(self):
         """

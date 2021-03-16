@@ -12,6 +12,28 @@ class DogCat(data.Dataset):
         """
         主要目标： 获取所有图片的地址，并根据训练，验证，测试划分数据
         """
+        # transforms_train = transforms.Compose([
+        #     transforms.Resize((224, 224)),
+        #     transforms.RandomCrop((224, 224)),
+        #     transforms.RandomHorizontalFlip(),
+        #     transforms.ToTensor(),
+        #     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
+        # ])
+        #
+        #
+        # transforms_val = transforms.Compose([
+        #     transforms.Resize((224, 224)),
+        #     transforms.ToTensor(),
+        #     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.2225))
+        # ])
+        #
+        #
+        # transform_test = transforms.Compose([
+        #     transforms.Resize((224, 224)),
+        #     transforms.ToTensor(),
+        #     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+        # ])
+
         self.test = test
         imgs = [os.path.join(root, img) for img in os.listdir(root)]
 
@@ -54,6 +76,7 @@ class DogCat(data.Dataset):
                     normalize
                 ])
 
+
     def __getitem__(self, index):
         """
         一次返回一张图片的数据
@@ -71,5 +94,5 @@ class DogCat(data.Dataset):
         return len(self.imgs)
 
 
-trainData = DogCat('/raid/bruce/datasets/dogs_cats/train')
+trainData = DogCat('../../Dataset/dogs_cats/train')
 print(trainData[0])
