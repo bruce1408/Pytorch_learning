@@ -1,8 +1,0 @@
-
-/home/bruce/bigVolumn/Datasets/Mnist/data
-EPOCH 001: domain_loss=0.6055, source_accuracy=0.5747
-EPOCH 002: domain_loss=0.5108, source_accuracy=0.8256
-EPOCH 003: domain_loss=0.4254, source_accuracy=0.8666
-EPOCH 004: domain_loss=0.3537, source_accuracy=0.8844
-EPOCH 005: domain_loss=0.3534, source_accuracy=0.8887
-EPOCH 006: domain_loss=0.3321, source_accuracy=0.8999
