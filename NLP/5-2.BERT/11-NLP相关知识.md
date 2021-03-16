@@ -23,7 +23,7 @@ GPT(Generative Pre-Training),采用两阶段训练过程，和ELMO不同的是�
 GPT缺点：
 - 语言模型是单向的而不是双向
 
-#### 4、bert
+#### 4、Bert
 Bert采用和GPT完全相同的两阶段模型，首先是语言模型预训练；其次是使用Fine-Tuning模式解决下游任务。和GPT的最主要不同在于在预训练阶段
 采用了类似ELMO的双向语言模型。
 Bert 主要是特征抽取使用的transformer，第二是与训练语言模型的时候使用了双向语言模型。
