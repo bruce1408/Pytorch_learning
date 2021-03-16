@@ -27,10 +27,10 @@ which computes the gradient of all input Variables involved in computation of th
 This repository contains:
 
 1. [Computer Vision(CV)](/CV/) Implement complex computer vision algorithms.
-2. [Natural language processing(NLP)](nlp.md) Examples to show how NLP can tacke real problem.Including the source code,
+2. [Natural language processing(NLP)](/NLP/) Examples to show how NLP can tacke real problem.Including the source code,
 dataset, state-of-the art in NLP.
-3. [Dataset](../data.md) All the data you can use in this project are under this directory.
-4. [Reference](ref.md) Other reference materials for this project.
+3. [Dataset](/data/) All the data you can use in this project are under this directory.
+4. [Reference](/Reference) Other reference materials for this project.
 
 
 ## Table of Contents
