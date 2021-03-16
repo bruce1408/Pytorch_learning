@@ -38,10 +38,8 @@ dataset, state-of-the art in NLP.
 - [Project](#Project)
 - [Install](#install)
 - [Usage](#usage)
-- [Example Readmes](#example-readmes)
-- [Maintainers](#maintainers)
-- [Contributing](#contributing)
-- [License](#license)
+- [Related Efforts](#Related-Efforts)
+- [Contributors](#Contributors)
 
 ## Project
 
