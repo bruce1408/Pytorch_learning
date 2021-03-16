@@ -12,9 +12,9 @@ import gzip
 class NameDataset(Dataset):
     """ Diabetes dataset."""
 
-    # Initialize your data, download, etc.
+    # Initialize your Dataset, download, etc.
     def __init__(self, is_train_set=False):
-        filename = '../data/names_train.csv.gz' if is_train_set else '../data/names_test.csv.gz'
+        filename = '../Dataset/names_train.csv.gz' if is_train_set else '../Dataset/names_test.csv.gz'
         with gzip.open(filename, "rt") as f:
             reader = csv.reader(f)
             rows = list(reader)

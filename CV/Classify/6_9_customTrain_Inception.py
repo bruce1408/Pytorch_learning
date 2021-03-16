@@ -119,7 +119,7 @@ def val(model, epoch):
         for index, (img, label) in enumerate(valloader):
             img = img.to(device)
             label = label.to(device)
-            aux1, aux2, out = model(img)
+            out = model(img)
             _, pred = torch.max(out.data, 1)
             total += img.shape[0]
             correct += pred.item().eq(label.data).cpu().sum()

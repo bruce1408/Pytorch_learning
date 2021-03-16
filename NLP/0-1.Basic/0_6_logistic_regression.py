@@ -17,8 +17,8 @@ class Model(torch.nn.Module):
 
     def forward(self, x):
         """
-        In the forward function we accept a Variable of input data and we must return
-        a Variable of output data.
+        In the forward function we accept a Variable of input Dataset and we must return
+        a Variable of output Dataset.
         """
         y_pred = F.sigmoid(self.linear(x))
         return y_pred

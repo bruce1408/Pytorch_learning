@@ -86,7 +86,7 @@ TRG.build_vocab(train_data, min_freq=2)
 print(f"Unique tokens in source (de) vocabulary: {len(SRC.vocab)}")
 print(f"Unique tokens in target (en) vocabulary: {len(TRG.vocab)}")
 
-# The final step of preparing the data is to create the iterators. These can be iterated on to return a batch of data
+# The final step of preparing the Dataset is to create the iterators. These can be iterated on to return a batch of Dataset
 # which will have a `src` attribute (the PyTorch tensors containing a batch of numericalized source sentences) and a
 # `trg` attribute (the PyTorch tensors containing a batch of numericalized target sentences). Numericalized is just a
 # fancy way of saying they have been converted from a sequence of readable tokens to a sequence of corresponding

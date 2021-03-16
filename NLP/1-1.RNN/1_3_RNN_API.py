@@ -54,7 +54,7 @@
 #     optimizer.step()  # 参数更新
 #
 #     _, idx = outputs.max(dim=1)
-#     idx = idx.data.numpy()
+#     idx = idx.Dataset.numpy()
 #     print('pred: ', "".join(idx2char[idx.item()]), end='')
 #     print(' ,epoch %d loss= %.4f'%(epoch+1, loss.item()))
 

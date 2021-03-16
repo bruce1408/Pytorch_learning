@@ -2,7 +2,7 @@ import os
 
 class ImageRename():
     def __init__(self):
-        self.path = './data/train'
+        self.path = './Dataset/train'
 
     def rename(self):
         filelist = os.listdir(self.path)

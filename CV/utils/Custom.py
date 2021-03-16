@@ -13,8 +13,8 @@ class CustomData(data.Dataset):
         self.transform = transform
         imgs = [os.path.join(root, img) for img in os.listdir(root)]  # img path
 
-        # test1: data/test1/8973.jpg
-        # train: data/train/cat.10004.jpg
+        # test1: Dataset/test1/8973.jpg
+        # train: Dataset/train/cat.10004.jpg
 
         if self.test:
             imgs = sorted(imgs, key=lambda x: int(x.split('.')[-2].split('/')[-1]))

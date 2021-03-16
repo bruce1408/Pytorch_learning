@@ -10,7 +10,7 @@ from torchsummary import summary
 # normalize = transforms.Normalize(mean=[0.4588, 0.4588, 0.4588],
 #                                  std=[1, 1, 1])
 # ...
-# val_loader = torch.utils.data.DataLoader(
+# val_loader = torch.utils.Dataset.DataLoader(
 #         datasets.ImageFolder(valdir, transforms.Compose([
 #             transforms.Scale(256),
 #             transforms.CenterCrop(224),

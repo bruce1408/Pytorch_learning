@@ -29,7 +29,7 @@ This repository contains:
 1. [Computer Vision(CV)](/CV/) Implement complex computer vision algorithms.
 2. [Natural language processing(NLP)](/NLP/) Examples to show how NLP can tacke real problem.Including the source code,
 dataset, state-of-the art in NLP.
-3. [Dataset](/data/) All the data you can use in this project are under this directory.
+3. [Dataset](/Dataset/) All the data you can use in this project are under this directory.
 4. [Reference](/Reference) Other reference materials for this project.
 
 
@@ -55,7 +55,7 @@ dataset, state-of-the art in NLP.
     - Inception-v1
     - Transfer-learning
     
-- Generative adversarial network
+- Generative Adversarial Network
 
 - Open-Set domain adaption
 
@@ -63,7 +63,7 @@ dataset, state-of-the art in NLP.
 
 ## Install
 
-This project uses [node](http://nodejs.org) and [npm](https://npmjs.com). Go check them out if you don't have them locally installed.
+This project uses [PyTorch](https://pytorch.org/). Go check them out if you don't have them locally installed.
 
 ```sh
 $ npm install --global standard-readme-spec

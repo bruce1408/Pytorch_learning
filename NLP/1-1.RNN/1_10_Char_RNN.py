@@ -27,7 +27,7 @@ class RNN(nn.Module):
 
     # This runs this one step at a time
     # It's extremely slow, and please do not use in practice.
-    # We need to use (1) batch and (2) data parallelism
+    # We need to use (1) batch and (2) Dataset parallelism
     def forward(self, input, hidden):
         embed = self.embedding(input.view(1, -1))  # S(=1) x I
         embed = embed.view(1, 1, -1)  # S(=1) x B(=1) x I (embedding size)
@@ -82,7 +82,7 @@ def generate(decoder, prime_str='A', predict_len=100, temperature=0.8):
 
 # Train for a given src and target
 # It feeds single string to demonstrate seq2seq
-# It's extremely slow, and we need to use (1) batch and (2) data parallelism
+# It's extremely slow, and we need to use (1) batch and (2) Dataset parallelism
 # http://pytorch.org/tutorials/beginner/former_torchies/parallelism_tutorial.html.
 
 

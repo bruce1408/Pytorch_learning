@@ -40,7 +40,7 @@ def masked_cross_entropy(logits, target, length, USE_CUDA=False):
             (batch, max_len) which contains the index of the true
             class for each corresponding step.
         length: A Variable containing a LongTensor of size (batch,)
-            which contains the length of each data in a batch.
+            which contains the length of each Dataset in a batch.
     Returns:
         loss: An average loss value masked by the length.
     """

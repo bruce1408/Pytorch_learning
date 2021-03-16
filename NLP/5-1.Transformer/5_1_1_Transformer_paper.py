@@ -94,7 +94,7 @@ def tokenize_en(text):
     return [tok.text for tok in spacy_en.tokenizer(text)]
 
 
-# Our fields are the same as the previous notebook. The model expects data to be fed in with the batch dimension
+# Our fields are the same as the previous notebook. The model expects Dataset to be fed in with the batch dimension
 # first, so we use `batch_first = True`.
 
 SRC = Field(tokenize=tokenize_de,
@@ -118,7 +118,7 @@ train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'),
 SRC.build_vocab(train_data, min_freq=2)
 TRG.build_vocab(train_data, min_freq=2)
 
-# Finally, we define the device and the data iterator.
+# Finally, we define the device and the Dataset iterator.
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -1043,7 +1043,7 @@ print(f'predicted trg = {translation}')
 
 display_attention(src, translation, attention)
 
-# Finally, we'll look at an example from the test data.
+# Finally, we'll look at an example from the test Dataset.
 
 example_idx = 10
 src = vars(test_data.examples[example_idx])['src']

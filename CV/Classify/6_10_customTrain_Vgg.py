@@ -51,7 +51,7 @@ valData = DogCat("/raid/bruce/datasets/dogs_cats/train", train=False, test=True)
 
 trainloader = torch.utils.data.DataLoader(trainData, batch_size=batchsize, shuffle=True, num_workers=num_works)
 valloader = torch.utils.data.DataLoader(valData, batch_size=batchsize, shuffle=False, num_workers=num_works)
-# testloader = torch.utils.data.DataLoader(testData, batch_size=batchsize, shuffle=False, num_workers=num_works)
+# testloader = torch.utils.Dataset.DataLoader(testData, batch_size=batchsize, shuffle=False, num_workers=num_works)
 
 
 def get_acc(pred, label):

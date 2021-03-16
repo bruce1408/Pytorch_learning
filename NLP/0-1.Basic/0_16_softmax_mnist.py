@@ -41,7 +41,7 @@ class Net(nn.Module):
         self.l5 = nn.Linear(120, 10)
 
     def forward(self, x):
-        x = x.view(-1, 784)  # Flatten the data (n, 1, 28, 28)-> (n, 784)
+        x = x.view(-1, 784)  # Flatten the Dataset (n, 1, 28, 28)-> (n, 784)
         x = F.relu(self.l1(x))
         x = F.relu(self.l2(x))
         x = F.relu(self.l3(x))
@@ -75,14 +75,14 @@ def train(epoch):
 #     model.eval()
 #     test_loss = 0
 #     correct = 0
-#     for data, target in test_loader:
-#         data, target = Variable(data, volatile=True), Variable(target)
-#         output = model(data)
+#     for Dataset, target in test_loader:
+#         Dataset, target = Variable(Dataset, volatile=True), Variable(target)
+#         output = model(Dataset)
 #         # sum up batch loss
-#         test_loss += criterion(output, target).data
+#         test_loss += criterion(output, target).Dataset
 #         # get the index of the max
-#         pred = output.data.max(1, keepdim=True)[1]
-#         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+#         pred = output.Dataset.max(1, keepdim=True)[1]
+#         correct += pred.eq(target.Dataset.view_as(pred)).cpu().sum()
 #
 #     test_loss /= len(test_loader.dataset)
 #     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(

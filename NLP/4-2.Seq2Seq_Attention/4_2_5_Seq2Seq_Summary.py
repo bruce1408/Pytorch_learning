@@ -352,7 +352,7 @@ class DecoderRNN(nn.Module):
 #             decoder_hidden,
 #             encoder_outputs)
 #         print(decoder_output.size(), decoder_hidden.size(), decoder_attn.size())
-#         decoder_attns[0, i] = decoder_attn.squeeze(0).cpu().data
+#         decoder_attns[0, i] = decoder_attn.squeeze(0).cpu().Dataset
 
 
 def train(input_variable, target_variable, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion,
@@ -463,7 +463,7 @@ plot_loss_total = 0  # Reset every plot_every
 # Begin to train!
 for epoch in range(1, n_epochs + 1):
 
-    # Get training data for this cycle
+    # Get training Dataset for this cycle
     training_pair = variables_from_pair(random.choice(pairs))
     input_variable = training_pair[0]
     target_variable = training_pair[1]

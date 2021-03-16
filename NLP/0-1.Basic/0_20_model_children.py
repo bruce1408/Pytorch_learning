@@ -8,8 +8,8 @@ print('='*50)
 print(list(model.children())[:-1])
 print("="*60)
 # for param in model.parameters():
-#     print(type(param.data), param.size())
-#     print(list(param.data))
+#     print(type(param.Dataset), param.size())
+#     print(list(param.Dataset))
 print(model.state_dict().keys())
 print('='*90)
 for key in model.state_dict():

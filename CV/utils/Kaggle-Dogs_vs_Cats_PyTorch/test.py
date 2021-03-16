@@ -27,7 +27,7 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
 ])
 
-testset = CustomData('./data/test1', transform=transform_test, train=False, test=True)
+testset = CustomData('./Dataset/test1', transform=transform_test, train=False, test=True)
 testloader = torch.utils.data.DataLoader(testset, batch_size=opt.batchSize, shuffle=False, num_workers=opt.num_workers)
 model = resnet101(pretrained=True)
 model.fc = nn.Linear(2048, 2)

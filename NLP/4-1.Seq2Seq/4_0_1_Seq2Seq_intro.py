@@ -9,7 +9,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 dtype = torch.FloatTensor
 # S: Symbol that shows starting of decoding input
 # E: Symbol that shows starting of decoding output
-# P: Symbol that will fill in blank sequence if current batch data size is short than time steps
+# P: Symbol that will fill in blank sequence if current batch Dataset size is short than time steps
 
 char_arr = [c for c in 'SEPabcdefghijklmnopqrstuvwxyz']
 num_dic = {n: i for i, n in enumerate(char_arr)}

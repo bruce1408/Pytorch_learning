@@ -75,7 +75,7 @@ TRG = Field(tokenize=tokenize_en,
             eos_token='<eos>',
             lower=True)
 
-# We then load the data.
+# We then load the Dataset.
 
 train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'), fields=(SRC, TRG))
 

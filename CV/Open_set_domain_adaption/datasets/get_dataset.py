@@ -14,14 +14,14 @@ def get_dataset(task):
     :return:
     """
     if task == 's2m':
-        train_dataset = SVHN('../data', split='train', download=True,
+        train_dataset = SVHN('../Dataset', split='train', download=True,
                              transform=transforms.Compose([
                                  transforms.Resize(32),
                                  transforms.ToTensor(),
                                  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                              ]))
 
-        test_dataset = MNIST('../data', train=True, download=True,
+        test_dataset = MNIST('../Dataset', train=True, download=True,
                              transform=transforms.Compose([
                                  transforms.Resize(32),
                                  transforms.Lambda(lambda x: x.convert("RGB")),
@@ -29,7 +29,7 @@ def get_dataset(task):
                                  transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                              ]))
     elif task == 'u2m':
-        train_dataset = USPS('/home/bruce/PycharmProjects/openset-DA/data', train=True, download=False,
+        train_dataset = USPS('/home/bruce/PycharmProjects/openset-DA/Dataset', train=True, download=False,
                              transform=transforms.Compose([
                                  transforms.RandomCrop(28, padding=4),
                                  transforms.RandomRotation(10),
@@ -37,19 +37,19 @@ def get_dataset(task):
                                  transforms.Normalize((0.5,), (0.5,))
                              ]))
 
-        test_dataset = MNIST('../data', train=True, download=False,
+        test_dataset = MNIST('../Dataset', train=True, download=False,
                              transform=transforms.Compose([
                                  transforms.ToTensor(),
                                  transforms.Normalize((0.5,), (0.5,))
                              ]))
     else:  # m2u
-        train_dataset = MNIST('../data', train=True, download=False,
+        train_dataset = MNIST('../Dataset', train=True, download=False,
                               transform=transforms.Compose([
                                   transforms.ToTensor(),
                                   transforms.Normalize((0.5,), (0.5,))
                               ]))
 
-        test_dataset = USPS('/home/bruce/PycharmProjects/openset-DA/data/', train=False, download=False,
+        test_dataset = USPS('/home/bruce/PycharmProjects/openset-DA/Dataset/', train=False, download=False,
                             transform=transforms.Compose([
                                 transforms.ToTensor(),
                                 transforms.Normalize((0.5,), (0.5,))

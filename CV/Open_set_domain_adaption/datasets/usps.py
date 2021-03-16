@@ -1,4 +1,4 @@
-"""Dataset setting and data loader for USPS.
+"""Dataset setting and Dataset loader for USPS.
 Modified from
 https://github.com/mingyuliutw/CoGAN/blob/master/cogan_pytorch/src/dataset_usps.py
 """
@@ -29,7 +29,7 @@ class USPS(data.Dataset):
             E.g, ``transforms.RandomCrop``
     """
 
-    url = "https://raw.githubusercontent.com/mingyuliutw/CoGAN/master/cogan_pytorch/data/uspssample/usps_28x28.pkl"
+    url = "https://raw.githubusercontent.com/mingyuliutw/CoGAN/master/cogan_pytorch/Dataset/uspssample/usps_28x28.pkl"
 
     def __init__(self, root, train=True, transform=None, download=False):
         """Init USPS dataset."""
@@ -51,13 +51,13 @@ class USPS(data.Dataset):
         # if self.train:
         #     total_num_samples = self.targets.shape[0]
         #     indices = np.arange(total_num_samples)
-        #     self.data = self.data[indices[0:self.dataset_size], ::]
+        #     self.Dataset = self.Dataset[indices[0:self.dataset_size], ::]
         #     self.targets = self.targets[indices[0:self.dataset_size]]
         self.data *= 255.0
         self.targets = np.squeeze(self.targets).astype(np.uint8)
 
     def __getitem__(self, index):
-        """Get images and target for data loader.
+        """Get images and target for Dataset loader.
         Args:
             index (int): Index
         Returns:
@@ -115,7 +115,7 @@ class USPS(data.Dataset):
 
 
 if __name__ == "__main__":
-    train_dataset = USPS('/home/bruce/PycharmProjects/openset-DA/data', train=True, download=False,
+    train_dataset = USPS('/home/bruce/PycharmProjects/openset-DA/Dataset', train=True, download=False,
                          transform=transforms.Compose([
                              transforms.RandomCrop(28, padding=4),
                              transforms.RandomRotation(10),

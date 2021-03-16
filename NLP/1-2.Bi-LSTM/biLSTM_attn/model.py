@@ -101,7 +101,7 @@ if __name__ == "__main__":
     seed = 1111
     cuda_able = True
     save = './bilstm_attn_model'
-    data = './data/corpus.pt'
+    data = './Dataset/corpus.pt'
     dropout = 0.5
     embed_dim = 64
     hidden_size = 32

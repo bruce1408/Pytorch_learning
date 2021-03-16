@@ -9,9 +9,9 @@ from gensim.models.word2vec import PathLineSentences
 
 def seg_words():
     # 定义一些常量值，多次调用的文件路径放在这里，容易修改
-    origin_file = "data/data.txt"  # 初代文件
+    origin_file = "Dataset/Dataset.txt"  # 初代文件
     stop_words_file = "/home/bruce/PycharmProjects/stopwords/cn_stopwords.txt"  # 停用词路径
-    user_dict_file = "data/user_dict.txt"  # 用户自定义词典路径
+    user_dict_file = "Dataset/user_dict.txt"  # 用户自定义词典路径
     stop_words = list()
     # 加载停用词
     with open(stop_words_file, 'r', encoding="utf8") as f:
@@ -22,7 +22,7 @@ def seg_words():
 
     # 加载用户字典
     jieba.load_userdict(user_dict_file)
-    target_file = open("data/douluo_cut_word.txt", 'w', encoding="utf-8")
+    target_file = open("Dataset/douluo_cut_word.txt", 'w', encoding="utf-8")
     with open(origin_file, 'r', encoding="utf-8") as f:
         contents = f.readlines()
         for line in contents:
@@ -48,7 +48,7 @@ def train_model():
     logger.info("running %s" % ' '.join(sys.argv))
 
     # input为输入语料， outp1为输出模型， outp2位vector格式的模型
-    input_dir = 'data/douluo_cut_word.txt'
+    input_dir = 'Dataset/douluo_cut_word.txt'
     outp1 = 'output/words.vector'
 
     # 训练模型

@@ -10,7 +10,7 @@ batch_size = 16
 seed = 1111
 cuda_able = True
 save = './bilstm_attn_model'
-data = './data/corpus.pt'
+data = './Dataset/corpus.pt'
 dropout = 0.5
 embed_dim = 64
 hidden_size = 32
@@ -73,7 +73,7 @@ def train():
     total_loss = 0
     for data, label in tqdm(training_data, mininterval=1, desc='Train Processing', leave=False):
         optimizer.zero_grad()
-        # print(data.shape)
+        # print(Dataset.shape)
         target = lstm_attn(data)
         loss = criterion(target, label)
 

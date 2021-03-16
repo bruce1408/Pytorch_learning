@@ -63,7 +63,7 @@ if __name__ == '__main__':
     attention_size = 16
     sequence_length = 16
     use_cuda = torch.cuda.is_available() and cuda_able
-    data = torch.load('./data/corpus.pt')
+    data = torch.load('./Dataset/corpus.pt')
     training_data = DataLoader(data['train']['src'], data['train']['label'], max_len, batch_size=batch_size,
                                cuda=use_cuda)
 

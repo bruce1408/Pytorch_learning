@@ -10,9 +10,9 @@ from torch.utils.data import Dataset, DataLoader
 class DiabetesDataset(Dataset):
     """ Diabetes dataset."""
 
-    # Initialize your data, download, etc.
+    # Initialize your Dataset, download, etc.
     def __init__(self):
-        xy = np.loadtxt('./data/diabetes.csv.gz',
+        xy = np.loadtxt('./Dataset/diabetes.csv.gz',
                         delimiter=',', dtype=np.float32)
         self.len = xy.shape[0]
         self.x_data = torch.from_numpy(xy[:, 0:-1])

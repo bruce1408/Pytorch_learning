@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
-# Generative Adversarial Networks (GAN) example in PyTorch. Tested with PyTorch 0.4.1, Python 3.6.7 (Nov 2018)
-# See related blog post at https://medium.com/@devnag/generative-adversarial-networks-gans-in-50-lines-of-code-pytorch-e81b79659e3f#.sch4xgsa9
-
+# Generative Adversarial Networks (GAN) example in PyTorch.
 import numpy as np
 import torch
+import os
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
-
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
 matplotlib_is_available = True
 try:
     from matplotlib import pyplot as plt
@@ -20,23 +19,23 @@ except ImportError:
 data_mean = 4
 data_stddev = 1.25
 
-# ### Uncomment only one of these to define what data is actually sent to the Discriminator
-# (name, preprocess, d_input_func) = ("Raw data", lambda data: data, lambda x: x)
-# (name, preprocess, d_input_func) = ("Data and variances", lambda data: decorate_with_diffs(data, 2.0), lambda x: x * 2)
-# (name, preprocess, d_input_func) = ("Data and diffs", lambda data: decorate_with_diffs(data, 1.0), lambda x: x * 2)
+# ### Uncomment only one of these to define what Dataset is actually sent to the Discriminator
+# (name, preprocess, d_input_func) = ("Raw Dataset", lambda Dataset: Dataset, lambda x: x)
+# (name, preprocess, d_input_func) = ("Data and variances", lambda Dataset: decorate_with_diffs(Dataset, 2.0), lambda x: x * 2)
+# (name, preprocess, d_input_func) = ("Data and diffs", lambda Dataset: decorate_with_diffs(Dataset, 1.0), lambda x: x * 2)
 (name, preprocess, d_input_func) = ("Only 4 moments", lambda data: get_moments(data), lambda x: 4)
 
-print("Using data [%s]" % (name))
+print("Using Dataset [%s]" % (name))
 
 
-# ##### DATA: Target data and generator input data
+# ##### DATA: Target Dataset and generator input Dataset
 
 def get_distribution_sampler(mu, sigma):
     return lambda n: torch.Tensor(np.random.normal(mu, sigma, (1, n)))  # Gaussian
 
 
 def get_generator_input_sampler():
-    return lambda m, n: torch.rand(m, n)  # Uniform-dist data into generator, _NOT_ Gaussian
+    return lambda m, n: torch.rand(m, n)  # Uniform-dist Dataset into generator, _NOT_ Gaussian
 
 
 # ##### MODELS: Generator model and discriminator model
@@ -81,7 +80,7 @@ def stats(d):
 
 
 def get_moments(d):
-    # Return the first 4 moments of the data provided
+    # Return the first 4 moments of the Dataset provided
     mean = torch.mean(d)
     diffs = d - mean
     var = torch.mean(torch.pow(diffs, 2.0))

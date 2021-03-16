@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 dtype = torch.FloatTensor
 # S: Symbol that shows starting of decoding input
 # E: Symbol that shows starting of decoding output
-# P: Symbol that will fill in blank sequence if current batch data size is short than time steps
+# P: Symbol that will fill in blank sequence if current batch Dataset size is short than time steps
 sentences = ['ich mochte ein bier P', 'S i want a beer', 'i want a beer E']
 
 # Transformer Parameters
@@ -304,7 +304,7 @@ print('first head of last state dec_enc_attns')
 #     batch_size, len_k = seq_k.size()
 #
 #     # eq(zero) is PAD token
-#     pad_attn_mask = seq_k.data.eq(0).unsqueeze(1)  # batch_size x 1 x len_k(=len_q), one is masking
+#     pad_attn_mask = seq_k.Dataset.eq(0).unsqueeze(1)  # batch_size x 1 x len_k(=len_q), one is masking
 #
 #     return pad_attn_mask.expand(batch_size, len_q, len_k)  # batch_size x len_q x len_k
 #
@@ -478,21 +478,21 @@ print('first head of last state dec_enc_attns')
 #     :return: The target input
 #     """
 #     enc_outputs, enc_self_attns = model.encoder(enc_input)
-#     dec_input = torch.zeros(1, 5).type_as(enc_input.data)
+#     dec_input = torch.zeros(1, 5).type_as(enc_input.Dataset)
 #     next_symbol = start_symbol
 #     for i in range(0, 5):
 #         dec_input[0][i] = next_symbol
 #         dec_outputs, _, _ = model.decoder(dec_input, enc_input, enc_outputs)
 #         projected = model.projection(dec_outputs)
 #         prob = projected.squeeze(0).max(dim=-1, keepdim=False)[1]
-#         next_word = prob.data[i]
+#         next_word = prob.Dataset[i]
 #         next_symbol = next_word.item()
 #     return dec_input
 #
 #
 # def showgraph(attn):
 #     attn = attn[-1].squeeze(0)[0]
-#     attn = attn.squeeze(0).data.numpy()
+#     attn = attn.squeeze(0).Dataset.numpy()
 #     fig = plt.figure(figsize=(n_heads, n_heads))  # [n_heads, n_heads]
 #     ax = fig.add_subplot(1, 1, 1)
 #     ax.matshow(attn, cmap='viridis')
@@ -518,7 +518,7 @@ print('first head of last state dec_enc_attns')
 # # Test
 # greedy_dec_input = greedy_decoder(model, enc_inputs, start_symbol=tgt_vocab["S"])
 # predict, _, _, _ = model(enc_inputs, greedy_dec_input)
-# predict = predict.data.max(1, keepdim=True)[1]
+# predict = predict.Dataset.max(1, keepdim=True)[1]
 # print(sentences[0], '->', [number_dict[n.item()] for n in predict.squeeze()])
 #
 # print('first head of last state enc_self_attns')

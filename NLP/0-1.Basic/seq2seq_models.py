@@ -35,7 +35,7 @@ def str2tensor(msg, eos=False):
 # To demonstrate seq2seq, We don't handle batch in the code,
 # and our encoder runs this one step at a time
 # It's extremely slow, and please do not use in practice.
-# We need to use (1) batch and (2) data parallelism
+# We need to use (1) batch and (2) Dataset parallelism
 # http://pytorch.org/tutorials/beginner/former_torchies/parallelism_tutorial.html.
 
 

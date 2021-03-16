@@ -5,7 +5,7 @@
 # import torch
 # import torch.nn as nn
 # from torch.autograd import Variable
-# from torch.utils.data import DataLoader
+# from torch.utils.Dataset import DataLoader
 #
 # from utils.name_dataset import NameDataset
 # from torch.nn.utils.rnn import pack_padded_sequence
@@ -115,7 +115,7 @@
 #
 #         # Pack them up nicely
 #         gru_input = pack_padded_sequence(
-#             embedded, seq_lengths.data.cpu().numpy())
+#             embedded, seq_lengths.Dataset.cpu().numpy())
 #
 #         # To compact weights again call flatten_parameters().
 #         self.gru.flatten_parameters()
@@ -141,7 +141,7 @@
 #         output = classifier(input, seq_lengths)
 #
 #         loss = criterion(output, target)
-#         total_loss += loss.data
+#         total_loss += loss.Dataset
 #
 #         classifier.zero_grad()
 #         loss.backward()
@@ -163,7 +163,7 @@
 #     if name:
 #         input, seq_lengths, target = make_variables([name], [])
 #         output = classifier(input, seq_lengths)
-#         pred = output.data.max(1, keepdim=True)[1]
+#         pred = output.Dataset.max(1, keepdim=True)[1]
 #         country_id = pred.cpu().numpy()[0][0]
 #         print(name, "is", train_dataset.get_country(country_id))
 #         return
@@ -175,8 +175,8 @@
 #     for names, countries in test_loader:
 #         input, seq_lengths, target = make_variables(names, countries)
 #         output = classifier(input, seq_lengths)
-#         pred = output.data.max(1, keepdim=True)[1]
-#         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+#         pred = output.Dataset.max(1, keepdim=True)[1]
+#         correct += pred.eq(target.Dataset.view_as(pred)).cpu().sum()
 #
 #     print('\nTest set: Accuracy: {}/{} ({:.0f}%)\n'.format(correct, train_data_size, 100. * correct / train_data_size))
 #
@@ -233,12 +233,12 @@ num_epochs = 2
 learning_rate = 0.003
 
 # MNIST dataset
-train_dataset = torchvision.datasets.MNIST(root='/raid/bruce/tmp/pytorch_intro/data/',
+train_dataset = torchvision.datasets.MNIST(root='/raid/bruce/tmp/pytorch_intro/Dataset/',
                                            train=True,
                                            transform=transforms.ToTensor(),
                                            download=True)
 
-test_dataset = torchvision.datasets.MNIST(root='/raid/bruce/tmp/pytorch_intro/data/',
+test_dataset = torchvision.datasets.MNIST(root='/raid/bruce/tmp/pytorch_intro/Dataset/',
                                           train=False,
                                           transform=transforms.ToTensor())
 

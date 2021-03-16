@@ -24,7 +24,7 @@ class Net(nn.Module):
         return x
 
 
-# define random data
+# define random Dataset
 random_input = torch.randn(10,)
 random_target = torch.randn(1,)
 
@@ -61,7 +61,7 @@ net.load_state_dict(torch.load('model.pt'))
 print(30*"=" + 'fc2 pretrained weight (same as the one above):'+20*"=")
 print(net.fc2.weight)
 
-# define new random data
+# define new random Dataset
 random_input = torch.randn(10,)
 random_target = torch.randn(1,)
 

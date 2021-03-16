@@ -3,7 +3,7 @@ import torch
 from torch.autograd import Variable
 import numpy as np
 
-xy = np.loadtxt('./data/diabetes.csv.gz', delimiter=',', dtype=np.float32)
+xy = np.loadtxt('./Dataset/diabetes.csv.gz', delimiter=',', dtype=np.float32)
 x_data = Variable(torch.from_numpy(xy[:, 0:-1]))
 y_data = Variable(torch.from_numpy(xy[:, [-1]]))
 
@@ -26,8 +26,8 @@ class Model(torch.nn.Module):
 
     def forward(self, x):
         """
-        In the forward function we accept a Variable of input data and we must return
-        a Variable of output data. We can use Modules defined in the constructor as
+        In the forward function we accept a Variable of input Dataset and we must return
+        a Variable of output Dataset. We can use Modules defined in the constructor as
         well as arbitrary operators on Variables.
         """
         out1 = self.sigmoid(self.l1(x))

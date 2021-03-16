@@ -1,10 +1,10 @@
 import torchvision
-import torchvision.transforms as transforms
 import cv2
 import numpy as np
 from PIL import Image
+import torchvision.transforms as transforms
 
-img_path = "/raid/bruce/datasets/dogs_cats/train/dog.9.jpg"
+img_path = "../Dataset/dogs_cats/train/dog.9.jpg"
 
 # 引入transforms.ToTensor()功能： range [0, 255] -> [0.0, 1.0]
 transform1 = transforms.Compose([transforms.ToTensor()])

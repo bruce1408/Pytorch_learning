@@ -41,6 +41,6 @@ for epoch in range(1000):
         w.grad.data.zero_()
         print("the w is: ", w)
 
-    # print("progress:", epoch, l.data)
+    # print("progress:", epoch, l.Dataset)
 
 print("predict (after training)", 4, forward(4).data)

@@ -17,8 +17,8 @@ class Model(torch.nn.Module):
 
     def forward(self, x):
         """
-        In the forward function we accept a Variable of input data and we must return
-        a Variable of output data. We can use Modules defined in the constructor as
+        In the forward function we accept a Variable of input Dataset and we must return
+        a Variable of output Dataset. We can use Modules defined in the constructor as
         well as arbitrary operators on Variables.
         """
         y_pred = self.linear(x)

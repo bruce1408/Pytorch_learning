@@ -10,10 +10,10 @@ import torch.utils.data as data
 from CV.utils.ResNet import ResNet50
 
 # parameters
-os.environ['CUDA_VISIBLES_DEVICES'] = '3'
+os.environ['CUDA_VISIBLES_DEVICES'] = '2, 3'
 batchsize = 16
 num_works = 4
-epochs = 200
+epochs = 5
 learning_rate = 0.001
 gamma = 0.96
 

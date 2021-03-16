@@ -32,7 +32,7 @@
 # 
 # ## Preparing Data
 # 
-# All of the data preparation will be (almost) the same as last time, so we'll very briefly detail what each code
+# All of the Dataset preparation will be (almost) the same as last time, so we'll very briefly detail what each code
 # block does. See the previous notebook for a recap.
 # 
 # We'll import PyTorch, TorchText, spaCy and a few standard modules.
@@ -88,7 +88,7 @@ def tokenize_en(text):
     return [tok.text for tok in spacy_en.tokenizer(text)]
 
 
-# Create our fields to process our data. This will append the "start of sentence" and "end of sentence" tokens as
+# Create our fields to process our Dataset. This will append the "start of sentence" and "end of sentence" tokens as
 # well as converting all words to lowercase.
 
 
@@ -102,7 +102,7 @@ TRG = Field(tokenize=tokenize_en,
             eos_token='<eos>',
             lower=True)
 
-# Load our data.
+# Load our Dataset.
 
 
 train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'),

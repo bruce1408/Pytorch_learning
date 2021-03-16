@@ -31,6 +31,6 @@ if __name__ == "__main__":
     else:
         summary(model, (3, 224, 224))
     print(model)
-    x = torch.rand((2, 3, 224, 224))
+    x = torch.rand((2, 3, 224, 224)).cuda()
     output = model(x).cuda()
     print(output.shape)
