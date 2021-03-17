@@ -14,7 +14,6 @@ PyTorch is a Python-based scientific computing package serving two broad purpose
 - A replacement for NumPy to use the power of GPUs and other accelerators.
 - An automatic differentiation library that is useful to implement neural networks.
 
-
 PyTorch, like most other deep learning libraries, supports reverse-mode automatic differentiation of
 scalar functions (or vector-Jacobian products of functions with multiple outputs), the most important form 
 of automatic differentiation for deep learning applications which usually differentiatea single scalar loss.
