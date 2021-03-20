@@ -82,6 +82,8 @@ All data for this project can be found in [Baidu Cloud Disk](https://pan.baidu.c
 
 ## Related Efforts
 
+- [Sung Kim](https://github.com/hunkim)
+
 - [graykode](https://github.com/graykode/nlp-tutorial) - Learn the code quality.
 - [yunjey](https://github.com/yunjey/pytorch-tutorial) - A tutorial code to encourage open-source contributions.
 
