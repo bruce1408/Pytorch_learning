@@ -40,7 +40,6 @@ def make_batch(seq_data):
     # make tensor
     return torch.Tensor(input_batch), torch.Tensor(output_batch), torch.LongTensor(target_batch)
 
-
 # Model
 class Seq2Seq(nn.Module):
     def __init__(self):
@@ -81,6 +80,7 @@ for epoch in range(5000):
     # output : [max_len+1, batch_size, n_class]
     output = output.transpose(0, 1)  # [batch_size, max_len+1(=6), n_class]
     loss = 0
+    
     for i in range(0, len(target_batch)):
         # output[i] : [max_len+1, n_class, target_batch[i] : max_len+1]
         loss += criterion(output[i], target_batch[i])
