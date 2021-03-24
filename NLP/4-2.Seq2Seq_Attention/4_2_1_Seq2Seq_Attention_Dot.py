@@ -42,7 +42,7 @@ class Attention(nn.Module):
         self.enc_cell = nn.RNN(input_size=n_class, hidden_size=n_hidden, dropout=0.5)  # [11, 128]
         self.dec_cell = nn.RNN(input_size=n_class, hidden_size=n_hidden, dropout=0.5)  # [11, 128]
 
-        # Linear for attention
+        # Linear for attention 简单线性连接
         self.attn = nn.Linear(n_hidden, n_hidden)
         self.out = nn.Linear(n_hidden * 2, n_class)
         self.softmax = nn.Softmax(dim=0)
@@ -65,7 +65,6 @@ class Attention(nn.Module):
         decoder 部分首先对每个序列长度遍历,初始hidden为encoder_hidden,通过RNN网络得到 decoder_output 和 hidden,
         decoder_output 和 encoder_outputs 进行点乘, 结果进行softmax归一化,得到 attention_weights,这个结果再和encoder_outputs
         进行batch乘法,得到的是context vector, context 和 decoder_output cat合并操作后,通过一个线性层得到当前序列的输出.
-        
         """
         for i in range(n_step):
             # dec_output[1, 1, 128] hidden = [1, 1, 128], hidden = [1, 1, 128],hidden 初始化使用encoder_hidden
@@ -80,7 +79,8 @@ class Attention(nn.Module):
             context = context.squeeze(1)  # [1, num_directions(=1) * n_hidden] = [1, 128]
 
             dec_output = dec_output.squeeze(0)  # dec_output :[1, 128]
-
+            
+            # att 和 decoder_output cat合并操作
             outputs[i] = self.out(torch.cat((dec_output, context), 1))  # context vector 和 decoder_output 生成的输出
 
             trained_attn.append(attn_weights.squeeze().data.numpy())

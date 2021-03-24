@@ -1,18 +1,17 @@
 # coding: utf-8
+import os
+import math
+import random
+import time
+import spacy
 import torch
+import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 
 from torchtext.datasets import Multi30k
 from torchtext.data import Field, BucketIterator
 
-import spacy
-import numpy as np
-
-import random
-import math
-import time
-import os
 """
 paper: Sequence to Sequence Learning with Neural Networks
 """
@@ -62,7 +61,8 @@ TRG = Field(tokenize=tokenize_en,
             lower=True)
 
 
-train_data, valid_data, test_data = Multi30k.splits(exts=('.de', '.en'), fields=(SRC, TRG))
+train_data, valid_data, test_data = Multi30k.splits(
+    exts=('.de', '.en'), fields=(SRC, TRG))
 # We can also print out an example, making sure the source sentence is reversed:
 
 print(vars(train_data.examples[0]))
@@ -71,7 +71,7 @@ print(vars(train_data.examples[0]))
 
 # Next, we'll build the *vocabulary* for the source and target languages. The vocabulary is used to associate each
 # unique token with an index (an integer). The vocabularies of the source and target languages are distinct.
-# 
+#
 # Using the `min_freq` argument, we only allow tokens that appear at least 2 times to appear in our vocabulary.
 # Tokens that appear only once are converted into an `<unk>` (unknown) token.
 #
@@ -91,14 +91,14 @@ print(f"Unique tokens in target (en) vocabulary: {len(TRG.vocab)}")
 # `trg` attribute (the PyTorch tensors containing a batch of numericalized target sentences). Numericalized is just a
 # fancy way of saying they have been converted from a sequence of readable tokens to a sequence of corresponding
 # indexes, using the vocabulary.
-# 
+#
 # We also need to define a `torch.device`. This is used to tell TorchText to put the tensors on the GPU or not. We
 # use the `torch.cuda.is_available()` function, which will return `True` if a GPU is detected on our computer. We
 # pass this `device` to the iterator.
-# 
+#
 # When we get a batch of examples using an iterator we need to make sure that all of the source sentences are padded
 # to the same length, the same with the target sentences. Luckily, TorchText iterators handle this for us!
-# 
+#
 # We use a `BucketIterator` instead of the standard `Iterator` as it creates batches in such a way that it minimizes
 # the amount of padding in both the source and target sentences.
 
@@ -128,55 +128,55 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 
 
 # ## Building the Seq2Seq Model
-# 
+#
 # We'll be building our model in three parts. The encoder, the decoder and a seq2seq model that encapsulates the
 # encoder and decoder and will provide a way to interface with each.
-# 
+#
 # ### Encoder
-# 
+#
 # First, the encoder, a 2 layer LSTM. The paper we are implementing uses a 4-layer LSTM, but in the interest of
 # training time we cut this down to 2-layers. The concept of multi-layer RNNs is easy to expand from 2 to 4 layers.
-# 
+#
 # For a multi-layer RNN, the input sentence, $X$, after being embedded goes into the first (bottom) layer of the RNN
 # and hidden states, $H=\{h_1, h_2, ..., h_T\}$, output by this layer are used as inputs to the RNN in the layer
 # above. Thus, representing each layer with a superscript, the hidden states in the first layer are given by:
-# 
+#
 # $$h_t^1 = \text{EncoderRNN}^1(e(x_t), h_{t-1}^1)$$
-# 
+#
 # The hidden states in the second layer are given by:
-# 
+#
 # $$h_t^2 = \text{EncoderRNN}^2(h_t^1, h_{t-1}^2)$$
-# 
+#
 # Using a multi-layer RNN also means we'll also need an initial hidden state as input per layer, $h_0^l$, and we will
 # also output a context vector per layer, $z^l$.
-# 
+#
 # Without going into too much detail about LSTMs (see [this](
 # https://colah.github.io/posts/2015-08-Understanding-LSTMs/) blog post to learn more about them), all we need to
 # know is that they're a type of RNN which instead of just taking in a hidden state and returning a new hidden state
 # per time-step, also take in and return a *cell state*, $c_t$, per time-step.
-# 
+#
 # $$\begin{align*}
 # h_t &= \text{RNN}(e(x_t), h_{t-1})\\
 # (h_t, c_t) &= \text{LSTM}(e(x_t), h_{t-1}, c_{t-1})
 # \end{align*}$$
-# 
+#
 # We can just think of $c_t$ as another type of hidden state. Similar to $h_0^l$, $c_0^l$ will be initialized to a
 # tensor of all zeros. Also, our context vector will now be both the final hidden state and the final cell state,
 # i.e. $z^l = (h_T^l, c_T^l)$.
-# 
+#
 # Extending our multi-layer equations to LSTMs, we get:
-# 
+#
 # $$\begin{align*}
 # (h_t^1, c_t^1) &= \text{EncoderLSTM}^1(e(x_t), (h_{t-1}^1, c_{t-1}^1))\\
 # (h_t^2, c_t^2) &= \text{EncoderLSTM}^2(h_t^1, (h_{t-1}^2, c_{t-1}^2))
 # \end{align*}$$
-# 
+#
 # Note how only our hidden state from the first layer is passed as input to the second layer, and not the cell state.
-# 
-# So our encoder looks something like this: 
-# 
+#
+# So our encoder looks something like this:
+#
 # ![](assets/seq2seq2.png)
-# 
+#
 # We create this in code by making an `Encoder` module, which requires we inherit from `torch.nn.Module` and use the
 # `super().__init__()` as some boilerplate code. The encoder takes the following arguments: - `input_dim` is the
 # size/dimensionality of the one-hot vectors that will be input to the encoder. This is equal to the input (source)
@@ -185,7 +185,7 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 # `n_layers` is the number of layers in the RNN. - `dropout` is the amount of dropout to use. This is a
 # regularization parameter to prevent overfitting. Check out [this](
 # https://www.coursera.org/lecture/deep-neural-network/understanding-dropout-YaGbR) for more details about dropout.
-# 
+#
 # We aren't going to discuss the embedding layer in detail during these tutorials. All we need to know is that there
 # is a step before the words - technically, the indexes of the words - are passed into the RNN, where the words are
 # transformed into vectors. To read more about word embeddings, check these articles: [1](
@@ -193,28 +193,28 @@ train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
 # [2](http://p.migdal.pl/2017/01/06/king-man-woman-queen-why.html),
 # [3](http://mccormickml.com/2016/04/19/word2vec-tutorial-the-skip-gram-model/),
 # [4](http://mccormickml.com/2017/01/11/word2vec-tutorial-part-2-negative-sampling/).
-# 
+#
 # The embedding layer is created using `nn.Embedding`, the LSTM with `nn.LSTM` and a dropout layer with `nn.Dropout`.
 # Check the PyTorch [documentation](https://pytorch.org/docs/stable/nn.html) for more about these.
-# 
+#
 # One thing to note is that the `dropout` argument to the LSTM is how much dropout to apply between the layers of a
 # multi-layer RNN, i.e. between the hidden states output from layer $l$ and those same hidden states being used for
 # the input of layer $l+1$.
-# 
+#
 # In the `forward` method, we pass in the source sentence, $X$, which is converted into dense vectors using the
 # `embedding` layer, and then dropout is applied. These embeddings are then passed into the RNN. As we pass a whole
 # sequence to the RNN, it will automatically do the recurrent calculation of the hidden states over the whole
 # sequence for us! Notice that we do not pass an initial hidden or cell state to the RNN. This is because,
 # as noted in the [documentation](https://pytorch.org/docs/stable/nn.html#torch.nn.LSTM), that if no hidden/cell
 # state is passed to the RNN, it will automatically create an initial hidden/cell state as a tensor of all zeros.
-# 
+#
 # The RNN returns: `outputs` (the top-layer hidden state for each time-step), `hidden` (the final hidden state for
 # each layer, $h_T$, stacked on top of each other) and `cell` (the final cell state for each layer, $c_T$,
 # stacked on top of each other).
-# 
+#
 # As we only need the final hidden and cell states (to make our context vector), `forward` only returns `hidden` and
 # `cell`.
-# 
+#
 # The sizes of each of the tensors is left as comments in the code. In this implementation `n_directions` will always
 # be 1, however note that bidirectional RNNs (covered in tutorial 3) will have `n_directions` as 2.
 
@@ -238,7 +238,8 @@ class Encoder(nn.Module):
 
     def forward(self, src):
         # src = [src len, batch size]
-        embedded = self.dropout(self.embedding(src))  # embedded = [src_len, batch size, emb dim]
+        # embedded = [src_len, batch size, emb dim]
+        embedded = self.dropout(self.embedding(src))
         outputs, (hidden, cell) = self.rnn(embedded)
 
         # outputs = [src len, batch size, hid dim * n directions]
@@ -251,34 +252,34 @@ class Encoder(nn.Module):
 
 
 # ### Decoder
-# 
+#
 # Next, we'll build our decoder, which will also be a 2-layer (4 in the paper) LSTM.
-# 
+#
 # ![](assets/seq2seq3.png)
-# 
+#
 # The `Decoder` class does a single step of decoding, i.e. it ouputs single token per time-step. The first layer will
 # receive a hidden and cell state from the previous time-step, $(s_{t-1}^1, c_{t-1}^1)$, and feeds it through the
 # LSTM with the current embedded token, $y_t$, to produce a new hidden and cell state, $(s_t^1, c_t^1)$. The
 # subsequent layers will use the hidden state from the layer below, $s_t^{l-1}$, and the previous hidden and cell
 # states from their layer, $(s_{t-1}^l, c_{t-1}^l)$. This provides equations very similar to those in the encoder.
-# 
+#
 # $$\begin{align*}
 # (s_t^1, c_t^1) = \text{DecoderLSTM}^1(d(y_t), (s_{t-1}^1, c_{t-1}^1))\\
 # (s_t^2, c_t^2) = \text{DecoderLSTM}^2(s_t^1, (s_{t-1}^2, c_{t-1}^2))
 # \end{align*}$$
-# 
+#
 # Remember that the initial hidden and cell states to our decoder are our context vectors, which are the final hidden
 # and cell states of our encoder from the same layer, i.e. $(s_0^l,c_0^l)=z^l=(h_T^l,c_T^l)$.
-# 
+#
 # We then pass the hidden state from the top layer of the RNN, $s_t^L$, through a linear layer, $f$,
 # to make a prediction of what the next token in the target (output) sequence should be, $\hat{y}_{t+1}$.
-# 
+#
 # $$\hat{y}_{t+1} = f(s_t^L)$$
-# 
+#
 # The arguments and initialization are similar to the `Encoder` class, except we now have an `output_dim` which is
 # the size of the vocabulary for the output/target. There is also the addition of the `Linear` layer, used to make
 # the predictions from the top layer hidden state.
-# 
+#
 # Within the `forward` method, we accept a batch of input tokens, previous hidden states and previous cell states. As
 # we are only decoding one token at a time, the input tokens will always have a sequence length of 1. We `unsqueeze`
 # the input tokens to add a sentence length dimension of 1. Then, similar to the encoder, we pass through an
@@ -287,7 +288,7 @@ class Encoder(nn.Module):
 # state (one for each layer, stacked on top of each other) and a new `cell` state (also one per layer, stacked on top
 # of each other). We then pass the `output` (after getting rid of the sentence length dimension) through the linear
 # layer to receive our `prediction`. We then return the `prediction`, the new `hidden` state and the new `cell` state.
-# 
+#
 # **Note**: as we always have a sequence length of 1, we could use `nn.LSTMCell`, instead of `nn.LSTM`,
 # as it is designed to handle a batch of inputs that aren't necessarily in a sequence. `nn.LSTMCell` is just a single
 # cell and `nn.LSTM` is a wrapper around potentially multiple cells. Using the `nn.LSTMCell` in this case would mean
@@ -322,7 +323,8 @@ class Decoder(nn.Module):
         # context = [n layers, batch size, hid dim]
 
         input = input.unsqueeze(0)  # input = [1, batch size]
-        embedded = self.dropout(self.embedding(input))  # embedded = [1, batch size, emb dim]
+        # embedded = [1, batch size, emb dim]
+        embedded = self.dropout(self.embedding(input))
         output, (hidden, cell) = self.rnn(embedded, (hidden, cell))
 
         # output = [seq len, batch size, hid dim * n directions]
@@ -363,7 +365,8 @@ class Seq2Seq(nn.Module):
         trg_vocab_size = self.decoder.output_dim
 
         # tensor to store decoder outputs
-        outputs = torch.zeros(trg_len, batch_size, trg_vocab_size).to(self.device)
+        outputs = torch.zeros(trg_len, batch_size,
+                              trg_vocab_size).to(self.device)
 
         # last hidden state of the encoder is used as the initial hidden state of the decoder
         hidden, cell = self.encoder(src)  # encoder作为context vector
@@ -374,7 +377,8 @@ class Seq2Seq(nn.Module):
         for t in range(1, trg_len):
             # insert input token embedding, previous hidden and previous cell states
             # receive output tensor (predictions) and new hidden and cell states
-            output, hidden, cell = self.decoder(input, hidden, cell)  # 把encoder的输出cell 和 hidden作为初始
+            output, hidden, cell = self.decoder(
+                input, hidden, cell)  # 把encoder的输出cell 和 hidden作为初始
 
             # place predictions in a tensor holding predictions for each token
             outputs[t] = output
@@ -401,8 +405,10 @@ N_LAYERS = 2
 ENC_DROPOUT = 0.5
 DEC_DROPOUT = 0.5
 
-enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS, ENC_DROPOUT)  # [7854, 256, 512, 2, 0.5]
-dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS, DEC_DROPOUT)  # [5893, 256, 512, 2, 0.5]
+enc = Encoder(INPUT_DIM, ENC_EMB_DIM, HID_DIM, N_LAYERS,
+              ENC_DROPOUT)  # [7854, 256, 512, 2, 0.5]
+dec = Decoder(OUTPUT_DIM, DEC_EMB_DIM, HID_DIM, N_LAYERS,
+              DEC_DROPOUT)  # [5893, 256, 512, 2, 0.5]
 
 model = Seq2Seq(enc, dec, device).to(device)
 
@@ -500,8 +506,10 @@ for epoch in range(N_EPOCHS):
         torch.save(model.state_dict(), 'tut1-model.pt')
 
     print(f'Epoch: {epoch + 1:02} | Time: {epoch_mins}m {epoch_secs}s')
-    print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
-    print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
+    print(
+        f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
+    print(
+        f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
 
 model.load_state_dict(torch.load('tut1-model.pt'))
