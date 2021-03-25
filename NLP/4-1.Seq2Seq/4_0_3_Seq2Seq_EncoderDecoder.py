@@ -265,7 +265,7 @@ class Seq2Seq(nn.Module):
         for t in range(1, trg_len):
             # insert input token embedding, previous hidden state and the context state
             # receive output tensor (predictions) and new hidden state
-            output, hidden = self.decoder(input, hidden, context)
+            output, hidden = self.decoder(input, hidden, context)  # context 这里一直不变
 
             # place predictions in a tensor holding predictions for each token
             outputs[t] = output

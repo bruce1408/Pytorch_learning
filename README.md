@@ -79,7 +79,6 @@ $ pip install -r requirements.txt
 
 All data for this project can be found in [Baidu Cloud Disk](https://pan.baidu.com/s/1TCOPe6PRd6S-SR16yOlZfg) 密码: 39nw
 
-
 ## Related Efforts
 
 - [Sung Kim](https://github.com/hunkim)
