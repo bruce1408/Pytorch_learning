@@ -18,23 +18,25 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 # BERT Parameters
-maxlen = 30
+maxlen = 30 # 同一个batch里面所有的样本长度都必须是相同的
 batch_size = 6
-max_pred = 5  # max tokens of prediction
-n_layers = 6
-n_heads = 12
-d_model = 768
-d_ff = 768 * 4  # 4*d_model, FeedForward dimension
+# max tokens of prediction，
+# 最多预测的mask个单词，因为15%的话，如果长度是100个词，可能会有很多mask，15个，这里设定max_pred之后会少很多
+max_pred = 5  
+n_layers = 6 # encoder layer 层数
+n_heads = 12 # 多少个head
+d_model = 768 # 三个维度，word， segment，postion embedding维度
+d_ff = 768 * 4  # 4*d_model, FeedForward dimension 全连接神经网络维度
 d_k = d_v = 64  # dimension of K(=Q), V
-n_segments = 2
+n_segments = 2 # 一个样本里面是多少句话，论文中是两句话
 
 text = (
-    'Hello, how are you? I am Romeo.\n'
-    'Hello, Romeo My name is Juliet. Nice to meet you.\n'
-    'Nice meet you too. How are you today?\n'
-    'Great. My baseball team won the competition.\n'
-    'Oh Congratulations, Juliet\n'
-    'Thanks you Romeo'
+    'Hello, how are you? I am Romeo.\n'  # R
+    'Hello, Romeo My name is Juliet. Nice to meet you.\n' # J
+    'Nice meet you too. How are you today?\n' # R
+    'Great. My baseball team won the competition.\n' # J
+    'Oh Congratulations, Juliet\n' # R
+    'Thanks you Romeo' # J
 )
 
 def randomSeed(SEED):
@@ -52,65 +54,96 @@ randomSeed(SEED)
 # 所有的标点符号全部替换成空格,且大写变小写
 sentences = re.sub("[.,!?\\-]", '', text.lower()).split('\n')  # filter '.', ',', '?', '!'
 word_list = list(set(" ".join(sentences).split()))  # word vocabulary 单词的词典
-# 单词对应的index编号
+# 单词对应的index编号，Mask 表示替换的单词
 word_dict = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
 
 for i, w in enumerate(word_list):
     word_dict[w] = i + 4
 # 数字对应的单词字典,和word_dict正好相反
 number_dict = {i: w for i, w in enumerate(word_dict)}
-vocab_size = len(word_dict)  # 29
+print(number_dict)
+vocab_size = len(word_dict)  # 29个词
 token_list = list()  # 每个sentence的index的list
 
 for sentence in sentences:
     arr = [word_dict[s] for s in sentence.split()]
     token_list.append(arr)
 
+print(token_list)
 
 # sample IsNext and NotNext to be same in small batch size
 def make_batch():
     batch = []
+    
+    # positive表示一个样本的两句话是不是相邻的，否则用negative表示
     positive = negative = 0
+    
     # sample random index in sentences
     while positive != batch_size / 2 or negative != batch_size / 2:
-        # 随机选择数据中的两个句子,a 和 b
+        
+        # 随机选择数据中的两个句子的索引, a 和 b是否相邻可以a+1 == b？
         tokens_a_index, tokens_b_index = randrange(len(sentences)), randrange(len(sentences))
+        
+        # 得到两个句子a 和 b
         tokens_a, tokens_b = token_list[tokens_a_index], token_list[tokens_b_index]
+        
         # 在预测下一个句子的任务中, CLS符号将对应的文本语义表示,对两句话用一个SEP符号分割,并分别对两句话附加两个不同的文本向量区分
         input_ids = [word_dict['[CLS]']] + tokens_a + [word_dict['[SEP]']] + tokens_b + [word_dict['[SEP]']]
 
+        # segmeng设置，第一句话全是0，第二句话全是1，[0] * (cls + len_seq+ 1)
         segment_ids = [0] * (1 + len(tokens_a) + 1) + [1] * (len(tokens_b) + 1)
 
-        # MASK LM, mask_pred = 5
+        # 开始使用MASK LM, 替换，mask_pred = 5，随机把一句话中15%的token进行替换或者是mask操作, 如果这句话单词个数很短，那么就找到最长的，然后再找到最短的
         n_pred = min(max_pred, max(1, int(round(len(input_ids) * 0.15))))  # 15 % of tokens in one sentence
+        
+        # 特殊字符cls和sep作为mask没有任何意义，所以排除这些特殊的，找到候选的mask的位置，排除了cls和sep之后的input_ids的下标索引位置
         cand_maked_pos = [i for i, token in enumerate(input_ids)
                           if token != word_dict['[CLS]'] and token != word_dict['[SEP]']]
-        # cand_mask_pos = [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15] # 不包含CLS 和 SEP 的句子index
-        shuffle(cand_maked_pos)
+
+        # cand_mask_pos = [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15] # 不包含CLS 和 SEP 句子的input_ids下标index
+        shuffle(cand_maked_pos) # 随机做mask，所以打乱mask候选位置
         masked_tokens, masked_pos = [], []
+        
+        # 只要取前n_pred个单词
         for pos in cand_maked_pos[:n_pred]:
+            
+            # 存放下标
             masked_pos.append(pos)
+            
+            # 存放索引
             masked_tokens.append(input_ids[pos])
+            
+            # 如果小于0.8那么就要替换mask
             if random() < 0.8:  # 80%
                 input_ids[pos] = word_dict['[MASK]']  # make mask
             elif random() < 0.5:  # 10%
                 index = randint(0, vocab_size - 1)  # random index in vocabulary
-                input_ids[pos] = word_dict[number_dict[index]]  # replace
+                input_ids[pos] = word_dict[number_dict[index]]  # replace， 这里不够严谨，因为可以替换任何单词包括特殊字符，所以最好使用下面的写法
+            # 这也是一种写法
+            # elif random() > 0.9:
+            #     index = randint(0, vocab_size - 1)
+            #     while index < 4:
+            #         index = randint(0, vocab_size - 1);
+            #     input_ids[pos] = word_dict[index]
 
-        # Zero Paddings, max_len = 30
+        # Zero Paddings, max_len = 30，最长的单词个数是30，如果不够30，那么就要补mask
         n_pad = maxlen - len(input_ids)
+        
+        # input 和 segment都要同时补0
         input_ids.extend([0] * n_pad)
         segment_ids.extend([0] * n_pad)
 
-        # Zero Padding (100% - 15%) tokens
+        # Zero Padding (100% - 15%) tokens，这里mask也要数目一致，如果不足max_mask, 要补足最大mask的个数
         if max_pred > n_pred:
             n_pad = max_pred - n_pred
             masked_tokens.extend([0] * n_pad)
             masked_pos.extend([0] * n_pad)
 
+        # 判断这两句话是不是相邻的，positive和negative数目1：1，所以不能超过1半
         if tokens_a_index + 1 == tokens_b_index and positive < batch_size / 2:
             batch.append([input_ids, segment_ids, masked_tokens, masked_pos, True])  # IsNext
             positive += 1
+        # 同理negative也是一样的
         elif tokens_a_index + 1 != tokens_b_index and negative < batch_size / 2:
             batch.append([input_ids, segment_ids, masked_tokens, masked_pos, False])  # NotNext
             negative += 1
@@ -134,7 +167,10 @@ def get_attn_pad_mask(seq_q, seq_k):
 
 
 def gelu(x):
-    """Implementation of the gelu activation function by Hugging Face"""
+    """
+    Implementation of the gelu activation function by Hugging Face
+    https://zhuanlan.zhihu.com/p/302394523
+    """
     return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))
 
 
