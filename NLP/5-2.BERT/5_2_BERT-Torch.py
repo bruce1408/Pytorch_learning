@@ -119,19 +119,14 @@ def make_batch():
             masked_tokens.append(input_ids[pos])
 
             # 如果小于0.8那么就要替换mask
-            if random() < 0.8:  # 80%
+            if random() < 0.8: 
                 input_ids[pos] = word_dict['[MASK]']  # make mask
-            elif random() < 0.5:  # 10%
-                # random index in vocabulary
-                index = randint(0, vocab_size - 1)
-                # replace， 这里不够严谨，因为可以替换任何单词包括特殊字符，所以最好使用下面的写法
-                input_ids[pos] = word_dict[number_dict[index]]
-            # 这也是一种写法
-            # elif random() > 0.9:
-            #     index = randint(0, vocab_size - 1)
-            #     while index < 4:
-            #         index = randint(0, vocab_size - 1);
-            #     input_ids[pos] = word_dict[index]
+            elif random() > 0.9: # 10% 的概率是替换其他单词这里注意不能替换没有意义的四个单词，必须是有意义的才对。
+                index = randint(0, vocab_size - 1) 
+                # 如果随机替换的单词是前面4个没有意义的单词，那么重新选择，知道找到有意义的单词为止
+                while index < 4:
+                    index = randint(0, vocab_size - 1)
+                input_ids[pos] = index
 
         # Zero Paddings, max_len = 30，最长的单词个数是30，如果不够30，那么就要补mask
         n_pad = maxlen - len(input_ids)
@@ -319,7 +314,7 @@ class BERT(nn.Module):
         output = self.embedding(input_ids, segment_ids)
 
         # [6, 30, 30] 用于计算掩码注意力机制的padding mask问题
-        enc_self_attn_mask = get_attn_pad_mask(input_ids, input_ids)  
+        enc_self_attn_mask = get_attn_pad_mask(input_ids, input_ids)
 
         for layer in self.layers:
             output, enc_self_attn = layer(output, enc_self_attn_mask)
@@ -329,7 +324,7 @@ class BERT(nn.Module):
         h_pooled = self.activ1(self.fc(output[:, 0]))
 
         # [batch_size, 2]
-        logits_clsf = self.classifier(h_pooled)  
+        logits_clsf = self.classifier(h_pooled)
 
         # [batch_size, max_pred, d_model] = [6, 5, 768]
         masked_pos = masked_pos[:, :, None].expand(-1, -1, output.size(-1))
@@ -354,23 +349,23 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 batch = make_batch()  # batch中的每一个样本大小是[list_len = 30, 30, 5, 5, T/F] 格式
 
 # inputs_ids seg_ids = [6, 30], masked_pos = [6, 5], isNext = [6,]
-input_ids, segment_ids, masked_tokens, masked_pos, isNext = zip(*batch)  
+input_ids, segment_ids, masked_tokens, masked_pos, isNext = zip(*batch)
 input_ids, segment_ids, masked_tokens, masked_pos, isNext = torch.LongTensor(input_ids),\
     torch.LongTensor(segment_ids),\
     torch.LongTensor(masked_tokens), \
     torch.LongTensor(masked_pos),\
     torch.LongTensor(isNext)
 
-for epoch in range(100):
+for epoch in range(1000):
     optimizer.zero_grad()
     logits_lm, logits_clsf = model(input_ids, segment_ids, masked_pos)
-    
+
     # for masked LM
-    loss_lm = criterion(logits_lm.transpose(1, 2), masked_tokens)  
+    loss_lm = criterion(logits_lm.transpose(1, 2), masked_tokens)
     loss_lm = (loss_lm.float()).mean()
 
     # for sentence classification
-    loss_clsf = criterion(logits_clsf, isNext)  
+    loss_clsf = criterion(logits_clsf, isNext)
     loss = loss_lm + loss_clsf
     if (epoch + 1) % 10 == 0:
         print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.6f}'.format(loss))
