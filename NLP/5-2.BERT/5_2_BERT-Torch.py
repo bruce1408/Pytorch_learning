@@ -63,7 +63,6 @@ for i, w in enumerate(word_list):
     word_dict[w] = i + 4
 # 数字对应的单词字典,和word_dict正好相反
 number_dict = {i: w for i, w in enumerate(word_dict)}
-print(number_dict)
 vocab_size = len(word_dict)  # 29个词
 token_list = list()  # 每个sentence的index的list
 
@@ -71,7 +70,6 @@ for sentence in sentences:
     arr = [word_dict[s] for s in sentence.split()]
     token_list.append(arr)
 
-print(token_list)
 
 # sample IsNext and NotNext to be same in small batch size
 
