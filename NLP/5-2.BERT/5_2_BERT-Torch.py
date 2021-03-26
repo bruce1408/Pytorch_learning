@@ -363,7 +363,7 @@ input_ids, segment_ids, masked_tokens, masked_pos, isNext = torch.LongTensor(inp
     torch.LongTensor(masked_pos),\
     torch.LongTensor(isNext)
 
-for epoch in range(1000):
+for epoch in range(100):
     optimizer.zero_grad()
     logits_lm, logits_clsf = model(input_ids, segment_ids, masked_pos)
     
