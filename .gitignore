@@ -1,0 +1,6 @@
+*.txt
+*.xml
+*.iml
+.vscode
+.DS_Store
+.idea/

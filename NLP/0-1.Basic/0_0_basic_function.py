@@ -25,6 +25,8 @@ out_dim = 1
 module 和 children区别
 module 是深度优先遍历打印出网络结构,而 children是只打印出网络的子结构,不再管子结构的下一结构
 """
+
+
 class Net(nn.Module):
     def __init__(self, in_dim, n_hidden_1, n_hidden_2, out_dim):
         super().__init__()
@@ -99,6 +101,7 @@ torch.mul 对位相乘,两个矩阵的维度必须一致才可以
 torch.dot
 """
 import torch
+
 a1 = torch.Tensor([1, 2, 3])
 a2 = torch.Tensor([1, 2, 3])
 a = torch.Tensor([[1, 2], [2, 3]])
