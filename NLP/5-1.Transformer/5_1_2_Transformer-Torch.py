@@ -3,8 +3,9 @@ import numpy as np
 from random import *
 import torch.nn as nn
 import torch.optim as optim
-from torch.autograd import Variable
 import matplotlib.pyplot as plt
+
+print("torch version: ", torch.__version__)
 
 dtype = torch.FloatTensor
 # S: Symbol that shows starting of decoding input
@@ -32,7 +33,6 @@ n_heads = 8  # number of heads in Multi-Head Attention
 
 
 def randomSeed(SEED):
-
     seed(SEED)
     np.random.seed(SEED)
     torch.manual_seed(SEED)
@@ -59,7 +59,7 @@ def get_sinusoid_encoding_table(n_position, d_model):
         return [cal_angle(position, hid_j) for hid_j in range(d_model)]
 
     sinusoid_table = np.array([get_posi_angle_vec(pos_i)
-                              for pos_i in range(n_position)])  # [6, 512]
+                               for pos_i in range(n_position)])  # [6, 512]
     sinusoid_table[:, 0::2] = np.sin(sinusoid_table[:, 0::2])  # dim 2i 偶数列
     sinusoid_table[:, 1::2] = np.cos(sinusoid_table[:, 1::2])  # dim 2i+1 奇数列
     return torch.FloatTensor(sinusoid_table)
@@ -89,7 +89,6 @@ class ScaledDotProductAttention(nn.Module):
         super(ScaledDotProductAttention, self).__init__()
 
     def forward(self, Q, K, V, attn_mask):
-
         # Q = [1, 8, 5, 64], attn_mask = [1, 8, 5, 5]
         # scores : [batch_size, n_heads, len_q, len_k]
         scores = torch.matmul(Q, K.transpose(-1, -2)) / np.sqrt(d_k)
@@ -114,10 +113,10 @@ class MultiHeadAttention(nn.Module):
         # (B, S, D) -proj-> (B, S, D) -split-> [B, S, H, W] -trans-> [B, H, src_len, W] = [1, 8, 5, 64]
         # q_s:[batch_size, n_heads, len_q, d_k]
         q_s = self.W_Q(Q).view(batch_size, -1, n_heads, d_k).transpose(1, 2)
-        
+
         # k_s:[batch_size, n_heads, len_k, d_k]
         k_s = self.W_K(K).view(batch_size, -1, n_heads, d_k).transpose(1, 2)
-        
+
         # v_s:[batch_size, n_heads, len_k, d_v]
         v_s = self.W_V(V).view(batch_size, -1, n_heads, d_v).transpose(1, 2)
 
@@ -131,7 +130,7 @@ class MultiHeadAttention(nn.Module):
         context = context.transpose(1, 2).contiguous().view(
             batch_size, -1, n_heads * d_v)  # [1, 5, 8*64 = 512]
         output = nn.Linear(n_heads * d_v, d_model)(context)
-        
+
         # output: [batch_size x len_q x d_model]
         return nn.LayerNorm(d_model)(output + residual), attn
 
@@ -158,7 +157,6 @@ class EncoderLayer(nn.Module):
         self.pos_ffn = PoswiseFeedForwardNet()
 
     def forward(self, enc_inputs, enc_self_attn_mask):
-
         # enc_inputs to same Q, K, V = [batch, src_len], enc_self_attn_mask = [batch, q_len, k_len]
         enc_outputs, attn = self.enc_self_attn(
             enc_inputs, enc_inputs, enc_inputs, enc_self_attn_mask)
@@ -183,7 +181,7 @@ class DecoderLayer(nn.Module):
         # decoder 和 encoder 级联部分的柱注意力机制
         dec_outputs, dec_enc_attn = self.dec_enc_attn(
             dec_outputs, enc_outputs, enc_outputs, dec_enc_attn_mask)
-        
+
         # 前向神经网络
         dec_outputs = self.pos_ffn(dec_outputs)
         return dec_outputs, dec_self_attn, dec_enc_attn
@@ -227,7 +225,6 @@ class Decoder(nn.Module):
 
     # dec_inputs : [batch_size x target_len]
     def forward(self, enc_inputs, dec_inputs, enc_outputs):
-
         dec_outputs = self.tgt_emb(
             dec_inputs) + self.pos_emb(torch.LongTensor([[5, 1, 2, 3, 4]]))
 
@@ -266,7 +263,6 @@ class Transformer(nn.Module):
         self.projection = nn.Linear(d_model, tgt_vocab_size, bias=False)
 
     def forward(self, enc_inputs, dec_inputs):
-
         enc_outputs, enc_self_attns = self.encoder(enc_inputs)
 
         dec_outputs, dec_self_attns, dec_enc_attns = self.decoder(enc_inputs, dec_inputs, enc_outputs)
@@ -291,6 +287,7 @@ for epoch in range(20):
     loss.backward()
     optimizer.step()
 
+
 def showgraph(attn):
     attn = attn[-1].squeeze(0)[0]
     attn = attn.squeeze(0).data.numpy()
@@ -301,6 +298,7 @@ def showgraph(attn):
                        fontdict={'fontsize': 14}, rotation=90)
     ax.set_yticklabels([''] + sentences[2].split(), fontdict={'fontsize': 14})
     plt.show()
+
 
 # Test
 predict, _, _, _ = model(enc_inputs, dec_inputs)

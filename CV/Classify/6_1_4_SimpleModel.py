@@ -27,11 +27,13 @@ class toyModel(nn.Module):
 if __name__ == "__main__":
 
     model = toyModel()
+    x = torch.rand((2, 3, 224, 224))
     if torch.cuda.is_available():
         summary(model.cuda(), (3, 224, 224))
+        x = x.cuda()
+        output = model(x).cuda()
     else:
         summary(model, (3, 224, 224))
+        output = model(x)
     print(model)
-    x = torch.rand((2, 3, 224, 224)).cuda()
-    output = model(x).cuda()
     print(output.shape)
