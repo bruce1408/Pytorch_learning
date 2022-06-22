@@ -1,6 +1,6 @@
 import torch
 """
-使用torch.nn.RNNCell实现输入hello，输出ohlol功能
+使用torch.nn.RNNCell实现输入hello, 输出ohlol功能
 """
 batch_size = 1
 input_size = 4

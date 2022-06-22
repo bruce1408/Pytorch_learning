@@ -64,6 +64,7 @@ output, _ = pad_packed_sequence(packed_output)
 print("Lstm output\n", output.size())
 print("Last output \n", ht[-1].size())
 print("last hidden Dataset is \n", ht[-1].data)
+
 # 不需要进行 pack_padded , 不需要压缩直接进行lstm单元计算
 unpackout, (h, c) = lstm(embeded_seq_tensor)
 
