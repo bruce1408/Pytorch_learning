@@ -1,9 +1,0 @@
-data/
-*.txt
-*.xml
-*.iml
-.vscode
-.DS_Store
-.gitignore
-.idea/
-venv/

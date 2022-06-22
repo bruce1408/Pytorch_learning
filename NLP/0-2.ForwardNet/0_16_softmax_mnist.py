@@ -11,7 +11,6 @@ from torch.autograd import Variable
 batch_size = 64
 
 # MNIST Dataset
-
 train_dataset = datasets.MNIST(root='../../data/MNIST',
                                train=True,
                                transform=transforms.ToTensor(),
