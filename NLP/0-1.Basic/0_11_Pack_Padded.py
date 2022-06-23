@@ -1,4 +1,6 @@
 import torch
+import random
+import numpy as np
 import torch.utils.data as data
 import torchvision.transforms as transforms
 
@@ -63,35 +65,28 @@ for data, length in train_dataloader:
     print(output_.shape)
 
 
-# import random
-# import numpy as np
-#
-#
-# def set_seed(seed):
-#     np.random.seed(seed)
-#     random.seed(seed)
-#     torch.manual_seed(seed)
-#     if torch.cuda.is_available():
-#         torch.cuda.manual_seed_all(seed)  # 并行gpu
-#         torch.backends.cudnn.deterministic = True  # cpu/gpu结果一致
-#         torch.backends.cudnn.benchmark = True  # 训练集变化不大时使训练加速
-#
-#
-# set_seed(0)
-#
-#
-# def blstm():
-#     lstm = torch.nn.LSTM(input_size=3, hidden_size=5, num_layers=4, batch_first=True, bidirectional=True)
-#     x = torch.rand(2, 6, 3)
-#     hidden_state = torch.zeros(4 * 2, 2, 5)
-#     cell_state = torch.zeros(8, 2, 5)
-#     outputs, (hidden_state, cell_state) = lstm(x, (hidden_state, cell_state))
-#
-#
-#     # output, (hidden_state, cell_state) = lstm(x, (hidden_state, cell_state))
-#
-#     print(outputs.shape)
-#     print(hidden_state[-1, :, :].shape)
-#     print(cell_state.shape)
-#     # print(outputs)
-# blstm()
+def set_seed(seed):
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)  # 并行gpu
+        torch.backends.cudnn.deterministic = True  # cpu/gpu结果一致
+        torch.backends.cudnn.benchmark = True  # 训练集变化不大时使训练加速
+
+
+set_seed(0)
+
+
+def blstm():
+    lstm = torch.nn.LSTM(input_size=3, hidden_size=5, num_layers=4, batch_first=True, bidirectional=True)
+    x = torch.rand(2, 6, 3)
+    hidden_state = torch.zeros(4 * 2, 2, 5)
+    cell_state = torch.zeros(8, 2, 5)
+    outputs, (hidden_state, cell_state) = lstm(x, (hidden_state, cell_state))
+
+    print(outputs.shape)
+    print(hidden_state[-1, :, :].shape)
+    print(cell_state.shape)
+    # print(outputs)
+blstm()

@@ -15,7 +15,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 # added in constants to make adjustments easier.
 
 # constants
-DATA_DIR = '../../Dataset/dogs_cats/train'
+DATA_DIR = '../../data/dogs_cats/train'
 BATCH_SIZE = 64
 IMG_RESIZE_TO = 224
 

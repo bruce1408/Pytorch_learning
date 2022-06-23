@@ -1,9 +1,5 @@
 import torch
-import torch.nn as nn
 import torch.utils.data as data
-import numpy as np
-import torch.optim as optim
-from torch.optim.lr_scheduler import *
 import torchvision.transforms as transforms
 
 

@@ -14,7 +14,7 @@ class NameDataset(Dataset):
 
     # Initialize your data, download, etc.
     def __init__(self, is_train_set=False):
-        filename = './data/names_train.csv.gz' if is_train_set else './data/names_test.csv.gz'
+        filename = '../../data/names_train.csv.gz' if is_train_set else '../../data/names_test.csv.gz'
         with gzip.open(filename, "rt") as f:
             reader = csv.reader(f)
             rows = list(reader)
@@ -40,6 +40,7 @@ class NameDataset(Dataset):
     def get_country_id(self, country):
         return self.country_list.index(country)
 
+
 # Test the loader
 if __name__ == "__main__":
     dataset = NameDataset(False)
@@ -47,6 +48,7 @@ if __name__ == "__main__":
     print(dataset.get_country(3))
     print(dataset.get_country_id('Korean'))
 
+    # 上面实现dataset类里面的__getitem__、__len__、__init__三个函数，然后batch_size设置为一个数，可以批量出数据作为输入
     train_loader = DataLoader(dataset=dataset,
                               batch_size=10,
                               shuffle=True)

@@ -12,8 +12,7 @@ class TextDataset(Dataset):
         self.len = 0
         with gzip.open(filename, 'rt') as f:
             self.targetLines = [x.strip() for x in f if x.strip()]
-            self.srcLines = [x.lower().replace(' ', '')
-                             for x in self.targetLines]
+            self.srcLines = [x.lower().replace(' ', '') for x in self.targetLines]
             self.len = len(self.srcLines)
 
     def __getitem__(self, index):
@@ -29,11 +28,11 @@ if __name__ == "__main__":
     train_loader = DataLoader(dataset=dataset,
                               batch_size=3,
                               shuffle=True,
-                              num_workers=2)
+                              num_workers=4)
 
     for i, (src, target) in enumerate(train_loader):
-        print('the index :', i)
-        print('the src is: ', src)
+        print('the index :', i, end=' ')
+        print('the src is: ', src, end=' ')
         print('the target is: ', target)
         if i == 300:
             break
