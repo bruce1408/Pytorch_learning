@@ -20,6 +20,7 @@ print("loss1 = ", np.sum(-Y * np.log(Y_pred1)))
 print("loss2 = ", np.sum(-Y * np.log(Y_pred2)))
 
 # Softmax + CrossEntropy (logSoftmax + NLLLoss)
+# 可以参考notebook说明
 loss = nn.CrossEntropyLoss()
 
 # target is of size nBatch

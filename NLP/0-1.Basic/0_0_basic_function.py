@@ -251,4 +251,3 @@ https://zhuanlan.zhihu.com/p/110754637
 #
 # output = entroy(input, target)
 # print(output)
-# #根据公式计算
