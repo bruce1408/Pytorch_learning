@@ -95,6 +95,8 @@ class RNNClassifier(nn.Module):
 
         self.embedding = nn.Embedding(input_size, hidden_size)
         self.gru = nn.GRU(hidden_size, hidden_size, n_layers, bidirectional=bidirectional)
+        # self.gru = nn.LSTM(input_size=hidden_size, hidden_size=self.hidden_size, num_layers=self.n_layers, bidirectional=bidirectional)
+
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, input, seq_lengths):
