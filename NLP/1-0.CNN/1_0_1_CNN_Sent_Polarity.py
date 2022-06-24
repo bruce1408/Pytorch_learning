@@ -43,6 +43,9 @@ class CNN(nn.Module):
         pooling = F.max_pool1d(convolution, kernel_size=convolution.shape[2])
         outputs = self.linear(pooling.squeeze(dim=2))
         log_probs = F.log_softmax(outputs, dim=1)
+
+        # 如果改成BCELoss
+        # log_probs = F.sigmoid(outputs)
         return log_probs
 
 
@@ -71,7 +74,8 @@ model = CNN(len(vocab), embedding_dim, filter_size, num_filter, num_class)
 model.to(device)  # 将模型加载到CPU或GPU设备
 
 # 训练过程
-nll_loss = nn.NLLLoss()
+nll_loss = nn.CrossEntropyLoss()
+# nll_loss = nn.BCELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)  # 使用Adam优化器
 
 model.train()
@@ -80,6 +84,8 @@ for epoch in range(num_epoch):
     for batch in tqdm(train_data_loader, desc=f"Training Epoch {epoch}"):
         inputs, targets = [x.to(device) for x in batch]
         log_probs = model(inputs)
+        # print('target ', targets.shape)
+        # targets = targets.reshape(-1, 1).float()
         loss = nll_loss(log_probs, targets)
         optimizer.zero_grad()
         loss.backward()

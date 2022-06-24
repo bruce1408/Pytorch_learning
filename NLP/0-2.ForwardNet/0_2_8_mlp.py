@@ -1,5 +1,3 @@
-# Defined in Section 4.1.6
-
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -19,6 +17,7 @@ class MLP(nn.Module):
         hidden = self.linear1(inputs)
         activation = self.activate(hidden)
         outputs = self.linear2(activation)
+        print(outputs.shape)
         probs = F.softmax(outputs, dim=1)  # 获得每个输入属于某一类别的概率
         return probs
 

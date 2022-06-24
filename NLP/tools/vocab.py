@@ -1,5 +1,3 @@
-# Defined in Section 4.6.1
-
 from collections import defaultdict, Counter
 
 class Vocab:

@@ -16,9 +16,9 @@ print(rnn.bias_hh_l0.shape)  # torch.Size([10])
 
 # 例子 2
 # 表示feature_len=100, hidden_size=20, 层数=1
-rnn = nn.RNN(100, 20, 1)
+rnn = nn.RNN(100, 20, 1, batch_first=True)
 # 输入3个样本序列(batch=3), 序列长为10(seq_len=10), 每个特征100维度(feature_len=100)
-x = torch.randn(10, 3, 100)
+x = torch.randn(3, 10, 100)
 # 传入RNN处理, 另外传入h_0, shape是<层数, batch, hidden_len=20>
 out, h = rnn(x, torch.zeros(1, 3, 20))
 """
@@ -26,8 +26,8 @@ out, h = rnn(x, torch.zeros(1, 3, 20))
 ht是最后一个时刻上所有层的记忆单元 [num_layers, batch, hidden_size]
 """
 # 输出返回的out和最终的隐藏记忆单元的shape
-print(out.shape)  # torch.Size([10, 3, 20])
-print(h.shape)  # torch.Size([1, 3, 20])
+print('out ', out.shape)  # torch.Size([10, 3, 20])
+print('h ', h.shape)  # torch.Size([1, 3, 20])
 
 # ################ RNNCell 一层 #################
 # 例子 1
@@ -43,7 +43,7 @@ h = torch.zeros(3, 20)
 for xt in xs:
     h = cell(xt, h)
 # 查看一下最终输出的h, 其shape还是<batch, hidden_len>
-print(h.shape)  # torch.Size([3, 20])
+print('h ', h.shape)  # torch.Size([3, 20])
 
 # 多层RNN Cell 单元
 # 例子 2

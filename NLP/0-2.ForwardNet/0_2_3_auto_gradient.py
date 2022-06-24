@@ -33,7 +33,7 @@ for epoch in range(1000):
         l = loss(x_val, y_val)
         # 可以自动求梯度
         l.backward()
-        print("\tgrad: ", x_val, y_val, w.grad.data)
+        print("grad: ", x_val, y_val, w.grad.data)
         # 参数更新
         w.data = w.data - 0.01 * w.grad.data
 
