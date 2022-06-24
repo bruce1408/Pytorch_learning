@@ -5,7 +5,7 @@ import torch.optim as optim
 from torch.autograd import Variable
 import torch.nn.functional as F
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # 若能使用cuda，则使用cuda
 print(device)
 dtype = torch.FloatTensor
@@ -47,16 +47,16 @@ class BiLSTM(nn.Module):
         super(BiLSTM, self).__init__()
 
         self.lstm = nn.LSTM(input_size=n_class, hidden_size=n_hidden, bidirectional=True)
-        self.W = nn.Parameter(torch.randn([n_hidden * 2, n_class]).cuda().type(dtype))
-        self.b = nn.Parameter(torch.randn([n_class]).type(dtype).cuda())
+        self.W = nn.Parameter(torch.randn([n_hidden * 2, n_class]).type(dtype))
+        self.b = nn.Parameter(torch.randn([n_class]).type(dtype))
 
     def forward(self, X):
         input = X.transpose(0, 1)  # input : [n_step, batch_size, n_class]
 
         # [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
-        hidden_state = torch.zeros(1 * 2, len(X), n_hidden).cuda()
+        hidden_state = torch.zeros(1 * 2, len(X), n_hidden)
         # [num_layers(=1) * num_directions(=1), batch_size, n_hidden]
-        cell_state = torch.zeros(1 * 2, len(X), n_hidden).cuda()
+        cell_state = torch.zeros(1 * 2, len(X), n_hidden)
 
         outputs, (_, _) = self.lstm(input, (hidden_state, cell_state))
         outputs = outputs[-1]  # [batch_size, n_hidden]

@@ -33,7 +33,7 @@ class LSTM(nn.Module):
 
     def forward(self, input):
         emb = self.embedding(input)
-        print(emb.shape)
+        # print(emb.shape)
         emb = emb.view(-1, batch_size, embedding_size)
         h_0 = torch.zeros(self.num_layers, self.batch_size, self.hidden_size)
         c_0 = torch.zeros(self.num_layers, self.batch_size, self.hidden_size)

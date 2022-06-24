@@ -22,6 +22,7 @@ class NameDataset(Dataset):
         self.names = [row[0] for row in rows]
         self.countries = [row[1] for row in rows]
         self.len = len(self.countries)
+        print(self.len)
 
         self.country_list = list(sorted(set(self.countries)))
 
@@ -53,8 +54,8 @@ if __name__ == "__main__":
                               batch_size=10,
                               shuffle=True)
 
-    print(len(train_loader.dataset))
-    for epoch in range(2):
-        for i, (names, countries) in enumerate(train_loader):
-            # Run your training process
-            print(epoch, i, "names", names, "countries", countries)
+    # print(len(train_loader.dataset))
+    # for epoch in range(2):
+    #     for i, (names, countries) in enumerate(train_loader):
+    #         # Run your training process
+    #         print(epoch, i, "names", names, "countries", countries)

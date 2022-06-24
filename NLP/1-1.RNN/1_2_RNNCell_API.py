@@ -1,7 +1,10 @@
 import torch
+import numpy as np
 """
+单个rnncell，其实就是一个rnn单元；
 使用torch.nn.RNNCell实现输入hello, 输出ohlol功能
 """
+num_epoch = 3
 batch_size = 1
 input_size = 4
 hidden_size = 4
@@ -16,6 +19,7 @@ one_hot_lookup = [[1, 0, 0, 0],
                   [0, 0, 1, 0],
                   [0, 0, 0, 1]]
 
+# shape = 5*4
 x_one_hot = [one_hot_lookup[x] for x in x_data]
 
 inputs = torch.Tensor(x_one_hot).view(-1, batch_size, input_size)
@@ -43,7 +47,7 @@ net = Model(input_size, batch_size, hidden_size)
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.1)
 
-for epoch in range(15):
+for epoch in range(num_epoch):
     loss = 0
     optimizer.zero_grad()  # 清零梯度准备计算
     hidden = net.init_hidden()  # 初始化h_0
@@ -52,7 +56,6 @@ for epoch in range(15):
         hidden = net(input, hidden)
         loss += criterion(hidden, label)
         _, idx = hidden.max(dim=1)
-        print(idx)
         print(idx2char[idx.item()], end='')
     loss.backward()  # 反向传播
     optimizer.step()  # 参数更新
