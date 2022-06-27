@@ -51,8 +51,12 @@ print("batch input size", inputs.size(), "out size", out.size())
 # One cell RNN input_dim (4) -> output_dim (2)
 cell = nn.RNN(input_size=4, hidden_size=2)
 
-# The given dimensions dim0 and dim1 are swapped.
+print('input is : ', inputs.shape)
+# The given dimensions dim0 and dim1 are swapped，这里只有两个维度，如果是多个维度就用torch.permute()进行；
 inputs = inputs.transpose(dim0=0, dim1=1)
+
+
+print('input transpose is shape: ', inputs.shape)
 # Propagate input through RNN
 # Input: (seq_len, batch_size, input_size) when batch_first=False (default)
 # S x B x I

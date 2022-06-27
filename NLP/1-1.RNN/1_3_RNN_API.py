@@ -121,7 +121,7 @@ class RNN(nn.Module):
         # (num_layers * num_directions, batch, hidden_size) for batch_first=True
         h_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size))
 
-        # Reshape input
+        # Reshape input shape=[batch_size, seq_len, input_size]
         x.view(x.size(0), self.sequence_length, self.input_size)
 
         # Propagate input through RNN

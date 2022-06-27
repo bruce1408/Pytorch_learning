@@ -6,9 +6,11 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-sys.path.append("../")
-from tools.name_data import NameDataset
-from torch.nn.utils.rnn import pack_padded_sequence
+# sys.path.append("../")
+# from tools.name_data import NameDataset
+# from torch.nn.utils.rnn import pack_padded_sequence
+from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence,pack_sequence,pad_packed_sequence
+
 
 # nlp 参考
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
@@ -17,17 +19,76 @@ HIDDEN_SIZE = 100
 N_LAYERS = 2
 BATCH_SIZE = 256
 N_EPOCHS = 100
+N_CHARS = 128  # ASCII
+
+# References
+# https://github.com/yunjey/pytorch-tutorial/blob/master/tutorials/01-basics/pytorch_basics/main.py
+# http://pytorch.org/tutorials/beginner/data_loading_tutorial.html#dataset-class
+import torch
+import numpy as np
+from torch.autograd import Variable
+from torch.utils.data import Dataset, DataLoader
+import csv
+import gzip
+
+
+def str2ascii_arr(msg):
+    arr = [ord(c) for c in msg]
+    return arr, len(arr)
+
+
+class NameDataset(Dataset):
+    """ Diabetes dataset."""
+
+    # Initialize your data, download, etc.
+    def __init__(self, is_train_set=False):
+        filename = '../../data/names_train.csv.gz' if is_train_set else '../../data/names_test.csv.gz'
+        with gzip.open(filename, "rt") as f:
+            reader = csv.reader(f)
+            rows = list(reader)
+
+        self.names = [row[0] for row in rows]
+        self.countries = [row[1] for row in rows]
+        self.len = len(self.countries)
+        print(self.len)
+
+        self.country_list = list(sorted(set(self.countries)))
+
+    def __getitem__(self, index):
+        return [self.names[index], self.countries[index]]
+
+    def __len__(self):
+        return self.len
+
+    def get_countries(self):
+        return self.country_list
+
+    def get_country(self, id):
+        return self.country_list[id]
+
+    def get_country_id(self, country):
+        return self.country_list.index(country)
+
+
+
+def collate_fn(data, label):
+    input_name = [str2ascii_arr(eachline[0]) for eachline in data]
+    country = torch.LongTensor([train_dataset.get_country_id(eachline[1]) for eachline in data])
+    length = torch.tensor([len(eachline) for eachline in data])
+    input_name = pad_sequence(input_name, batch_first=True, padding_value=0)
+
+    return input_name, country, length
+
 
 test_dataset = NameDataset(is_train_set=False)
-test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=True)
+test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
 
 
 train_dataset = NameDataset(is_train_set=True)
-train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn)
 
 N_COUNTRIES = len(train_dataset.get_countries())
 print(N_COUNTRIES, "countries")
-N_CHARS = 128  # ASCII
 
 
 # Some utility functions
@@ -71,31 +132,27 @@ def make_variables(names, countries):
     sequence_and_length = [str2ascii_arr(name) for name in names]
     vectorized_seqs = [sl[0] for sl in sequence_and_length]
     seq_lengths = torch.LongTensor([sl[1] for sl in sequence_and_length])
+
     return pad_sequences(vectorized_seqs, seq_lengths, countries)
-
-
-def str2ascii_arr(msg):
-    arr = [ord(c) for c in msg]
-    return arr, len(arr)
+    # return pad_sequence()
 
 
 def countries2tensor(countries):
-    country_ids = [train_dataset.get_country_id(
-        country) for country in countries]
+    country_ids = [train_dataset.get_country_id(country) for country in countries]
     return torch.LongTensor(country_ids)
 
 
 class RNNClassifier(nn.Module):
     # Our model
-    def __init__(self, input_size, hidden_size, output_size, n_layers=1, bidirectional=True):
+    def __init__(self, vocab_size, hidden_size, output_size, n_layers=1, bidirectional=True):
         super(RNNClassifier, self).__init__()
         self.hidden_size = hidden_size
         self.n_layers = n_layers
         self.n_directions = int(bidirectional) + 1
 
-        self.embedding = nn.Embedding(input_size, hidden_size)
-        self.gru = nn.GRU(hidden_size, hidden_size, n_layers, bidirectional=bidirectional)
-        # self.gru = nn.LSTM(input_size=hidden_size, hidden_size=self.hidden_size, num_layers=self.n_layers, bidirectional=bidirectional)
+        self.embedding = nn.Embedding(vocab_size, hidden_size)
+        # self.gru = nn.GRU(hidden_size, hidden_size, n_layers, bidirectional=bidirectional)
+        self.gru = nn.LSTM(input_size=hidden_size, hidden_size=hidden_size, num_layers=self.n_layers, bidirectional=bidirectional)
 
         self.fc = nn.Linear(hidden_size, output_size)
 
@@ -133,7 +190,7 @@ class RNNClassifier(nn.Module):
 def train():
     total_loss = 0
 
-    for i, (names, countries) in enumerate(train_loader, 1):
+    for i, (names, countries) in enumerate(train_loader):
         input, seq_lengths, target = make_variables(names, countries)
         print(input.shape, target.shape, seq_lengths.shape)
         output = classifier(input, seq_lengths)

@@ -19,7 +19,7 @@ one_hot_lookup = [[1, 0, 0, 0],
                   [0, 0, 1, 0],
                   [0, 0, 0, 1]]
 
-# shape = 5*4
+# shape = 5 * 4
 x_one_hot = [one_hot_lookup[x] for x in x_data]
 
 inputs = torch.Tensor(x_one_hot).view(-1, batch_size, input_size)

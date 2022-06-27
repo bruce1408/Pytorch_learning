@@ -11,6 +11,7 @@ https://www.cnblogs.com/sbj123456789/p/9834018.html
 对于序列不等长的情况，使用填充0来进行等长序列的操作，0的填充可能需要知道所有数据的最大长度，然后开始填充，这样不是很合理，因为
 按照批次进行的话，我们希望得到每个批次里面最大的长度即可，然后开始进行填充。使用pad_sequence 函数里面的collate_fn函数来进行操作即可
 """
+batch_size = 2
 train_x = [torch.FloatTensor([1, 2, 3, 4, 5, 6, 7, 8, 9]),
            torch.FloatTensor([1, 2, 3, 4, 5, 6, 7]),
            torch.FloatTensor([2, 3, 4, 5, 6, 7]),
@@ -42,20 +43,31 @@ def collate_fn(train_data):
     :param train_data:
     :return:
     """
-    train_data.sort(key=lambda data: len(data), reverse=True)  # 按照长度排序
-    data_length = [len(data) for data in train_data]  # 得到排序后的数据的长度列表
-    train_data = torch.nn.utils.rnn.pad_sequence(train_data, batch_first=True, padding_value=0)  # 对该数据进行填充
-    return train_data.unsqueeze(-1), data_length  # 对train_data增加了一维数据，返回数据和长度
+
+    # 按照长度排序
+    train_data.sort(key=lambda data: len(data), reverse=True)
+
+    # 得到排序后的数据的长度列表
+    data_length = [len(data) for data in train_data]
+
+    # 对该数据进行填充
+    train_data = torch.nn.utils.rnn.pad_sequence(train_data, batch_first=True, padding_value=0)
+
+    print('train data shape: ', train_data.shape)
+    # 对train_data最后增加了一维数据，返回[batch_size, seq_len, input_size]数据和长度
+    return train_data.unsqueeze(-1), data_length
 
 
 # 定义网络
-net = torch.nn.LSTM(1, 5, batch_first=True)
+net = torch.nn.LSTM(input_size=1, hidden_size=5, num_layers=1, batch_first=True)
 
 
 train_data = MyData(train_x)
-train_dataloader = data.DataLoader(train_data, batch_size=2, collate_fn=collate_fn)  # 进行数据处理
+
+train_dataloader = data.DataLoader(train_data, batch_size=batch_size, collate_fn=collate_fn)  # 进行数据处理
 for data, length in train_dataloader:
     # 对于之前的加0操作的数据进行压缩，然后直接丢给lstm进行运算
+    print(data.shape)
     data_ = torch.nn.utils.rnn.pack_padded_sequence(data, length, batch_first=True)
     print('the data_ is: \n', data_)
     output, (ht, ct) = net(data_)

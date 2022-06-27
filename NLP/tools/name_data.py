@@ -27,7 +27,7 @@ class NameDataset(Dataset):
         self.country_list = list(sorted(set(self.countries)))
 
     def __getitem__(self, index):
-        return self.names[index], self.countries[index]
+        return [self.names[index], self.countries[index]]
 
     def __len__(self):
         return self.len
