@@ -17,8 +17,8 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 # Parameters and DataLoaders
 HIDDEN_SIZE = 100
 N_LAYERS = 2
-BATCH_SIZE = 256
-N_EPOCHS = 100
+BATCH_SIZE = 3
+N_EPOCHS = 10
 N_CHARS = 128  # ASCII
 
 # References
@@ -55,7 +55,7 @@ class NameDataset(Dataset):
         self.country_list = list(sorted(set(self.countries)))
 
     def __getitem__(self, index):
-        return [self.names[index], self.countries[index]]
+        return str2ascii_arr(self.names[index]), self.countries[index]
 
     def __len__(self):
         return self.len
@@ -70,14 +70,21 @@ class NameDataset(Dataset):
         return self.country_list.index(country)
 
 
+def collate_fn(data):
 
-def collate_fn(data, label):
-    input_name = [str2ascii_arr(eachline[0]) for eachline in data]
+    # 输入，是一个list，每个list内部数字是一个tensor
+    input_name = [torch.tensor(eachline[0][0]) for eachline in data]
+
+    # label一般用long tensor类型
     country = torch.LongTensor([train_dataset.get_country_id(eachline[1]) for eachline in data])
-    length = torch.tensor([len(eachline) for eachline in data])
+
+    # length是一个tensor数组
+    length = torch.tensor([eachline[0][1] for eachline in data])
+
+    # input_name进行pad处理
     input_name = pad_sequence(input_name, batch_first=True, padding_value=0)
 
-    return input_name, country, length
+    return create_variable(input_name), create_variable(length), create_variable(country)
 
 
 test_dataset = NameDataset(is_train_set=False)
@@ -107,42 +114,13 @@ def create_variable(tensor):
         return Variable(tensor)
 
 
-# pad sequences and sort the tensor
-def pad_sequences(vectorized_seqs, seq_lengths, countries):
-    seq_tensor = torch.zeros((len(vectorized_seqs), seq_lengths.max())).long()
-    for idx, (seq, seq_len) in enumerate(zip(vectorized_seqs, seq_lengths)):
-        seq_tensor[idx, :seq_len] = torch.LongTensor(seq)
-
-    # Sort tensors by their length
-    seq_lengths, perm_idx = seq_lengths.sort(0, descending=True)
-    seq_tensor = seq_tensor[perm_idx]
-
-    # Also sort the target (countries) in the same order
-    target = countries2tensor(countries)
-    if len(countries):
-        target = target[perm_idx]
-
-    # Return variables
-    # DataParallel requires everything to be a Variable
-    return create_variable(seq_tensor), create_variable(seq_lengths), create_variable(target)
-
-
-# Create necessary variables, lengths, and target
-def make_variables(names, countries):
-    sequence_and_length = [str2ascii_arr(name) for name in names]
-    vectorized_seqs = [sl[0] for sl in sequence_and_length]
-    seq_lengths = torch.LongTensor([sl[1] for sl in sequence_and_length])
-
-    return pad_sequences(vectorized_seqs, seq_lengths, countries)
-    # return pad_sequence()
-
-
 def countries2tensor(countries):
     country_ids = [train_dataset.get_country_id(country) for country in countries]
     return torch.LongTensor(country_ids)
 
 
 class RNNClassifier(nn.Module):
+
     # Our model
     def __init__(self, vocab_size, hidden_size, output_size, n_layers=1, bidirectional=True):
         super(RNNClassifier, self).__init__()
@@ -152,47 +130,62 @@ class RNNClassifier(nn.Module):
 
         self.embedding = nn.Embedding(vocab_size, hidden_size)
         # self.gru = nn.GRU(hidden_size, hidden_size, n_layers, bidirectional=bidirectional)
-        self.gru = nn.LSTM(input_size=hidden_size, hidden_size=hidden_size, num_layers=self.n_layers, bidirectional=bidirectional)
+        self.lstm = nn.LSTM(input_size=hidden_size, hidden_size=hidden_size, num_layers=self.n_layers,
+                            bidirectional=bidirectional, batch_first=True)
 
-        self.fc = nn.Linear(hidden_size, output_size)
+        self.fc1 = nn.Linear(hidden_size * self.n_directions * self.n_layers, output_size)
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, input, seq_lengths):
         # Note: we run this all at once (over the whole input sequence)
-        # input shape: B x S (input size)
-        # transpose to make S(sequence) x B (batch)
-        input = input.t()
-        batch_size = input.size(1)
+        # input shape: B x S (input size), transpose to make S(sequence) x B (batch)
+        # input = input.t()
+        batch_size = input.size(0)
 
-        # Make a hidden
-        hidden = self._init_hidden(batch_size)
+        # Make a hidden, hidden = self._init_hidden(batch_size)
 
-        # Embedding S x B -> S x B x I (embedding size)
+        # Embedding B x S-> B x S x I (embedding size)
         embedded = self.embedding(input)
 
         # Pack them up nicely
-        gru_input = pack_padded_sequence(embedded, seq_lengths.cpu().numpy())
+        gru_input = pack_padded_sequence(embedded, seq_lengths.cpu().numpy(), batch_first=True, enforce_sorted=False)
 
         # To compact weights again call flatten_parameters().
-        self.gru.flatten_parameters()
-        output, hidden = self.gru(gru_input, hidden)
+        # self.lstm.flatten_parameters()
+        output, (hidden, ct) = self.lstm(gru_input)
 
-        # Use the last layer output as FC's input
-        # No need to unpack, since we are going to use hidden
-        fc_output = self.fc(hidden[-1])
-        return fc_output
+        # 如果是状态h或者是c，不能用pad_packed_sequence函数来进行填充0；但是输出output可以进行填充，不知道原因
+        # hidden, _ = pad_packed_sequence(hidden, batch_first=True)
+
+        # Use the last layer output as FC's input No need to unpack, since we are going to use hidden
+        # 对输出结果hidden先进行一个转换，[batch x n-layers*bidireciton x hidden-size]--> [batch, n-layers*bidireciton x hidden-size]
+        hidden = hidden.permute(1, 0, 2).reshape(batch_size, -1)
+
+        # 接一个全连接层
+        fc_output = self.fc1(hidden)
+
+        # 进行softmax函数进行计算
+        out = self.softmax(fc_output)
+        return out
 
     def _init_hidden(self, batch_size):
         hidden = torch.zeros(self.n_layers * self.n_directions, batch_size, self.hidden_size)
         return create_variable(hidden)
 
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+
 # Train cycle
 def train():
     total_loss = 0
 
-    for i, (names, countries) in enumerate(train_loader):
-        input, seq_lengths, target = make_variables(names, countries)
-        print(input.shape, target.shape, seq_lengths.shape)
+    for i, (input, seq_lengths, target) in enumerate(train_loader, 1):
+        # input, seq_lengths, target = make_variables(names, countries)
+        # input = pack_padded_sequence(input, seq_lengths, batch_first=True, enforce_sorted=False)
+
+        # print(input.shape, target.shape, seq_lengths.shape)
+        # print(input)
         output = classifier(input, seq_lengths)
 
         loss = criterion(output, target)
@@ -204,8 +197,8 @@ def train():
 
         if i % 10 == 0:
             print('[{}] Train Epoch: {} [{}/{} ({:.0f}%)], Loss: {:.2f}'.format(
-                time_since(start), epoch,  i * len(names), len(train_loader.dataset),
-                100. * i * len(names) / len(train_loader.dataset), total_loss / i * len(names)))
+                time_since(start), epoch,  i * input.shape[0], len(train_loader.dataset),
+                100. * i * input.shape[0] / len(train_loader.dataset), total_loss / i * input.shape[0]))
 
     return total_loss
 
@@ -214,8 +207,14 @@ def train():
 def test(name=None):
     # Predict for a given name
     if name:
-        input, seq_lengths, target = make_variables([name], [])
-        output = classifier(input, seq_lengths)
+        # input, seq_lengths, target = make_variables([name], [])
+        sequence_and_length = [str2ascii_arr(word) for word in name]
+        vectorized_seqs = [torch.tensor(sl[0]) for sl in sequence_and_length]
+        seq_lengths = create_variable(torch.LongTensor([sl[1] for sl in sequence_and_length]))
+
+        test_input = create_variable(pad_sequence(vectorized_seqs, batch_first=True))
+
+        output = classifier(test_input, seq_lengths)
         pred = output.max(1, keepdim=True)[1]
         country_id = pred.cpu().numpy()[0][0]
         print(name, "is", train_dataset.get_country(country_id))
@@ -223,15 +222,17 @@ def test(name=None):
 
     print("evaluating trained model ...")
     correct = 0
-    train_data_size = len(test_loader.dataset)
+    test_data_size = len(test_loader.dataset)
 
-    for names, countries in test_loader:
-        input, seq_lengths, target = make_variables(names, countries)
-        output = classifier(input, seq_lengths)
+    for batch in (test_loader):
+        inputs, seq_lengths, targets = [x.to(device) for x in batch]
+
+
+        output = classifier(inputs, seq_lengths)
         pred = output.max(1, keepdim=True)[1]
-        correct += pred.eq(target.view_as(pred)).cpu().sum()
+        correct += pred.eq(targets.view_as(pred)).cpu().sum()
 
-    print('\nTest set: Accuracy: {}/{} ({:.0f}%)\n'.format(correct, train_data_size, 100. * correct / train_data_size))
+    print('\nTest set: Accuracy: {}/{} ({:.0f}%)\n'.format(correct, test_data_size, 100. * correct / test_data_size))
 
 
 if __name__ == '__main__':
@@ -254,9 +255,8 @@ if __name__ == '__main__':
         # Train cycle
         train()
 
-        # Testing
+        # # Testing
         test()
-        #
         # # Testing several samples
         test("Sung")
         test("Jungwoo")

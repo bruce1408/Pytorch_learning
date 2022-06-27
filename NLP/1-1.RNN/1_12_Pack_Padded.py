@@ -87,7 +87,6 @@ def set_seed(seed):
         torch.backends.cudnn.benchmark = True  # 训练集变化不大时使训练加速
 
 
-set_seed(0)
 
 
 def blstm():
@@ -101,4 +100,8 @@ def blstm():
     print(hidden_state[-1, :, :].shape)
     print(cell_state.shape)
     # print(outputs)
-blstm()
+
+
+if __name__=="__main__":
+    set_seed(0)
+    blstm()

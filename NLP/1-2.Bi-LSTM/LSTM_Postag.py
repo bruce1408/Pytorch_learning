@@ -57,7 +57,9 @@ class LSTM(nn.Module):
         x_pack = pack_padded_sequence(embeddings, lengths, batch_first=True, enforce_sorted=False)
         hidden, (hn, cn) = self.lstm(x_pack)
         hidden, _ = pad_packed_sequence(hidden, batch_first=True)
+        print(hidden.shape)
         outputs = self.output(hidden)
+        print('out ', outputs.shape)
         log_probs = F.log_softmax(outputs, dim=-1)
         return log_probs
 
