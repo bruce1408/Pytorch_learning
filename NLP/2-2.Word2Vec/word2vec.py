@@ -9,12 +9,14 @@ import numpy as np
 
 from multiprocessing import Pool, Value, Array
 
+
 class VocabItem:
     def __init__(self, word):
         self.word = word
         self.count = 0
         self.path = None # Path (list of indices) from the root to the word (leaf)
         self.code = None # Huffman encoding
+
 
 class Vocab:
     def __init__(self, fi, min_count):

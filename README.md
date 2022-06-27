@@ -57,7 +57,9 @@ dataset, state-of-the art in NLP.
 - Open-Set domain adaption
 
 #### Natural language processing
+>pip install en_core_web_sm-2.2.5.tar.gz
 
+>pip install de_core_news_sm-2.2.5.tar.gz
 - Basic Knowledge
 - Bi-LSTM
 - Bi-LSTM Attention

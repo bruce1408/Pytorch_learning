@@ -12,13 +12,13 @@ from torch.utils.data import DataLoader
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence,pack_sequence,pad_packed_sequence
 
 
-# nlp 参考
+# 这个代码和1_10_Name_GRU_Classify.py同一个功能，但是使用的是lstm函数搭建的网络结构
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 # Parameters and DataLoaders
 HIDDEN_SIZE = 100
 N_LAYERS = 2
-BATCH_SIZE = 3
-N_EPOCHS = 10
+BATCH_SIZE = 256
+N_EPOCHS = 30
 N_CHARS = 128  # ASCII
 
 # References
@@ -225,8 +225,8 @@ def test(name=None):
     test_data_size = len(test_loader.dataset)
 
     for batch in (test_loader):
+        # 这里有两种转化方式，一种是使用to(device)，或者是使用create_variable函数
         inputs, seq_lengths, targets = [x.to(device) for x in batch]
-
 
         output = classifier(inputs, seq_lengths)
         pred = output.max(1, keepdim=True)[1]
@@ -255,9 +255,10 @@ if __name__ == '__main__':
         # Train cycle
         train()
 
-        # # Testing
+        # Testing
         test()
-        # # Testing several samples
+
+        # Testing several samples
         test("Sung")
         test("Jungwoo")
         test("Soojin")

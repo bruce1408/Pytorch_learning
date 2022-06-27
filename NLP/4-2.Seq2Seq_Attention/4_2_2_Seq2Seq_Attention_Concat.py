@@ -46,7 +46,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 from torchtext.datasets import Multi30k
-from torchtext.data import Field, BucketIterator
+from torchtext.legacy.data import Field, BucketIterator
 
 import spacy
 import numpy as np
@@ -110,9 +110,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 BATCH_SIZE = 128
 
 train_iterator, valid_iterator, test_iterator = BucketIterator.splits(
-    (train_data, valid_data, test_data),
-    batch_size=BATCH_SIZE,
-    device=device)
+    (train_data, valid_data, test_data), batch_size=BATCH_SIZE, device=device)
 
 
 class Encoder(nn.Module):

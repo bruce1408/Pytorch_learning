@@ -57,7 +57,7 @@ packed_input = pack_padded_sequence(embeded_seq_tensor, seq_lengths.cpu().numpy(
 # throw them through your LSTM (remember to give batch_first=True here if you packed with it)
 packed_output, (ht, ct) = lstm(packed_input)  # packed_input 输入是 [27 x 3] 总共是27的有效长度, 输出是27x5
 
-# unpack your output if required  解压缩即可
+# unpack your output if required  解压缩即可,注意，这里实际上是对output进行pad，但是h或者是c的话，pad是会报错的；
 output, _ = pad_packed_sequence(packed_output)
 
 # [seq_len, batch, hidden_dim] = [11 x 3 x 5]

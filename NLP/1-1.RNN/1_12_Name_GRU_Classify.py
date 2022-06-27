@@ -133,7 +133,7 @@ def train():
 
     for i, (names, countries) in enumerate(train_loader, 1):
         input, seq_lengths, target = make_variables(names, countries)
-        print(input.shape, target.shape, seq_lengths.shape)
+        # print(input.shape, target.shape, seq_lengths.shape)
         output = classifier(input, seq_lengths)
 
         loss = criterion(output, target)

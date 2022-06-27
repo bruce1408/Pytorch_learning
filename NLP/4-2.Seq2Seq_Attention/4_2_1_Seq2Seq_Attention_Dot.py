@@ -31,9 +31,9 @@ def make_batch(sentences):
     """
     input_batch = [np.eye(n_class)[[word2index[n] for n in sentences[0].split()]]]  # input batch 单词的onehot编码结果
     output_batch = [np.eye(n_class)[[word2index[n] for n in sentences[1].split()]]]
-    target_batch = [[word2index[n] for n in sentences[2].split()]]
+    target_batch = torch.LongTensor([[word2index[n] for n in sentences[2].split()]])
     # make tensor
-    return torch.Tensor(input_batch), torch.Tensor(output_batch), torch.LongTensor(target_batch)
+    return torch.Tensor(input_batch), torch.Tensor(output_batch), target_batch
 
 
 class Attention(nn.Module):

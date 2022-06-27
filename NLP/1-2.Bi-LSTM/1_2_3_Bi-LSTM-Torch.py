@@ -30,11 +30,12 @@ def make_batch(sentence):
     for i, word in enumerate(words[:-1]):
         input = [word2idx[n] for n in words[:(i + 1)]]
         input = input + [0] * (max_len - len(input))
-        target = word2idx[words[i + 1]]
         input_batch.append(np.eye(n_class)[input])
-        target_batch.append(target)
 
-    return Variable(torch.Tensor(input_batch)), Variable(torch.LongTensor(target_batch))
+    target = torch.LongTensor([word2idx[word] for word in words[:-1]])
+
+    return Variable(torch.Tensor(input_batch)), target
+    # return input_batch, target
 
 
 class BiLSTM(nn.Module):
