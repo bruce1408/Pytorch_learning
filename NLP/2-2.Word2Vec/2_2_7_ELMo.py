@@ -20,6 +20,24 @@ import numpy as np
 from tqdm.auto import tqdm
 from collections import defaultdict
 
+# 配置信息
+configs = {
+    'max_tok_len': 50,
+    'train_file': './train.txt',  # path to your training file, line-by-line and tokenized
+    'model_path': './elmo_bilm',
+    'char_embedding_dim': 50,
+    'char_conv_filters': [[1, 32], [2, 32], [3, 64], [4, 128], [5, 256], [6, 512], [7, 1024]],
+    'num_highways': 2,
+    'projection_dim': 512,
+    'hidden_dim': 4096,
+    'num_layers': 2,
+    'batch_size': 32,
+    'dropout_prob': 0.1,
+    'learning_rate': 0.0004,
+    'clip_grad': 5,
+    'num_epoch': 10
+}
+
 
 def load_corpus(path, max_tok_len=None, max_seq_len=None):
     # Read raw text file
@@ -42,17 +60,24 @@ def load_corpus(path, max_tok_len=None, max_seq_len=None):
             sent.append(EOS_TOKEN)
             text.append(sent)
 
+    # text是一个文本列表类似： <class 'list'>: ['<bos>', '华生园', '是', '集', '食品', '加工业', '、', '旅游服务业', '、', '连锁餐饮业', '、',
+    # '百货商贸业', '的', '大型', '现代化', '企业', '，', '其', '生产', '的', '产品', '是', '“', '中国', '名点', '”', '、', '“', '中国', '名饼',
+    # '”', '、', '中国', '“', '知名', '月饼', '”', '<eos>']
     # Build word and character vocabulary
     print("Building word-level vocabulary")
+    # 构建词表
     vocab_w = Vocab.build(
         text,
         min_freq=2,
         reserved_tokens=[PAD_TOKEN, BOS_TOKEN, EOS_TOKEN]
     )
     print("Building char-level vocabulary")
+
+    # 构建字符级别的词表
     vocab_c = Vocab(tokens=list(charset))
 
-    # Construct corpus using word_voab and char_vocab
+    # Construct corpus using word_voab and char_vocab；
+    # corpus_w 表示的是将单词转数字id， corpus_c表示单个字[[bow, char, eow],...]
     corpus_w = [vocab_w.convert_tokens_to_ids(sent) for sent in text]
     corpus_c = []
     bow = vocab_c[BOW_TOKEN]
@@ -63,12 +88,15 @@ def load_corpus(path, max_tok_len=None, max_seq_len=None):
             if token == BOS_TOKEN or token == EOS_TOKEN:
                 token_c = [bow, vocab_c[token], eow]
             else:
+                # [词首、单词含有字符的id、词尾]
                 token_c = [bow] + vocab_c.convert_tokens_to_ids(token) + [eow]
             sent_c.append(token_c)
         assert len(sent_c) == len(corpus_w[i])
         corpus_c.append(sent_c)
 
     assert len(corpus_w) == len(corpus_c)
+
+    # 输出分别是句子里面每个单词id，句子里面单词字符级别的id，单词级别的词表，字符级别的词表
     return corpus_w, corpus_c, vocab_w, vocab_c
 
 
@@ -90,29 +118,38 @@ class BiLMDataset(Dataset):
         return self.data[i]
 
     def collate_fn(self, examples):
-        # lengths: batch_size
+        # lengths: batch_size,每个批次里面句子的长度，examples 表示batch_size, 句子里面所有单词id，句子里面所有字符级别的id
+        # batch_size个句子的长度
         seq_lens = torch.LongTensor([len(ex[0]) for ex in examples])
 
-        # inputs_w
+        # inputs_w,句子里面每个单词的id=[w1, w2, w3,....wn]
         inputs_w = [torch.tensor(ex[0]) for ex in examples]
+
+        # 添加batch里面最长的句子pading，后面不会用到input_w
         inputs_w = pad_sequence(inputs_w, batch_first=True, padding_value=self.pad_w)
 
         # inputs_c: batch_size * max_seq_len * max_tok_len
         batch_size, max_seq_len = inputs_w.shape
+
+        # 这个批次表示的是每个句子里面含有的单词，其字符组成的单词最大长度就用 max_tok_len
         max_tok_len = max([max([len(tok) for tok in ex[1]]) for ex in examples])
 
+        # input_c shape = [batch_size, max_seq_len, tok_len]
         inputs_c = torch.LongTensor(batch_size, max_seq_len, max_tok_len).fill_(self.pad_c)
         for i, (sent_w, sent_c) in enumerate(examples):
             for j, tok in enumerate(sent_c):
                 inputs_c[i][j][:len(tok)] = torch.LongTensor(tok)
 
-        # fw_input_indexes, bw_input_indexes = [], []
+        # 前向和后向目标输出序列 fw_input_indexes, bw_input_indexes = [], []
         targets_fw = torch.LongTensor(inputs_w.shape).fill_(self.pad_w)
         targets_bw = torch.LongTensor(inputs_w.shape).fill_(self.pad_w)
+
         for i, (sent_w, sent_c) in enumerate(examples):
             targets_fw[i][:len(sent_w) - 1] = torch.LongTensor(sent_w[1:])
             targets_bw[i][1:len(sent_w)] = torch.LongTensor(sent_w[:len(sent_w) - 1])
-
+        # inputs_w 这里是batch_size个句子，每个句子用id数字表示，然后shape=[batch_size, batch_max_padded_len]
+        # inputs_c 是batch_size个句子里面的每个单词长度，所以shape是[batch_size, max_seq_len, max_tok_len]
+        # targets_fw shape和inputs_w的shape一样，就是每行句子id value复制到target
         return inputs_w, inputs_c, seq_lens, targets_fw, targets_bw
 
 
@@ -327,76 +364,49 @@ class BiLM(nn.Module):
         self.classifier.load_state_dict(torch.load(os.path.join(path, 'classifier.pth')))
 
 
-configs = {
-    'max_tok_len': 50,
-    'train_file': './train.txt',  # path to your training file, line-by-line and tokenized
-    'model_path': './elmo_bilm',
-    'char_embedding_dim': 50,
-    'char_conv_filters': [[1, 32], [2, 32], [3, 64], [4, 128], [5, 256], [6, 512], [7, 1024]],
-    'num_highways': 2,
-    'projection_dim': 512,
-    'hidden_dim': 4096,
-    'num_layers': 2,
-    'batch_size': 32,
-    'dropout_prob': 0.1,
-    'learning_rate': 0.0004,
-    'clip_grad': 5,
-    'num_epoch': 10
-}
+if __name__ == "__main__":
+    corpus_w, corpus_c, vocab_w, vocab_c = load_corpus(configs['train_file'])
+    train_data = BiLMDataset(corpus_w, corpus_c, vocab_w, vocab_c)
+    train_loader = get_loader(train_data, configs['batch_size'])
 
-corpus_w, corpus_c, vocab_w, vocab_c = load_corpus(configs['train_file'])
-train_data = BiLMDataset(corpus_w, corpus_c, vocab_w, vocab_c)
-train_loader = get_loader(train_data, configs['batch_size'])
+    criterion = nn.CrossEntropyLoss(ignore_index=vocab_w[PAD_TOKEN], reduction="sum")
+    print("Building BiLM model")
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = BiLM(configs, vocab_w, vocab_c)
+    print(model)
+    model.to(device)
 
-criterion = nn.CrossEntropyLoss(
-    ignore_index=vocab_w[PAD_TOKEN],
-    reduction="sum"
-)
-print("Building BiLM model")
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = BiLM(configs, vocab_w, vocab_c)
-print(model)
-model.to(device)
+    optimizer = optim.Adam(filter(lambda x: x.requires_grad, model.parameters()), lr=configs['learning_rate'])
 
-optimizer = optim.Adam(
-    filter(lambda x: x.requires_grad, model.parameters()),
-    lr=configs['learning_rate']
-)
+    model.train()
+    for epoch in range(configs['num_epoch']):
+        total_loss = 0
+        total_tags = 0  # number of valid predictions
+        for batch in tqdm(train_loader, desc=f"Training Epoch {epoch}"):
+            batch = [x.to(device) for x in batch]
+            inputs_w, inputs_c, seq_lens, targets_fw, targets_bw = batch
 
-model.train()
-for epoch in range(configs['num_epoch']):
-    total_loss = 0
-    total_tags = 0  # number of valid predictions
-    for batch in tqdm(train_loader, desc=f"Training Epoch {epoch}"):
-        batch = [x.to(device) for x in batch]
-        inputs_w, inputs_c, seq_lens, targets_fw, targets_bw = batch
+            optimizer.zero_grad()
+            outputs_fw, outputs_bw = model(inputs_c, seq_lens)
+            loss_fw = criterion(outputs_fw.view(-1, outputs_fw.shape[-1]), targets_fw.view(-1))
+            loss_bw = criterion(outputs_bw.view(-1, outputs_bw.shape[-1]), targets_bw.view(-1))
 
-        optimizer.zero_grad()
-        outputs_fw, outputs_bw = model(inputs_c, seq_lens)
-        loss_fw = criterion(
-            outputs_fw.view(-1, outputs_fw.shape[-1]),
-            targets_fw.view(-1)
-        )
-        loss_bw = criterion(
-            outputs_bw.view(-1, outputs_bw.shape[-1]),
-            targets_bw.view(-1)
-        )
-        loss = (loss_fw + loss_bw) / 2.0
-        loss.backward()
+            loss = (loss_fw + loss_bw) / 2.0
+            loss.backward()
 
-        torch.nn.utils.clip_grad_norm_(model.parameters(), configs['clip_grad'])
-        optimizer.step()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), configs['clip_grad'])
+            optimizer.step()
 
-        total_loss += loss_fw.item()
-        total_tags += seq_lens.sum().item()
+            total_loss += loss_fw.item()
+            total_tags += seq_lens.sum().item()
 
-    train_ppl = np.exp(total_loss / total_tags)
-    print(f"Train PPL: {train_ppl:.2f}")
+        train_ppl = np.exp(total_loss / total_tags)
+        print(f"Train PPL: {train_ppl:.2f}")
 
-# save BiLM encoders
-model.save_pretrained(configs['model_path'])
-# save configs
-json.dump(configs, open(os.path.join(configs['model_path'], 'configs.json'), "w"))
-# save vocabularies
-save_vocab(vocab_w, os.path.join(configs['model_path'], 'word.dic'))
-save_vocab(vocab_c, os.path.join(configs['model_path'], 'char.dic'))
+    # save BiLM encoders
+    model.save_pretrained(configs['model_path'])
+    # save configs
+    json.dump(configs, open(os.path.join(configs['model_path'], 'configs.json'), "w"))
+    # save vocabularies
+    save_vocab(vocab_w, os.path.join(configs['model_path'], 'word.dic'))
+    save_vocab(vocab_c, os.path.join(configs['model_path'], 'char.dic'))

@@ -1,5 +1,6 @@
 from collections import defaultdict, Counter
 
+
 class Vocab:
     def __init__(self, tokens=None):
         self.idx_to_token = list()

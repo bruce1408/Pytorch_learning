@@ -99,7 +99,7 @@ for epoch in range(num_epoch):
         # 回归目标值：必要时可以使用log(counts+1)进行平滑
         log_counts = torch.log(counts)
 
-        # 样本权重
+        # 样本权重，把输入的值限定在[min, max]之间，并返回结果；
         weight_factor = torch.clamp(torch.pow(counts / m_max, alpha), max=1.0)
         optimizer.zero_grad()
 
