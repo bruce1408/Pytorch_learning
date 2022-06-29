@@ -2,7 +2,6 @@ import sys
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.modules import Dropout
 import torch.optim as optim
 from torch.nn.utils.rnn import pad_sequence
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
@@ -18,12 +17,11 @@ import json
 import os
 import numpy as np
 from tqdm.auto import tqdm
-from collections import defaultdict
 
 # 配置信息
 configs = {
     'max_tok_len': 50,
-    'train_file': './train.txt',  # path to your training file, line-by-line and tokenized
+    'train_file': './w2v_data/train.txt',  # path to your training file, line-by-line and tokenized
     'model_path': './elmo_bilm',
     'char_embedding_dim': 50,
     'char_conv_filters': [[1, 32], [2, 32], [3, 64], [4, 128], [5, 256], [6, 512], [7, 1024]],
@@ -261,6 +259,7 @@ class ELMoLstmEncoder(nn.Module):
                 num_layers=1,
                 batch_first=True
             )
+
             forward_projection = nn.Linear(hidden_dim, self.projection_dim, bias=True)
 
             backward_layer = nn.LSTM(
@@ -384,6 +383,7 @@ if __name__ == "__main__":
         total_tags = 0  # number of valid predictions
         for batch in tqdm(train_loader, desc=f"Training Epoch {epoch}"):
             batch = [x.to(device) for x in batch]
+            # input_ws 实际没有起作用
             inputs_w, inputs_c, seq_lens, targets_fw, targets_bw = batch
 
             optimizer.zero_grad()

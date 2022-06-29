@@ -55,7 +55,7 @@ import torch.nn as nn
 
 import torchtext
 from torchtext.datasets import Multi30k
-from torchtext.data import Field, BucketIterator
+from torchtext.legacy.data import Field, BucketIterator
 
 import torch.optim as optim
 import matplotlib.pyplot as plt
@@ -76,8 +76,8 @@ randomSeed(SEED)
 # We'll then create our tokenizers as before.
 
 
-spacy_de = spacy.load('de')
-spacy_en = spacy.load('en')
+spacy_de = spacy.load('de_core_news_sm')
+spacy_en = spacy.load('en_core_web_sm')
 
 
 def tokenize_de(text):

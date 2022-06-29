@@ -138,10 +138,8 @@ class MultiHeadAttention(nn.Module):
 class PoswiseFeedForwardNet(nn.Module):
     def __init__(self):
         super(PoswiseFeedForwardNet, self).__init__()
-        self.conv1 = nn.Conv1d(in_channels=d_model,
-                               out_channels=d_ff, kernel_size=1)
-        self.conv2 = nn.Conv1d(
-            in_channels=d_ff, out_channels=d_model, kernel_size=1)
+        self.conv1 = nn.Conv1d(in_channels=d_model, out_channels=d_ff, kernel_size=1)
+        self.conv2 = nn.Conv1d(in_channels=d_ff, out_channels=d_model, kernel_size=1)
 
     def forward(self, inputs):
         residual = inputs  # inputs : [batch_size, len_q, d_model]
