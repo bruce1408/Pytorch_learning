@@ -1,7 +1,7 @@
 """
-    code by Tae Hwan Jung(Jeff Jung) @graykode
-    Reference:https://github.com/jadore801120/attention-is-all-you-need-pytorch
-              https://github.com/JayParks/transformer, https://github.com/dhlee347/pytorchic-bert
+    Reference:
+    https://github.com/jadore801120/attention-is-all-you-need-pytorch
+    https://github.com/JayParks/transformer, https://github.com/dhlee347/pytorchic-bert
     using bert to predict next sentence
 """
 import os
@@ -14,18 +14,18 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 
+
 os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
+
 # BERT Parameters
-maxlen = 30  # 同一个batch里面所有的样本长度都必须是相同的
-batch_size = 6
-# max tokens of prediction，
-# 最多预测的mask个单词，因为15%的话，如果长度是100个词，可能会有很多mask，15个，这里设定max_pred之后会少很多
-max_pred = 5
-n_layers = 6  # encoder layer 层数
-n_heads = 12  # 多少个head
-d_model = 768  # 三个维度，word， segment，postion embedding维度
+maxlen = 30     # 同一个batch里面所有的样本长度都必须是相同的
+batch_size = 6  # 最多预测的mask个单词，因为15%的话，如果长度是100个词，可能会有很多mask，15个，这里设定max_pred之后会少很多
+max_pred = 5    # max tokens of prediction
+n_layers = 6    # encoder layer 层数
+n_heads = 12    # 多少个head
+d_model = 768   # 三个维度，word， segment，postion embedding维度
 d_ff = 768 * 4  # 4*d_model, FeedForward dimension 全连接神经网络维度
 d_k = d_v = 64  # dimension of K(=Q), V
 n_segments = 2  # 一个样本里面是多少句话，论文中是两句话
@@ -197,8 +197,7 @@ class Embedding(nn.Module):
         input_emb = self.tok_embed(x)  # [6, 30, 768]
         pos_emb = self.pos_embed(pos)  # [6, 30, 768]
         seg_emb = self.seg_embed(seg)
-        embedding = self.tok_embed(
-            x) + self.pos_embed(pos) + self.seg_embed(seg)
+        embedding = self.tok_embed(x) + self.pos_embed(pos) + self.seg_embed(seg)
         return self.norm(embedding)
 
 
@@ -346,7 +345,8 @@ model = BERT()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-batch = make_batch()  # batch中的每一个样本大小是[list_len = 30, 30, 5, 5, T/F] 格式
+# batch中的每一个样本大小是[list_len = 30, 30, 5, 5, T/F] 格式
+batch = make_batch()
 
 # inputs_ids seg_ids = [6, 30], masked_pos = [6, 5], isNext = [6,]
 input_ids, segment_ids, masked_tokens, masked_pos, isNext = zip(*batch)

@@ -4,6 +4,7 @@ import numpy as np
 import math
 
 
+# 从头开始撸transforms
 class Config(object):
     def __init__(self):
         self.vocab_size = 6
