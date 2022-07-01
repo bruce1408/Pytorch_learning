@@ -40,8 +40,8 @@ class Embedding(nn.Module):
         # 根据每个句子的长度，进行padding，短补长截,句子单词对多不能超过padding_size
         for i in range(len(x)):
             if len(x[i]) < config.padding_size:
-                x[i].extend(
-                    [config.UNK] * (config.padding_size - len(x[i])))  # 注意 UNK是你词表中用来表示oov的token索引，这里进行了简化，直接假设为6
+                # 注意 UNK是你词表中用来表示oov的token索引，这里进行了简化，直接假设为6
+                x[i].extend([config.UNK] * (config.padding_size - len(x[i])))
             else:
                 x[i] = x[i][:config.padding_size]
 

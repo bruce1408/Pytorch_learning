@@ -12,7 +12,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.autograd import Variable
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2'

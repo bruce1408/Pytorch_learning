@@ -70,8 +70,8 @@ def get_attn_pad_mask(seq_q, seq_k):
     batch_size, len_k = seq_k.size()
 
     # eq(zero) is PAD token，因为k的pad没有任何意义，所以这里不计算q为pad的情况
-    pad_attn_mask = seq_k.data.eq(0).unsqueeze(
-        1)  # [batch_size, 1, len_k] one is masking
+    # [batch_size, 1, len_k] one is masking
+    pad_attn_mask = seq_k.data.eq(0).unsqueeze(1)
 
     # 这里维度再进行扩展一下[batch, 1, len_k] -> [batch, len_q, len_k] = [1, 5, 5] 重复复制
     return pad_attn_mask.expand(batch_size, len_q, len_k)
