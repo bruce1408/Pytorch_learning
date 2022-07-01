@@ -52,21 +52,21 @@ SEED = 1234
 randomSeed(SEED)
 
 # 所有的标点符号全部替换成空格,且大写变小写
-sentences = re.sub("[.,!?\\-]", '', text.lower()
-                   ).split('\n')  # filter '.', ',', '?', '!'
+sentences = re.sub("[.,!?\\-]", '', text.lower()).split('\n')  # filter '.', ',', '?', '!'
 word_list = list(set(" ".join(sentences).split()))  # word vocabulary 单词的词典
+
 # 单词对应的index编号，Mask 表示替换的单词
-word_dict = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
+word2num = {'[PAD]': 0, '[CLS]': 1, '[SEP]': 2, '[MASK]': 3}
 
 for i, w in enumerate(word_list):
-    word_dict[w] = i + 4
-# 数字对应的单词字典,和word_dict正好相反
-number_dict = {i: w for i, w in enumerate(word_dict)}
-vocab_size = len(word_dict)  # 29个词
+    word2num[w] = i + 4
+# 数字对应的单词字典,word2num
+number2dict = {i: w for i, w in enumerate(word2num)}
+vocab_size = len(word2num)  # 29个词
 token_list = list()  # 每个sentence的index的list
 
 for sentence in sentences:
-    arr = [word_dict[s] for s in sentence.split()]
+    arr = [word2num[s] for s in sentence.split()]
     token_list.append(arr)
 
 
@@ -90,8 +90,8 @@ def make_batch():
         tokens_a, tokens_b = token_list[tokens_a_index], token_list[tokens_b_index]
 
         # 在预测下一个句子的任务中, CLS符号将对应的文本语义表示,对两句话用一个SEP符号分割,并分别对两句话附加两个不同的文本向量区分
-        input_ids = [word_dict['[CLS]']] + tokens_a + \
-            [word_dict['[SEP]']] + tokens_b + [word_dict['[SEP]']]
+        input_ids = [word2num['[CLS]']] + tokens_a + \
+            [word2num['[SEP]']] + tokens_b + [word2num['[SEP]']]
 
         # segmeng设置，第一句话全是0，第二句话全是1，[0] * (cls + len_seq+ 1)
         segment_ids = [0] * (1 + len(tokens_a) + 1) + [1] * (len(tokens_b) + 1)
@@ -102,7 +102,7 @@ def make_batch():
 
         # 特殊字符cls和sep作为mask没有任何意义，所以排除这些特殊的，找到候选的mask的位置，排除了cls和sep之后的input_ids的下标索引位置
         cand_maked_pos = [i for i, token in enumerate(input_ids)
-                          if token != word_dict['[CLS]'] and token != word_dict['[SEP]']]
+                          if token != word2num['[CLS]'] and token != word2num['[SEP]']]
 
         # cand_mask_pos = [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15] # 不包含CLS 和 SEP 句子的input_ids下标index
         shuffle(cand_maked_pos)  # 随机做mask，所以打乱mask候选位置
@@ -119,7 +119,7 @@ def make_batch():
 
             # 如果小于0.8那么就要替换mask
             if random() < 0.8: 
-                input_ids[pos] = word_dict['[MASK]']  # make mask
+                input_ids[pos] = word2num['[MASK]']  # make mask
             elif random() > 0.9: # 10% 的概率是替换其他单词这里注意不能替换没有意义的四个单词，必须是有意义的才对。
                 index = randint(0, vocab_size - 1) 
                 # 如果随机替换的单词是前面4个没有意义的单词，那么重新选择，知道找到有意义的单词为止
@@ -196,7 +196,7 @@ class Embedding(nn.Module):
         input_emb = self.tok_embed(x)  # [6, 30, 768]
         pos_emb = self.pos_embed(pos)  # [6, 30, 768]
         seg_emb = self.seg_embed(seg)
-        embedding = self.tok_embed(x) + self.pos_embed(pos) + self.seg_embed(seg)
+        embedding = input_emb + pos_emb + seg_emb
         return self.norm(embedding)
 
 
@@ -300,7 +300,7 @@ class BERT(nn.Module):
         self.norm = nn.LayerNorm(d_model)
         self.classifier = nn.Linear(d_model, 2)
 
-        # decoder is shared with embedding layer
+        # decoder is shared with embedding layer, 输入embed的权重大小
         embed_weight = self.embedding.tok_embed.weight
         n_vocab, n_dim = embed_weight.size()
         self.decoder = nn.Linear(n_dim, n_vocab, bias=False)
@@ -374,7 +374,7 @@ for epoch in range(1000):
 # Predict mask tokens ans isNext
 input_ids, segment_ids, masked_tokens, masked_pos, isNext = batch[0]
 print(text)
-print([number_dict[w] for w in input_ids if number_dict[w] != '[PAD]'])
+print([number2dict[w] for w in input_ids if number2dict[w] != '[PAD]'])
 
 logits_lm, logits_clsf = model(torch.LongTensor([input_ids]),
                                torch.LongTensor([segment_ids]),
