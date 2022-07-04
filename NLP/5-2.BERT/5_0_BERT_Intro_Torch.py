@@ -12,7 +12,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
+# import os
+# os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0, 1, 2'
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
