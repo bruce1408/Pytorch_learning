@@ -30,6 +30,12 @@ This repository contains:
 dataset, state-of-the art in NLP.
 3. [Dataset](/Dataset/) All the data you can use in this project are under this directory.
 4. [Reference](/Reference) Other reference materials for this project.
+### 代码测试环境
+* Python: 3.8.5
+* PyTorch: 1.8.0
+* Transformers: 4.9.0
+* NLTK: 3.5
+* LTP: 4.0
 
 
 ## Table of Contents
