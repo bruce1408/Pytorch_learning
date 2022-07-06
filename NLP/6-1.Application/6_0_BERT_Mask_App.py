@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 import torch
 from transformers import BertTokenizer, BertForMaskedLM
 

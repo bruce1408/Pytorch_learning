@@ -12,7 +12,7 @@ from transformers import (
     get_linear_schedule_with_warmup, BertTokenizer,
     AdamW,
     AutoModelForSequenceClassification,
-    AutoConfig
+    AutoConfig, BertConfig
 )
 
 from torch.utils.data import DataLoader, dataset
@@ -21,7 +21,7 @@ import numpy as np
 from sklearn import metrics
 from datetime import timedelta
 
-data_dir = '/Users/bruce/PycharmProjects/Chinese-Text-Classification-Pytorch/THUCNews/data'
+data_dir = '../../Chinese-Text-Classification-Pytorch/THUCNews/data'
 
 
 def read_file(path):
