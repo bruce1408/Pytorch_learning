@@ -153,6 +153,7 @@ class RNNClassifier(nn.Module):
         # To compact weights again call flatten_parameters().
         # self.lstm.flatten_parameters()
         output, (hidden, ct) = self.lstm(gru_input)
+        print(hidden.shape)
 
         # 如果是状态h或者是c，不能用pad_packed_sequence函数来进行填充0；但是输出output可以进行填充，不知道原因
         # hidden, _ = pad_packed_sequence(hidden, batch_first=True)

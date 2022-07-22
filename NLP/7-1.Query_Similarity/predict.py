@@ -5,6 +5,7 @@ import numpy as np
 from sklearn import metrics
 import config.config as cfg
 from models.CNNs import DSSM
+from models.LSTMs import LSTMModel
 from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
 from CustomData.dataset import cut_sentence, read_vocab, CustomData, collate_fn_test
@@ -46,8 +47,9 @@ if __name__ == "__main__":
     test_dataset = CustomData(test_data)
     test_data_loader = DataLoader(test_dataset, batch_size=1, collate_fn=collate_fn_test, shuffle=False)
 
-    model = DSSM(len(vocab), 3)
-    model.load_state_dict(torch.load("./checkpoints/epoch_2acc_0.641875loss_46.78004825115204"))
+    # model = DSSM(len(vocab), 3)
+    model = LSTMModel(len(vocab), 3)
+    model.load_state_dict(torch.load("./checkpoints/lstm_epoch_1acc_0.651875loss_44.37550634145737"))
     model.eval()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

@@ -61,13 +61,13 @@ if __name__ == "__main__":
     total_sentence += [word for each_pair in train_data for word in each_pair[1]]
     total_sentence += [word for each_pair in val_data for word in each_pair[0]]
     total_sentence += [word for each_pair in val_data for word in each_pair[1]]
-    print(total_sentence)
+    # print(total_sentence)
     vocab = generate_vocab(total_sentence)
 
     # # print the len of the vocab
     print(len(vocab))
     save_vocab(vocab, "./data/vocab")
-    print(vocab.token_to_idx)
+    # print(vocab.token_to_idx)
 
     train_data, val_data = generate_data(vocab, train_data, val_data)
 
@@ -121,8 +121,8 @@ if __name__ == "__main__":
                 if valid_acc > valid_best_acc:
                     valid_best_acc = valid_acc
                     valid_best_loss = valid_loss
-                    torch.save(model.state_dict(), os.path.join(cfg.save_path, "lstm_epoch_"+str(epoch)+"acc_"
-                                                                +str(valid_acc)+"loss_"+str(valid_loss)))
+                    torch.save(model.state_dict(), os.path.join(cfg.save_path, "MulBilstm_epoch_"+str(epoch)+"acc_"
+                                                                + str(valid_acc)+"loss_"+str(valid_loss)))
                     print("save best model, valid_acc:{}".format(valid_acc))
                     improve = "*"
                     last_improve = total_batch

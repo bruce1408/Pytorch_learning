@@ -18,7 +18,7 @@ save_path = "./checkpoints/"
 use_tfboard = False
 
 # print it every 10 times
-display_interval = 10
+display_interval = 50
 
 # save models every 20 epoch
 save_interval = 20
