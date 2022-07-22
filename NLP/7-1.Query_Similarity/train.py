@@ -5,14 +5,15 @@ import numpy as np
 import random
 from sklearn import metrics
 import torch
-from models.CNN import DSSM
+from models.CNNs import DSSM
+from models.LSTMs import LSTMModel
 import torch.nn as nn
 from config import config as cfg
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torch import optim
 from tqdm.auto import tqdm
-from CustomData.dataset import generate_data, generate_vocab, cut_sentence, CustomData, collate_fn
+from CustomData.dataset import generate_data, generate_vocab, cut_sentence, CustomData, collate_fn, save_vocab, read_vocab
 
 
 def randomSeed(SEED):
@@ -60,10 +61,13 @@ if __name__ == "__main__":
     total_sentence += [word for each_pair in train_data for word in each_pair[1]]
     total_sentence += [word for each_pair in val_data for word in each_pair[0]]
     total_sentence += [word for each_pair in val_data for word in each_pair[1]]
+    print(total_sentence)
     vocab = generate_vocab(total_sentence)
 
     # # print the len of the vocab
     print(len(vocab))
+    save_vocab(vocab, "./data/vocab")
+    print(vocab.token_to_idx)
 
     train_data, val_data = generate_data(vocab, train_data, val_data)
 
@@ -74,7 +78,8 @@ if __name__ == "__main__":
     val_data_loader = DataLoader(val_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DSSM(len(vocab), 3)
+    # model = DSSM(len(vocab), 3)
+    model = LSTMModel(len(vocab), 3)
     model.to(device)
     cross_loss = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=cfg.lr)  # 使用Adam优化器
@@ -107,6 +112,7 @@ if __name__ == "__main__":
                 # print(msg.format(total_batch, loss.item()))
                 true = labels.data.cpu()
                 predic = torch.max(outputs.data, 1)[1].cpu()
+                # print(predic)
                 train_acc = metrics.accuracy_score(true, predic)
                 valid_acc, valid_loss = evaluate(model, val_data_loader, device)
                 msg = 'Iter: {0:>6},  Train Loss: {1:>5.2},  Train Acc: {2:>6.2%},  Val Loss: {3:>5.2},  Val Acc: {' \
@@ -115,7 +121,7 @@ if __name__ == "__main__":
                 if valid_acc > valid_best_acc:
                     valid_best_acc = valid_acc
                     valid_best_loss = valid_loss
-                    torch.save(model.state_dict(), os.path.join(cfg.save_path, "epoch_"+str(epoch)+"acc_"
+                    torch.save(model.state_dict(), os.path.join(cfg.save_path, "lstm_epoch_"+str(epoch)+"acc_"
                                                                 +str(valid_acc)+"loss_"+str(valid_loss)))
                     print("save best model, valid_acc:{}".format(valid_acc))
                     improve = "*"

@@ -1,6 +1,7 @@
 import sys
 import torch
 import jieba
+sys.path.append("../")
 from itertools import chain
 import torch.nn as nn
 import torch.optim as optim
@@ -35,6 +36,17 @@ def collate_fn(examples):
     first_sen = pad_sequence(first_sen, batch_first=True, padding_value=0)
     second_sen = pad_sequence(second_sen, batch_first=True, padding_value=0)
     return first_sen, second_sen, lengths_first, lengths_second, labels
+
+
+def collate_fn_test(examples):
+    lengths_first = torch.tensor([len(ex[0]) for ex in examples])
+    lengths_second = torch.tensor([len(ex[1]) for ex in examples])
+    first_sen = [torch.tensor(ex[0]) for ex in examples]
+    second_sen = [torch.tensor(ex[1]) for ex in examples]
+
+    first_sen = pad_sequence(first_sen, batch_first=True, padding_value=0)
+    second_sen = pad_sequence(second_sen, batch_first=True, padding_value=0)
+    return first_sen, second_sen, lengths_first, lengths_second
 
 
 class Vocab:
@@ -83,8 +95,8 @@ def cut_sentence(path, train=True):
 
 
 def generate_vocab(sentences):
-    total = [word for sentence in sentences for word in sentence]
-    vocab = Vocab(total)
+    # total = [word for sentence in sentences for word in sentence]
+    vocab = Vocab(sentences)
     return vocab
 
 
@@ -100,14 +112,11 @@ def read_vocab(path):
 
 
 def generate_data(vocab, train_data, val_data):
-    # train_first_data = [vocab.convert_tokens_to_ids(sentence[0]) for sentence in train_data]
-    # train_second_data = [vocab.convert_tokens_to_ids(sentence[1]) for sentence in train_data]
-    # val_first_data = [vocab.convert_tokens_to_ids(sentence[0]) for sentence in val_data]
-    # val_second_data = [vocab.convert_tokens_to_ids(sentence[1]) for sentence in val_data]
 
-    # assert len(train_first_data) == len(train_second_data)
-    train_data = [(vocab.convert_tokens_to_ids(pairdata[0]), vocab.convert_tokens_to_ids(pairdata[1]), pairdata[2]) for pairdata in train_data]
-    val_data = [(vocab.convert_tokens_to_ids(pairdata[0]), vocab.convert_tokens_to_ids(pairdata[1]), pairdata[2]) for pairdata in val_data]
+    train_data = [(vocab.convert_tokens_to_ids(pairdata[0]), vocab.convert_tokens_to_ids(pairdata[1]), pairdata[2]) for
+                  pairdata in train_data]
+    val_data = [(vocab.convert_tokens_to_ids(pairdata[0]), vocab.convert_tokens_to_ids(pairdata[1]), pairdata[2]) for
+                pairdata in val_data]
     return train_data, val_data
 
 

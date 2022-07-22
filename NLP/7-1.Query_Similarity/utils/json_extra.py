@@ -18,16 +18,18 @@ def read_json(path):
     return total_data
 
 
-def write_json(your_model):
+def write_json(labels):
     # 写json文件，本示例代码从测试集KUAKE-QQR_test.json读取数据数据，将预测后的数据写入到KUAKE-QQR_test_pred.json：
-    with open('KUAKE-QQR_test.json') as input_data, open('KUAKE-QQR_test_pred.json', 'w') as output_data:
+    with open('./data/KUAKE-QQR_test.json') as input_data, open('./data/KUAKE-QQR_test_pred_2.json', 'w') as output_data:
         json_content = json.load(input_data)
         # 逐条读取记录，并将预测好的label赋值
+        i = 0
         for block in json_content:
             query1 = block['query1']
             query2 = block['query2']
             # 此处调用自己的模型来预测当前记录的label，仅做示例用：
-            block['label'] = your_model.predict(query1, query2)
+            block['label'] = str(labels[i])
+            i += 1
         # 写json文件
         json.dump(json_content, output_data, indent=2, ensure_ascii=False)
 
