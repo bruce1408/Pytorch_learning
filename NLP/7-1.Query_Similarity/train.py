@@ -81,6 +81,16 @@ if __name__ == "__main__":
     model.train()
 
     total_batch = 0
+    valid_best_acc = 0.
+    # dev_best_loss = float('inf')
+    last_improve = 0  # 记录上次验证集loss下降的batch数
+    flag = False  # 记录是否很久没有效果提升
+
+    # save_path = "./checkpoints/"
+    if os.path.exists(cfg.save_path):
+        print("save model path exist!")
+    else:
+        os.mkdir(cfg.save_path)
     for epoch in range(1, cfg.max_epochs):
         for batch in tqdm(train_data_loader, desc=f"Training Epoch {epoch}"):
             optimizer.zero_grad()
@@ -98,10 +108,25 @@ if __name__ == "__main__":
                 true = labels.data.cpu()
                 predic = torch.max(outputs.data, 1)[1].cpu()
                 train_acc = metrics.accuracy_score(true, predic)
-                dev_acc, dev_loss = evaluate(model, val_data_loader, device)
+                valid_acc, valid_loss = evaluate(model, val_data_loader, device)
                 msg = 'Iter: {0:>6},  Train Loss: {1:>5.2},  Train Acc: {2:>6.2%},  Val Loss: {3:>5.2},  Val Acc: {' \
                       '4:>6.2%} '
-                print(msg.format(total_batch, loss.item(), train_acc, dev_loss, dev_acc))
-                # print(dev_acc)
+                print(msg.format(total_batch, loss.item(), train_acc, valid_loss, valid_acc))
+                if valid_acc > valid_best_acc:
+                    valid_best_acc = valid_acc
+                    valid_best_loss = valid_loss
+                    torch.save(model.state_dict(), os.path.join(cfg.save_path, "epoch_"+str(epoch)+"acc_"
+                                                                +str(valid_acc)+"loss_"+str(valid_loss)))
+                    print("save best model, valid_acc:{}".format(valid_acc))
+                    improve = "*"
+                    last_improve = total_batch
+                else:
+                    improve = ""
             total_batch += 1
-
+            if total_batch - last_improve > cfg.require_improvement:
+                # 验证集loss超过1000batch没下降，结束训练
+                print("No optimization for a long time, auto-stopping...")
+                flag = True
+                break
+            if flag:
+                break

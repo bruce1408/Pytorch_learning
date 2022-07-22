@@ -9,9 +9,10 @@ datasets = "xx"
 
 # number of workers to load training data
 nw = 8
-
+require_improvement = 1000
 # path to save models
-output_dir = "./object_detection/YOLO_v2/output/"
+# output_dir = "./object_detection/YOLO_v2/output/"
+save_path = "./checkpoints/"
 
 # use tensorboard
 use_tfboard = False
