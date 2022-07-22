@@ -2,8 +2,7 @@ import os
 from importlib import import_module
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import numpy as np
-import argparse
-import time
+import random
 from sklearn import metrics
 import torch
 from models.CNN import DSSM
@@ -14,12 +13,14 @@ from torch.utils.data import DataLoader
 from torch import optim
 from tqdm.auto import tqdm
 from CustomData.dataset import generate_data, generate_vocab, cut_sentence, CustomData, collate_fn
-import torch.nn.functional as F
 
-# from utils.network import adjust_learning_rate
-# from tensorboardX import SummaryWriter
-# from CustomData.customdata import RoiDataset
-# from CustomData.customdata import detection_collate
+
+def randomSeed(SEED):
+    random.seed(SEED)
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+    torch.cuda.manual_seed(SEED)
+    torch.backends.cudnn.deterministic = True
 
 
 def evaluate(model, data_iter, device, test=False):
@@ -50,7 +51,7 @@ if __name__ == "__main__":
     # 生成单词词典
     path_train = "./data/KUAKE-QQR_train.json"
     path_test = "./data/KUAKE-QQR_dev.json"
-
+    randomSeed(0)
     train_data = cut_sentence(path_train)
     val_data = cut_sentence(path_test)
 
@@ -65,7 +66,6 @@ if __name__ == "__main__":
     print(len(vocab))
 
     train_data, val_data = generate_data(vocab, train_data, val_data)
-    # print(train_data.__len__(), val_data.__len__())
 
     train_dataset = CustomData(train_data)
     train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn, shuffle=True)
