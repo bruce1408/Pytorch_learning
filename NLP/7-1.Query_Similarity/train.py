@@ -68,10 +68,10 @@ if __name__ == "__main__":
     # print(train_data.__len__(), val_data.__len__())
 
     train_dataset = CustomData(train_data)
-    train_data_loader = DataLoader(train_dataset, batch_size=3, collate_fn=collate_fn, shuffle=True)
+    train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn, shuffle=True)
 
     val_dataset = CustomData(val_data)
-    val_data_loader = DataLoader(val_dataset, batch_size=3, collate_fn=collate_fn)
+    val_data_loader = DataLoader(val_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = DSSM(len(vocab), 3)
