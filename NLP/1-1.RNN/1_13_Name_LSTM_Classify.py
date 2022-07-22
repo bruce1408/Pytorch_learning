@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 # sys.path.append("../")
 # from tools.name_data import NameDataset
 # from torch.nn.utils.rnn import pack_padded_sequence
-from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence,pack_sequence,pad_packed_sequence
+from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence, pack_sequence, pad_packed_sequence
 
 
 # 这个代码和1_10_Name_GRU_Classify.py同一个功能，但是使用的是lstm函数搭建的网络结构

@@ -21,8 +21,7 @@ class Vocab:
             for token in sentence:
                 token_freqs[token] += 1
         uniq_tokens = ["<unk>"] + (reserved_tokens if reserved_tokens else [])
-        uniq_tokens += [token for token, freq in token_freqs.items() \
-                        if freq >= min_freq and token != "<unk>"]
+        uniq_tokens += [token for token, freq in token_freqs.items() if freq >= min_freq and token != "<unk>"]
         return cls(uniq_tokens)
 
     def __len__(self):

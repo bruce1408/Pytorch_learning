@@ -34,6 +34,8 @@ def collate_fn(examples):
     lengths = torch.tensor([len(ex[0]) for ex in examples])
     inputs = [torch.tensor(ex[0]) for ex in examples]
     targets = [torch.tensor(ex[1]) for ex in examples]
+
+    # 添加0补充长度
     inputs = pad_sequence(inputs, batch_first=True, padding_value=vocab["<pad>"])
     targets = pad_sequence(targets, batch_first=True, padding_value=vocab["<pad>"])
     return inputs, lengths, targets, inputs != vocab["<pad>"]
@@ -71,8 +73,10 @@ num_epoch = 2
 
 # 加载数据
 train_data, test_data, vocab, pos_vocab = load_treebank()
+print(train_data.__len__(), train_data)
 train_dataset = LstmDataset(train_data)
 test_dataset = LstmDataset(test_data)
+
 train_data_loader = DataLoader(train_dataset, batch_size=batch_size, collate_fn=collate_fn, shuffle=True)
 test_data_loader = DataLoader(test_dataset, batch_size=1, collate_fn=collate_fn, shuffle=False)
 

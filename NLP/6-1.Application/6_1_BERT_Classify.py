@@ -12,7 +12,7 @@ from transformers import (
     get_linear_schedule_with_warmup, BertTokenizer,
     AdamW,
     AutoModelForSequenceClassification,
-    AutoConfig, BertConfig
+    AutoConfig
 )
 
 from torch.utils.data import DataLoader, dataset
@@ -21,7 +21,7 @@ import numpy as np
 from sklearn import metrics
 from datetime import timedelta
 
-data_dir = '../../Chinese-Text-Classification-Pytorch/THUCNews/data'
+data_dir = '/Users/bruce/PycharmProjects/Chinese-Text-Classification-Pytorch/THUCNews/data'
 
 
 def read_file(path):
@@ -64,14 +64,15 @@ pretrained_weights = 'bert-base-chinese'  # 建立模型
 tokenizer = BertTokenizer.from_pretrained(pretrained_weights)
 config = AutoConfig.from_pretrained(pretrained_weights, num_labels=len(class_list))
 # 单独指定config，在config中指定分类个数
-nlp_classif = AutoModelForSequenceClassification.from_pretrained(pretrained_weights, config=config)
+nlp_classif = AutoModelForSequenceClassification.from_pretrained(pretrained_weights,
+                                                                 config=config)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 nlp_classif = nlp_classif.to(device)
 
 time_start = time.time()  # 开始时间
 
-epochs = 1
+epochs = 2
 gradient_accumulation_steps = 1
 max_grad_norm = 0.1  # 梯度剪辑的阀值
 
@@ -106,14 +107,14 @@ def train(model, traindataloder, testdataloder):
     last_improve = 0  # 记录上次验证集loss下降的batch数
     flag = False  # 记录是否很久没有效果提升
 
-    for epoch in tqdm(range(epochs), desc="Training"):
+    for epoch in range(epochs):
         print('Epoch [{}/{}]'.format(epoch + 1, epochs))
         for i, (sku_name, labels) in enumerate(traindataloder):
             model.train()
 
             # max_length=model.config.max_position_embeddings,  #模型的配置文件中就是512，当有超过这个长度的会报错
             ids = tokenizer.batch_encode_plus(sku_name,
-                                              padding='max_length',
+                                              pad_to_max_length=True,
                                               return_tensors='pt')  # 没有return_tensors会返回list！！！！
 
             labels = labels.squeeze().to(device)
@@ -149,8 +150,7 @@ def train(model, traindataloder, testdataloder):
                 else:
                     improve = ''
                 time_dif = get_time_dif(start_time)
-                msg = 'Iter: {0:>6},  Train Loss: {1:>5.2},  Train Acc: {2:>6.2%},  Val Loss: {3:>5.2},  Val Acc: {' \
-                      '4:>6.2%},  Time: {5} {6} '
+                msg = 'Iter: {0:>6},  Train Loss: {1:>5.2},  Train Acc: {2:>6.2%},  Val Loss: {3:>5.2},  Val Acc: {4:>6.2%},  Time: {5} {6}'
                 print(msg.format(total_batch, loss.item(), train_acc, dev_loss, dev_acc, time_dif, improve))
                 model.train()
             total_batch += 1
@@ -172,7 +172,7 @@ def evaluate(model, testdataloder):
         for sku_name, labels in testdataloder:
             # max_length=model.config.max_position_embeddings,  #模型的配置文件中就是512，当有超过这个长度的会报错
             ids = tokenizer.batch_encode_plus(sku_name,
-                                              padding='max_length',
+                                              pad_to_max_length=True,
                                               return_tensors='pt')  # 没有return_tensors会返回list！！！！
 
             labels = labels.squeeze().to(device)

@@ -15,6 +15,7 @@ sentence = (
     'sed do eiusmod tempor incididunt ut labore et dolore magna '
     'aliqua Ut enim ad minim veniam quis nostrud exercitation et dolore')
 
+
 word2idx = {w: i for i, w in enumerate(list(set(sentence.split())))}
 idx2word = {i: w for i, w in enumerate(list(set(sentence.split())))}
 n_class = len(word2idx)

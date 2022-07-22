@@ -7,8 +7,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from torch.utils.data import Dataset
 sys.path.append("../")
-from tools.utils import BOS_TOKEN, EOS_TOKEN, PAD_TOKEN
-from tools.utils import BOW_TOKEN, EOW_TOKEN
+from tools.utils import BOS_TOKEN, EOS_TOKEN, PAD_TOKEN,BOW_TOKEN, EOW_TOKEN
 from tools.utils import get_loader
 from tools.vocab import Vocab, save_vocab
 
@@ -69,10 +68,12 @@ def load_corpus(path, max_tok_len=None, max_seq_len=None):
         min_freq=2,
         reserved_tokens=[PAD_TOKEN, BOS_TOKEN, EOS_TOKEN]
     )
+    print(vocab_w.token_to_idx)
     print("Building char-level vocabulary")
 
     # 构建字符级别的词表
     vocab_c = Vocab(tokens=list(charset))
+    print(vocab_c.idx_to_token)
 
     # Construct corpus using word_voab and char_vocab；
     # corpus_w 表示的是将单词转数字id， corpus_c表示单个字[[bow, char, eow],...]

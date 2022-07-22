@@ -1,6 +1,7 @@
 # Defined in Section 4.6.4
 
 import torch
+import nltk
 from tools.vocab import Vocab
 from nltk.corpus import reuters
 from torch.utils.data import Dataset, DataLoader
@@ -15,6 +16,7 @@ EOW_TOKEN = "<eow>"
 WEIGHT_INIT_RANGE = 0.1
 
 
+# 加载预下载的数据集
 def load_reuters():
     # 54711篇文章，共包含单词31081个单词
     # from nltk.corpus import reuters
