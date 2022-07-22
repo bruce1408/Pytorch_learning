@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.functional import F
-from torchsummary import summary
+# from torchsummary import summary
 
 # 这里的attention是lstm输出output和查询向量q进行的计算，这里的查询向量其实就是隐状态hn
 

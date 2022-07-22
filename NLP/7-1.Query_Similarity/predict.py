@@ -6,6 +6,7 @@ from sklearn import metrics
 import config.config as cfg
 from models.CNNs import DSSM
 from models.LSTMs import LSTMModel
+from models.LSTMAtten import LSTMAttn
 from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
 from CustomData.dataset import cut_sentence, read_vocab, CustomData, collate_fn_test
@@ -47,9 +48,16 @@ if __name__ == "__main__":
     test_dataset = CustomData(test_data)
     test_data_loader = DataLoader(test_dataset, batch_size=1, collate_fn=collate_fn_test, shuffle=False)
 
+    # 预测使用的网络
+    # 纯CNN
     # model = DSSM(len(vocab), 3)
-    model = LSTMModel(len(vocab), 3)
-    model.load_state_dict(torch.load("./checkpoints/lstm_epoch_1acc_0.651875loss_44.37550634145737"))
+
+    # 双向多层LSTM
+    # model = LSTMModel(len(vocab), 3)
+
+    # LSTM加Attention
+    model = LSTMAttn(len(vocab), 3)
+    model.load_state_dict(torch.load("./checkpoints/BilstmAttn_epoch_1acc_0.640625loss_44.29476088285446"))
     model.eval()
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

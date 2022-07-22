@@ -7,6 +7,7 @@ from sklearn import metrics
 import torch
 from models.CNNs import DSSM
 from models.LSTMs import LSTMModel
+from models.LSTMAtten import LSTMAttn
 import torch.nn as nn
 from config import config as cfg
 from torch.autograd import Variable
@@ -79,7 +80,9 @@ if __name__ == "__main__":
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # model = DSSM(len(vocab), 3)
-    model = LSTMModel(len(vocab), 3)
+    # model = LSTMModel(len(vocab), 3)
+    model = LSTMAttn(len(vocab), 3)
+
     model.to(device)
     cross_loss = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=cfg.lr)  # 使用Adam优化器
@@ -121,7 +124,7 @@ if __name__ == "__main__":
                 if valid_acc > valid_best_acc:
                     valid_best_acc = valid_acc
                     valid_best_loss = valid_loss
-                    torch.save(model.state_dict(), os.path.join(cfg.save_path, "MulBilstm_epoch_"+str(epoch)+"acc_"
+                    torch.save(model.state_dict(), os.path.join(cfg.save_path, "BilstmAttn_epoch_"+str(epoch)+"acc_"
                                                                 + str(valid_acc)+"loss_"+str(valid_loss)))
                     print("save best model, valid_acc:{}".format(valid_acc))
                     improve = "*"
