@@ -5,8 +5,8 @@ import numpy as np
 import random
 from sklearn import metrics
 import torch
-# from models.CNNs import DSSM
-# from models.LSTMBasic import LSTMBasic
+# from models.CNNs import Net
+from models.LSTMBasic import Net
 # from models.LSTMBid import LSTMBid
 from models.LSTMBidAtten import Net
 from models.LSTMMultiLayerBidAttn import Net
