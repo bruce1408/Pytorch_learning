@@ -53,8 +53,8 @@ def evaluate(model, data_iter, device, test=False):
 
 if __name__ == "__main__":
     # 生成单词词典
-    path_train = "./data/KUAKE-QQR_train.json"
-    path_test = "./data/KUAKE-QQR_dev.json"
+    path_train = "data/outputs/KUAKE-QQR_train.json"
+    path_test = "data/outputs/KUAKE-QQR_dev.json"
     randomSeed(0)
     train_data = cut_sentence(path_train)
     val_data = cut_sentence(path_test)

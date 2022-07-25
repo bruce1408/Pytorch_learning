@@ -35,7 +35,7 @@ def evaluate(model, data_iter, device, test=False):
 
 
 if __name__ == "__main__":
-    test_path = "./data/KUAKE-QQR_test.json"
+    test_path = "data/outputs/KUAKE-QQR_test.json"
     test_sentences = cut_sentence(test_path, train=False)
 
     print(test_sentences.__len__())
