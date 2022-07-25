@@ -15,16 +15,10 @@ class DSSM(nn.Module):
         # self.Sigmoid = nn.Sigmoid() # method1
         self.relu = nn.ReLU()
 
-    def forward(self, a, b, lengths_a, lengths_b):
+    def forward(self, a, b, lengths_a=None, lengths_b=None):
 
         a = self.embed(a).sum(1)
         b = self.embed(b).sum(1)
-        # a = self.embed(a)
-        # b = self.embed(b)
-
-        # a = pack_padded_sequence(a, lengths_a, batch_first=True, enforce_sorted=False)
-        # b = pack_padded_sequence(b, lengths_b, batch_first=True, enforce_sorted=False)
-
 
         # torch.tanh
         a = self.relu(self.fc1(a))
@@ -60,6 +54,32 @@ class DSSM(nn.Module):
 if __name__ == "__main__":
     input1 = torch.randint(0, 5, (2, 5))
     input2 = torch.randint(0, 5, (2, 5))
-    model = DSSM(5)
+    model = DSSM(5, 3)
     output = model(input1, input2)
     print(output.shape, output)
+
+    import os
+    import torch.optim as optim
+
+    file = "/Users/bruce/Downloads/requirements.txt"
+
+    # with open(file, "r") as f:
+    #     txt = f.read()
+    #     for eachlein in f:
+    #         print(eachlein)
+    # print(txt)
+    Cosine_lr = True
+    if True:
+        lr = 1e-4
+        Batch_size = 4
+        Freeze_Epoch = 10
+        Unfreeze_Epoch = 20  # 总共 100 epoch
+        optimizer = optim.Adam(model.parameters(), lr, weight_decay=5e-4)
+        if Cosine_lr:
+            lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-5)
+        else:
+            lr_scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9)
+
+        for epoch in range(200):
+            lr_scheduler.step()
+            print("epoch: %d, lr:%f"%(epoch, lr_scheduler.get_lr()[0]))

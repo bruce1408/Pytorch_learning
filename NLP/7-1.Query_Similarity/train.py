@@ -6,8 +6,8 @@ import random
 from sklearn import metrics
 import torch
 from models.CNNs import DSSM
-from models.LSTMs import LSTMModel
-from models.LSTMAtten import LSTMAttn
+from models.LSTMBasic import LSTMModel
+from models.LSTMBidAtten import LSTMAttn
 import torch.nn as nn
 from config import config as cfg
 from torch.autograd import Variable
@@ -86,6 +86,8 @@ if __name__ == "__main__":
     model.to(device)
     cross_loss = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=cfg.lr)  # 使用Adam优化器
+    lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-5)
+
     model.train()
 
     total_batch = 0
@@ -109,6 +111,7 @@ if __name__ == "__main__":
             # model.zero_grad() # 这种好像也可以
             loss.backward()
             optimizer.step()
+            lr_scheduler.step()
             if total_batch % cfg.display_interval == 0:
                 # 每多少轮输出在训练集和验证集上的效果
                 # msg = 'Iter: {0:>6},  Train Loss: {1:>5.2}'

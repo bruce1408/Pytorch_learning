@@ -3,7 +3,7 @@ import sys
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
-from torchsummary import summary
+# from torchsummary import summary
 # from dataset.Custom import CustomData
 from torchvision.models import vgg11
 from CV.utils.DataSet_train_val_test import CustomData
@@ -141,11 +141,11 @@ if __name__ == '__main__':
     criterion.cuda()
 
     # ============ model structure ===========
-    print(model)
-    if torch.cuda.is_available():
-        summary(model.cuda(), (3, 224, 224))
-    else:
-        summary(model, (3, 224, 224))
+    # print(model)
+    # if torch.cuda.is_available():
+    #     summary(model.cuda(), (3, 224, 224))
+    # else:
+    #     summary(model, (3, 224, 224))
     # ============= load the model ============
     if os.path.exists(save_path):
         model.load_state_dict(torch.load(save_path))

@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Apr  1 21:21:46 2020
 
-@author: ljh
-"""
 import os
 import torch
 from tqdm.auto import tqdm
@@ -55,7 +51,7 @@ traindataset = Label_Dataset(trainContent)
 testdataset = Label_Dataset(testContent)
 
 testdataloder = DataLoader(testdataset, batch_size=1, shuffle=False)
-batch_size = 8
+batch_size = 1
 traindataloder = DataLoader(traindataset, batch_size=batch_size, shuffle=True)
 
 class_list = [x.strip() for x in open(os.path.join(data_dir, "class.txt")).readlines()]
@@ -135,7 +131,8 @@ def train(model, traindataloder, testdataloder):
             scheduler.step()  # Update learning rate schedule
             model.zero_grad()
 
-            if total_batch % 100 == 0:
+            if total_batch % 10 == 0:
+                print('lr: ', scheduler.get_lr()[0])
                 # 每多少轮输出在训练集和验证集上的效果
                 truelabel = labels.data.cpu()
                 predic = torch.argmax(logits, axis=1).data.cpu()

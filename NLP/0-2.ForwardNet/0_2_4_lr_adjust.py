@@ -26,7 +26,7 @@ def mannual_lr():
 
     for epoch in range(40):
         optimizer.step()
-        print(epoch, lrr.get_last_lr()[0])
+        print('epoch:{}, {}'.format(epoch, lrr.get_last_lr()[0]))
         lrr.step()
         scheduler.step()
 
