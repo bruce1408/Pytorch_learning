@@ -1,12 +1,13 @@
 import os
 import torch
+import time
 import torch.nn as nn
 import numpy as np
+from importlib import import_module
 from sklearn import metrics
 import config.config as cfg
-from models.CNNs import DSSM
-from models.LSTMBasic import LSTMModel
-from models.LSTMBidAtten import LSTMAttn
+# from models.DSSM import DSSM
+# from models.LSTMBidAtten import LSTMAttn
 from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
 from CustomData.dataset import cut_sentence, read_vocab, CustomData, collate_fn_test
@@ -47,36 +48,64 @@ if __name__ == "__main__":
 
     test_dataset = CustomData(test_data)
     test_data_loader = DataLoader(test_dataset, batch_size=1, collate_fn=collate_fn_test, shuffle=False)
+    models = [
+        # "DSSM_epoch_4acc_0.643125loss_46.79949390888214",
+        "LSTMBasic_epoch_1acc_0.643125loss_44.17954781651497",  # 0.6429
+        # "LSTMBidAtten_epoch_1acc_0.643125loss_44.53440725803375",
+        # "LSTMMultiLayerBidAttn_epoch_1acc_0.64loss_46.53512938320637",
+        # "LSTMBasic_epoch_1acc_0.638125loss_44.325793623924255"
+    ]
+
+    model_merge = False
+    if len(models) > 1:
+        model_merge = True
+        print("multi model has found")
 
     # 预测使用的网络
     # 纯CNN
-    model = DSSM(len(vocab), 3)
 
-    # 双向多层LSTM
-    # model = LSTMModel(len(vocab), 3)
+    timestr = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    merge_labels = []
+    for modelname in models:
+        model_name_prefix = modelname.split("_")[0]
 
-    # LSTM加Attention
-    # model = LSTMAttn(len(vocab), 3)
-    model.load_state_dict(torch.load("./checkpoints/lstm_epoch_1acc_0.651875loss_44.37550634145737"))
-    model.eval()
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model_father = import_module("models."+model_name_prefix)
+        model = model_father.Net(len(vocab), 3)
 
-    predict_all = np.array([], dtype=int)
-    labels_all = np.array([], dtype=int)
-    with torch.no_grad():
-        for batch in tqdm(test_data_loader):
-            first_txt, second_txt, lengths_first, lengths_second = [x.to(device) for x in batch]
-            # print(first_txt.shape, second_txt.shape, labels.shape, lengths.shape)
-            outputs = model(first_txt, second_txt, lengths_first, lengths_second)
-            # loss = F.cross_entropy(outputs, labels)
-            # loss_total += loss.item()
-            # labels = labels.data.cpu().numpy()
-            predic = torch.max(outputs.data, 1)[1].cpu().numpy()
-            # labels_all = np.append(labels_all, labels)
-            predict_all = np.append(predict_all, predic)
+        # 双向多层LSTM
+        # model = LSTMModel(len(vocab), 3)
 
-    print(predict_all.flatten())
-    label = predict_all.flatten()
-    print(len(label))
-    write_json(label)
+        # LSTM加Attention
+        # model = LSTMAttn(len(vocab), 3)
+        model.load_state_dict(torch.load("./checkpoints/"+modelname))
+        model.eval()
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+        # predict_all = np.array([], dtype=int)
+        predict_all = np.array([], dtype=int)
+        labels_all = np.array([], dtype=int)
+
+        with torch.no_grad():
+            for batch in tqdm(test_data_loader):
+                first_txt, second_txt, lengths_first, lengths_second = [x.to(device) for x in batch]
+                # print(first_txt.shape, second_txt.shape, labels.shape, lengths.shape)
+                outputs = model(first_txt, second_txt, lengths_first, lengths_second)
+                predic = torch.max(outputs.data, 1)[1].cpu().numpy()
+                predict_all = np.append(predict_all, predic)
+
+        # labels = predict_all.flatten()
+        merge_labels.append(predict_all.flatten())
+        # write_json(labels, timestr)
+
+    if not model_merge:
+        labels = predict_all.flatten()
+        print("single model to predict result...")
+    else:
+        labels = np.array(merge_labels).reshape((-1, 1596))
+        # print(total_labels.shape)
+        labels = np.around(np.mean(labels, axis=0))
+        # print(len(label))
+        # labels_all = np.append(labels_all, np.array(label))
+        # print(np.array(total_labels).shape)
+        print("multi models to predict result...")
+    write_json(labels.astype(int), timestr)

@@ -5,7 +5,11 @@ import numpy as np
 import random
 from sklearn import metrics
 import torch
-from models.CNNs import DSSM
+# from models.CNNs import DSSM
+# from models.LSTMBasic import LSTMBasic
+# from models.LSTMBid import LSTMBid
+from models.LSTMBidAtten import Net
+from models.LSTMMultiLayerBidAttn import Net
 import torch.nn as nn
 from config import config as cfg
 from torch.autograd import Variable
@@ -55,17 +59,9 @@ if __name__ == "__main__":
     train_data = cut_sentence(path_train)
     val_data = cut_sentence(path_test)
 
-    # 生成词典的过程
-    total_sentence = [word for each_pair in train_data for word in each_pair[0]]
-    total_sentence += [word for each_pair in train_data for word in each_pair[1]]
-    total_sentence += [word for each_pair in val_data for word in each_pair[0]]
-    total_sentence += [word for each_pair in val_data for word in each_pair[1]]
-    # print(total_sentence)
-    vocab = generate_vocab(total_sentence)
+    print("loading the vocab from local file...")
+    vocab = read_vocab("./data/vocab")
 
-    # # print the len of the vocab
-    print(len(vocab))
-    save_vocab(vocab, "./data/vocab")
     # print(vocab.token_to_idx)
 
     train_data, val_data = generate_data(vocab, train_data, val_data)
@@ -77,9 +73,11 @@ if __name__ == "__main__":
     val_data_loader = DataLoader(val_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DSSM(len(vocab), 3)
-    # model = LSTMModel(len(vocab), 3)
+    # model = DSSM(len(vocab), 3)
+    # model = LSTMBasic(len(vocab), 3)
+    # model = LSTMBid(len(vocab), 3)
     # model = LSTMAttn(len(vocab), 3)
+    model = Net(len(vocab), 3)
 
     model.to(device)
     cross_loss = nn.CrossEntropyLoss()
@@ -87,9 +85,9 @@ if __name__ == "__main__":
     lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-5)
 
     model.train()
-
+    model_prefix = model.name
     total_batch = 0
-    valid_best_acc = 0.
+    valid_best_acc = 0.63
     # dev_best_loss = float('inf')
     last_improve = 0  # 记录上次验证集loss下降的batch数
     flag = False  # 记录是否很久没有效果提升
@@ -125,7 +123,7 @@ if __name__ == "__main__":
                 if valid_acc > valid_best_acc:
                     valid_best_acc = valid_acc
                     valid_best_loss = valid_loss
-                    torch.save(model.state_dict(), os.path.join(cfg.save_path, "BilstmAttn_epoch_"+str(epoch)+"acc_"
+                    torch.save(model.state_dict(), os.path.join(cfg.save_path, model_prefix+"_epoch_"+str(epoch)+"acc_"
                                                                 + str(valid_acc)+"loss_"+str(valid_loss)))
                     print("save best model, valid_acc:{}".format(valid_acc))
                     improve = "*"

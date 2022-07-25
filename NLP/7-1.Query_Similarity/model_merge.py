@@ -5,7 +5,7 @@ import numpy as np
 from sklearn import metrics
 import config.config as cfg
 from importlib import import_module
-from models import CNNs, LSTMBasic, LSTMBidAtten
+from models import DSSM, LSTMBasic, LSTMBidAtten
 from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
 from CustomData.dataset import cut_sentence, read_vocab, CustomData, collate_fn_test

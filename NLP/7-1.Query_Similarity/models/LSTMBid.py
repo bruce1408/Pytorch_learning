@@ -3,10 +3,10 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
-class LSTMBid(nn.Module):
+class Net(nn.Module):
 
     def __init__(self, embed_size, label_size, dropout=0.3):
-        super(LSTMBid, self).__init__()
+        super(Net, self).__init__()
         self.embed = nn.Embedding(embed_size, 100)
         # 双向lstm
         self.lstm = nn.LSTM(100, 100, batch_first=True, bidirectional=True)
@@ -53,6 +53,6 @@ if __name__ == "__main__":
     input1_len = torch.tensor([2, 1])
     input2_len = torch.tensor([3, 4])
 
-    model = LSTMBid(5, 3)
+    model = Net(5, 3)
     output = model(input1, input2, input1_len, input2_len)
     print(output.shape, output)

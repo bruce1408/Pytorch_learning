@@ -3,10 +3,12 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
 
 
-class DSSM(nn.Module):
-
+class Net(nn.Module):
+    """
+    DSSM
+    """
     def __init__(self, embed_size, label_size, dropout=0.2):
-        super(DSSM, self).__init__()
+        super(Net, self).__init__()
         self.embed = nn.Embedding(embed_size, 100)
         self.fc1 = nn.Linear(100, 256)
         self.fc2 = nn.Linear(256, 512)
@@ -55,7 +57,7 @@ class DSSM(nn.Module):
 if __name__ == "__main__":
     input1 = torch.randint(0, 5, (2, 5))
     input2 = torch.randint(0, 5, (2, 5))
-    model = DSSM(5, 3)
+    model = Net(5, 3)
     output = model(input1, input2)
     print(output.shape, output)
 

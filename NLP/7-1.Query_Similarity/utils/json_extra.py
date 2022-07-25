@@ -18,9 +18,10 @@ def read_json(path):
     return total_data
 
 
-def write_json(labels):
+def write_json(labels, time):
     # 写json文件，本示例代码从测试集KUAKE-QQR_test.json读取数据数据，将预测后的数据写入到KUAKE-QQR_test_pred.json：
-    with open('./data/KUAKE-QQR_test.json') as input_data, open('./data/KUAKE-QQR_test_pred_best.json', 'w') as output_data:
+    with open('./data/KUAKE-QQR_test.json') as input_data, open('./data/KUAKE-QQR_test_pred_best_725' + str(time) + '.json',
+                                                                'w') as output_data:
         json_content = json.load(input_data)
         # 逐条读取记录，并将预测好的label赋值
         i = 0

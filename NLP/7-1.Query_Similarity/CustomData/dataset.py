@@ -129,39 +129,53 @@ EOW_TOKEN = "<eow>"
 
 
 if __name__ == "__main__":
-    sen = ["hello", "my", "name", "is", "cui", "dong", "dong"]
-    txt = Vocab(sen)
-    print(txt.token_to_idx)
-    # 字符级别
-    # txt = Vocab.build(sen, min_freq=2, reserved_tokens=[PAD_TOKEN, BOS_TOKEN, EOS_TOKEN])
-    # print(txt.idx_to_token)
 
     # 生成单词词典
-    path_train = "../data/KUAKE-QQR_train.json"
-    path_test = "../data/KUAKE-QQR_dev.json"
-
+    path_train = "./data/KUAKE-QQR_train.json"
+    path_test = "./data/KUAKE-QQR_dev.json"
     train_data = cut_sentence(path_train)
     val_data = cut_sentence(path_test)
 
     # 生成词典的过程
-    total_sentence = [word for each_pair in train_data for word in each_pair[0]]
-    total_sentence += [word for each_pair in train_data for word in each_pair[1]]
-    total_sentence += [word for each_pair in val_data for word in each_pair[0]]
-    total_sentence += [word for each_pair in val_data for word in each_pair[1]]
-    vocab = generate_vocab(total_sentence)
+    # total_sentence = [word for each_pair in train_data for word in each_pair[0]]
+    # total_sentence += [word for each_pair in train_data for word in each_pair[1]]
+    # total_sentence += [word for each_pair in val_data for word in each_pair[0]]
+    # total_sentence += [word for each_pair in val_data for word in each_pair[1]]
+    # # print(total_sentence)
+    # vocab = generate_vocab(total_sentence)
 
     # # print the len of the vocab
-    print(len(vocab))
+    # print(len(vocab))
+    # save_vocab(vocab, "./data/vocab")
+    # 保存词典
 
-    train_data, val_data = generate_data(vocab, train_data, val_data)
-    print(train_data.__len__(), val_data.__len__())
 
-    train_dataset = CustomData(train_data)
-    train_data_loader = DataLoader(train_dataset, batch_size=3, collate_fn=collate_fn, shuffle=True)
+    # 字符级别
+    # txt = Vocab.build(sen, min_freq=2, reserved_tokens=[PAD_TOKEN, BOS_TOKEN, EOS_TOKEN])
+    # print(txt.idx_to_token)
 
-    epoch = 64
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # # 生成词典的过程
+    # total_sentence = [word for each_pair in train_data for word in each_pair[0]]
+    # total_sentence += [word for each_pair in train_data for word in each_pair[1]]
+    # total_sentence += [word for each_pair in val_data for word in each_pair[0]]
+    # total_sentence += [word for each_pair in val_data for word in each_pair[1]]
+    # vocab = generate_vocab(total_sentence)
+    #
+    # # # print the len of the vocab
+    # print(len(vocab))
+    #
+    # train_data, val_data = generate_data(vocab, train_data, val_data)
+    # print(train_data.__len__(), val_data.__len__())
+    #
+    # train_dataset = CustomData(train_data)
+    # train_data_loader = DataLoader(train_dataset, batch_size=3, collate_fn=collate_fn, shuffle=True)
+    #
+    # epoch = 64
+    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    #
+    # for batch in tqdm(train_data_loader, desc=f"Training Epoch {epoch}"):
+    #     first_txt, second_txt, lengths_fir, lengths_second, labels = [x.to(device) for x in batch]
+    #     print(first_txt.shape, second_txt.shape, labels.shape, lengths_fir.shape)
 
-    for batch in tqdm(train_data_loader, desc=f"Training Epoch {epoch}"):
-        first_txt, second_txt, lengths_fir, lengths_second, labels = [x.to(device) for x in batch]
-        print(first_txt.shape, second_txt.shape, labels.shape, lengths_fir.shape)
+    # sen = ["hello", "my", "name", "is", "cui", "dong", "dong"]
+    # txt = Vocab(sen)
