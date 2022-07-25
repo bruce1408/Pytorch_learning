@@ -15,6 +15,7 @@ class LSTMBasic(nn.Module):
         self.dropout = nn.Dropout(dropout)
         # self.Sigmoid = nn.Sigmoid() # method1
         self.relu = nn.ReLU()
+        self.name = "LSTMBasic"
 
     def forward(self, a, b, lengths_a, lengths_b):
         a = self.embed(a)

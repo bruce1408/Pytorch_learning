@@ -14,6 +14,7 @@ class DSSM(nn.Module):
         self.dropout = nn.Dropout(dropout)
         # self.Sigmoid = nn.Sigmoid() # method1
         self.relu = nn.ReLU()
+        self.name = "DSSM"
 
     def forward(self, a, b, lengths_a=None, lengths_b=None):
 

@@ -18,6 +18,7 @@ class LSTMAttn(nn.Module):
         self.dropout = nn.Dropout(dropout)
         # self.Sigmoid = nn.Sigmoid() # method1
         self.relu = nn.ReLU()
+        self.name = "LSTMBidAtten"
 
     def attention_net(self, lstm_output, final_state):
         # hidden : [batch_size, n_hidden * num_directions(=2), 1(=n_layer)]
@@ -60,11 +61,11 @@ class LSTMAttn(nn.Module):
 
 
 if __name__ == "__main__":
-    input1 = torch.randint(0, 5, (2, 5))
-    input2 = torch.randint(0, 5, (2, 5))
+    input1 = torch.randint(0, 5, (3, 5))
+    input2 = torch.randint(0, 5, (3, 5))
 
-    input1_len = torch.tensor([2, 1])
-    input2_len = torch.tensor([3, 4])
+    input1_len = torch.tensor([2, 1, 3])
+    input2_len = torch.tensor([3, 4, 2])
 
     model = LSTMAttn(5, 3)
     output = model(input1, input2, input1_len, input2_len)

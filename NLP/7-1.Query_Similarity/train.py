@@ -6,8 +6,6 @@ import random
 from sklearn import metrics
 import torch
 from models.CNNs import DSSM
-from models.LSTMBasic import LSTMModel
-from models.LSTMBidAtten import LSTMAttn
 import torch.nn as nn
 from config import config as cfg
 from torch.autograd import Variable
@@ -79,9 +77,9 @@ if __name__ == "__main__":
     val_data_loader = DataLoader(val_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # model = DSSM(len(vocab), 3)
+    model = DSSM(len(vocab), 3)
     # model = LSTMModel(len(vocab), 3)
-    model = LSTMAttn(len(vocab), 3)
+    # model = LSTMAttn(len(vocab), 3)
 
     model.to(device)
     cross_loss = nn.CrossEntropyLoss()
