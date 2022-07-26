@@ -47,6 +47,8 @@ class Label_Dataset(dataset.Dataset):
 trainContent = read_file(os.path.join(data_dir, "train.txt"))
 testContent = read_file(os.path.join(data_dir, "test.txt"))
 
+print('trainContent', trainContent)
+
 traindataset = Label_Dataset(trainContent)
 testdataset = Label_Dataset(testContent)
 
@@ -108,6 +110,7 @@ def train(model, traindataloder, testdataloder):
         for i, (sku_name, labels) in enumerate(traindataloder):
             model.train()
 
+            # print('bert model: ', sku_name, labels)
             # max_length=model.config.max_position_embeddings,  #模型的配置文件中就是512，当有超过这个长度的会报错
             ids = tokenizer.batch_encode_plus(sku_name,
                                               pad_to_max_length=True,
