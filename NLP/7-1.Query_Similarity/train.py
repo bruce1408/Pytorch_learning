@@ -7,7 +7,6 @@ from sklearn import metrics
 import torch
 # from models.CNNs import Net
 from models.LSTMBasic import Net
-# from models.LSTMBid import LSTMBid
 from models.LSTMBidAtten import Net
 from models.LSTMMultiLayerBidAttn import Net
 import torch.nn as nn
@@ -59,27 +58,23 @@ if __name__ == "__main__":
     train_data = cut_sentence(path_train)
     val_data = cut_sentence(path_test)
 
+    # there are multi models choose
+    models_names = ["DSSM", "LSTMBasic", "LSTMBid", "LSTMBidAtten", "LSTMMultiLayerBidAttn", "Bert"]
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     print("loading the vocab from local file...")
     vocab = read_vocab("./data/vocab")
-
     # print(vocab.token_to_idx)
 
     train_data, val_data = generate_data(vocab, train_data, val_data)
-
     train_dataset = CustomData(train_data)
     train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn, shuffle=True)
 
     val_dataset = CustomData(val_data)
     val_data_loader = DataLoader(val_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn)
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # model = DSSM(len(vocab), 3)
-    # model = LSTMBasic(len(vocab), 3)
-    # model = LSTMBid(len(vocab), 3)
-    # model = LSTMAttn(len(vocab), 3)
-    model = Net(len(vocab), 3)
-
-    model.to(device)
+    model = Net(len(vocab), 3).to(device)
+    # model.to(device)
     cross_loss = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=cfg.lr)  # 使用Adam优化器
     lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-5)
@@ -92,11 +87,12 @@ if __name__ == "__main__":
     last_improve = 0  # 记录上次验证集loss下降的batch数
     flag = False  # 记录是否很久没有效果提升
 
-    # save_path = "./checkpoints/"
-    if os.path.exists(cfg.save_path):
-        print("save model path exist!")
-    else:
-        os.mkdir(cfg.save_path)
+    # 目录存在的时候不会创建
+    os.makedirs(cfg.save_path, exist_ok=True)
+    # if os.path.exists(cfg.save_path):
+    #     print("save model path exist!")
+    # else:
+    #     os.mkdir(cfg.save_path)
     for epoch in range(1, cfg.max_epochs):
         for batch in tqdm(train_data_loader, desc=f"Training Epoch {epoch}"):
             optimizer.zero_grad()
