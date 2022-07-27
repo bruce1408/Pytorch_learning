@@ -39,7 +39,7 @@ if __name__ == "__main__":
               "mulBilstm_epoch_1acc_0.645loss_44.17911180853844",
               "BilstmAttn_epoch_1acc_0.643125loss_44.53440725803375"]
 
-    test_path = "data/outputs/KUAKE-QQR_test.json"
+    test_path = "data/KUAKE-QQR_test.json"
     test_sentences = cut_sentence(test_path, train=False)
 
     print(test_sentences.__len__())

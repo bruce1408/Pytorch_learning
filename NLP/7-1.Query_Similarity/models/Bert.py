@@ -13,12 +13,17 @@ class ArgModel(nn.Module):
 
         self.label_size = label_size
         self.fc = nn.Linear(3 * 768, self.label_size)
+        self.name = "Bert"
 
     def forward(self, first_sentence, second_sentence, first_sentence_mask=None, second_sentence_mask=None):
+
         first_output = self.first_bert(first_sentence, first_sentence_mask)
+        # print('first output: ', first_output.shape)
         second_output = self.second_bert(second_sentence, second_sentence_mask)
+
         concat_results = torch.cat((first_output, second_output, first_output - second_output), dim=1)
-        print(concat_results.size())
+        # print(concat_results.size())
+
         outputs = self.fc(concat_results)
         return outputs
 
@@ -38,6 +43,7 @@ class Net(nn.Module):
         if attention_mask is not None:
             bert_outputs = self.bert(inp, attention_mask)
             output_tokens_embeddings = bert_outputs[0]
+
             input_mask_expanded = attention_mask.unsqueeze(-1).expand(output_tokens_embeddings.size()).float()
             sum_embeddings = torch.sum(output_tokens_embeddings * input_mask_expanded, 1)
             sum_mask = input_mask_expanded.sum(1)

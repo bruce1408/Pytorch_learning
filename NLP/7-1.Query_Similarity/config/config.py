@@ -5,6 +5,9 @@ max_epochs = 200
 
 start_epoch = 1
 
+use_bert = True
+pretrain_path = "/Users/bruce/PycharmProjects/cail2020/pretrain_model/ERNIE_1.0_max-len-512-pytorch"
+
 datasets = "xx"
 
 # number of workers to load training data
@@ -42,7 +45,7 @@ jitter = 0.3
 
 thresh = .6
 
-batch_size = 32
+batch_size = 3
 
 lr = 0.001
 

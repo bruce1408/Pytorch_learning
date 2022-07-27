@@ -1,6 +1,7 @@
 import sys
 import torch
 import jieba
+
 sys.path.append("../")
 from itertools import chain
 import torch.nn as nn
@@ -12,6 +13,17 @@ from utils.json_extra import read_json
 from torch.nn.utils.rnn import pad_sequence
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from collections import defaultdict, Counter
+
+
+class BertData(Dataset):
+    def __init__(self, data):
+        self.data = data
+
+    def __len__(self):  # 返回数据长度
+        return len(self.data)
+
+    def __getitem__(self, ind):
+        return self.data[ind]
 
 
 class CustomData(Dataset):
@@ -26,7 +38,6 @@ class CustomData(Dataset):
 
 
 def collate_fn(examples):
-
     lengths_first = torch.tensor([len(ex[0]) for ex in examples])
     lengths_second = torch.tensor([len(ex[1]) for ex in examples])
     first_sen = [torch.tensor(ex[0]) for ex in examples]
@@ -47,6 +58,13 @@ def collate_fn_test(examples):
     first_sen = pad_sequence(first_sen, batch_first=True, padding_value=0)
     second_sen = pad_sequence(second_sen, batch_first=True, padding_value=0)
     return first_sen, second_sen, lengths_first, lengths_second
+
+
+def collate_fn_bert(examples):
+    first_setence = [ex[0] for ex in examples]
+    second_setence = [ex[1] for ex in examples]
+    labels = torch.LongTensor([int(ex[2]) for ex in examples])
+    return first_setence, second_setence, labels
 
 
 class Vocab:
@@ -85,11 +103,17 @@ class Vocab:
         return [self.idx_to_token[index] for index in indices]
 
 
-def cut_sentence(path, train=True):
+def cut_sentence(path, train=True, bertModel=False):
     # 第一句放一个集合，第二句放一个集合
     data = read_json(path)
-    total_data = [(jieba.lcut(eachpair[1], cut_all=False), jieba.lcut(eachpair[2], cut_all=False), int(float(eachpair[3]))) \
-                      if train else (jieba.lcut(eachpair[1], cut_all=False), jieba.lcut(eachpair[2], cut_all=False)) for eachpair in data]
+    if bertModel:
+        total_data = [(eachpair[1], eachpair[2], int(float(eachpair[3]))) \
+                          if train else (eachpair[1], eachpair[2]) for eachpair in data]
+    else:
+        total_data = [
+            (jieba.lcut(eachpair[1], cut_all=False), jieba.lcut(eachpair[2], cut_all=False), int(float(eachpair[3]))) \
+                if train else (jieba.lcut(eachpair[1], cut_all=False), jieba.lcut(eachpair[2], cut_all=False)) for
+            eachpair in data]
 
     return total_data
 
@@ -112,7 +136,6 @@ def read_vocab(path):
 
 
 def generate_data(vocab, train_data, val_data):
-
     train_data = [(vocab.convert_tokens_to_ids(pairdata[0]), vocab.convert_tokens_to_ids(pairdata[1]), pairdata[2]) for
                   pairdata in train_data]
     val_data = [(vocab.convert_tokens_to_ids(pairdata[0]), vocab.convert_tokens_to_ids(pairdata[1]), pairdata[2]) for
@@ -127,15 +150,13 @@ PAD_TOKEN = "<pad>"
 BOW_TOKEN = "<bow>"
 EOW_TOKEN = "<eow>"
 
-
 if __name__ == "__main__":
-
     # 生成单词词典
-    path_train = "./data/KUAKE-QQR_train.json"
-    path_test = "./data/KUAKE-QQR_dev.json"
-    train_data = cut_sentence(path_train)
+    path_train = "../data/KUAKE-QQR_train.json"
+    path_test = "../data/KUAKE-QQR_dev.json"
+    train_data = cut_sentence(path_train, bertModel=True)
     val_data = cut_sentence(path_test)
-
+    print(train_data, train_data.__len__())
     # 生成词典的过程
     # total_sentence = [word for each_pair in train_data for word in each_pair[0]]
     # total_sentence += [word for each_pair in train_data for word in each_pair[1]]
@@ -148,7 +169,6 @@ if __name__ == "__main__":
     # print(len(vocab))
     # save_vocab(vocab, "./data/vocab")
     # 保存词典
-
 
     # 字符级别
     # txt = Vocab.build(sen, min_freq=2, reserved_tokens=[PAD_TOKEN, BOS_TOKEN, EOS_TOKEN])
