@@ -5,19 +5,20 @@ import numpy as np
 import random
 from sklearn import metrics
 import torch
-# from models.CNNs import Net
+import argparse
+from models.DSSM import Net
 from models.LSTMBasic import Net
+from models.LSTMBid import Net
 from models.LSTMBidAtten import Net
 from models.LSTMMultiLayerBidAttn import Net
 from models.Bert import Net
 import torch.nn as nn
 from config import config as cfg
-from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torch import optim
 from transformers import BertTokenizer
 from tqdm.auto import tqdm
-from CustomData.dataset import generate_data, BertData, cut_sentence, CustomData, collate_fn, save_vocab, read_vocab
+from CustomData.dataset import generate_data, BertData, cut_sentence, CustomData, collate_fn, read_vocab
 from CustomData.dataset import collate_fn_bert
 
 
@@ -62,6 +63,13 @@ def evaluate(model, data_iter, device, bertModel=False, test=False):
     return acc, loss_total
 
 
+parser = argparse.ArgumentParser(description='similarity pair')
+parser.add_argument('--model', type=str, default='Bert', help='choose a model: "DSSM", "LSTMBasic",'
+                                                              ' "LSTMBid", "LSTMBidAtten",'
+                                                              ' "LSTMMultiLayerBidAttn", "Bert"')
+args = parser.parse_args()
+
+
 if __name__ == "__main__":
     # 生成单词词典
     path_train = "data/KUAKE-QQR_train.json"
@@ -76,79 +84,29 @@ if __name__ == "__main__":
     # dev_best_loss = float('inf')
     last_improve = 0  # 记录上次验证集loss下降的batch数
     flag = False  # 记录是否很久没有效果提升
-
+    use_bert = False
     # 目录存在的时候不会创建
     os.makedirs(cfg.save_path, exist_ok=True)
 
-    if cfg.use_bert:
+    model_name_prefix = args.model
+    model_father = import_module("models." + model_name_prefix)
+    if model_name_prefix == "Bert":
+        use_bert = True
         train_data = cut_sentence(path_train, bertModel=True)
         val_data = cut_sentence(path_test, bertModel=True)
 
         train_dataset = BertData(train_data)
         val_dataset = BertData(val_data)
 
-        train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn_bert, shuffle=True)
+        train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn_bert,
+                                       shuffle=True)
         val_data_loader = DataLoader(val_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn_bert)
 
-        model = Net(cfg.pretrain_path, label_size=3)
-        model.to(device)
+        model = model_father.Net(cfg.pretrain_path, label_size=3)
+
         tokenizer = BertTokenizer.from_pretrained(cfg.pretrain_path)
 
-        cross_loss = nn.CrossEntropyLoss()
-        optimizer = optim.AdamW(model.parameters(), lr=cfg.lr)  # 使用Adam优化器
-        lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-5)
 
-        model.train()
-        model_prefix = model.name
-
-        for epoch in range(1, cfg.max_epochs):
-            for batch in tqdm(train_data_loader, desc=f"Training Epoch {epoch}"):
-                optimizer.zero_grad()
-
-                first_txt, second_txt, labels = batch
-
-                inp_first = tokenizer.batch_encode_plus(first_txt, padding=True, return_tensors='pt')
-                inp_second = tokenizer.batch_encode_plus(second_txt, padding=True, return_tensors='pt')
-
-                outputs = model(inp_first["input_ids"].to(device), inp_second["input_ids"].to(device),
-                                inp_first["attention_mask"].to(device), inp_second["attention_mask"].to(device))
-
-                labels = labels.to(device)
-                # print(labels.shape)
-
-                loss = cross_loss(outputs, labels)
-                # model.zero_grad() # 这种好像也可以
-                loss.backward()
-                optimizer.step()
-                lr_scheduler.step()
-                if total_batch % cfg.display_interval == 0:
-                    # 每多少轮输出在训练集和验证集上的效果
-                    true = labels.data.cpu()
-                    predic = torch.max(outputs.data, 1)[1].cpu()
-                    # print(predic)
-                    train_acc = metrics.accuracy_score(true, predic)
-                    valid_acc, valid_loss = evaluate(model, val_data_loader, device, bertModel=True)
-                    msg = 'Iter: {0:>6},  Train Loss: {1:>5.2},  Train Acc: {2:>6.2%},  Val Loss: {3:>5.2}, Val Acc: {' \
-                          '4:>6.2%} '
-                    print(msg.format(total_batch, loss.item(), train_acc, valid_loss, valid_acc))
-                    if valid_acc > valid_best_acc:
-                        valid_best_acc = valid_acc
-                        valid_best_loss = valid_loss
-                        torch.save(model.state_dict(), os.path.join(cfg.save_path, model_prefix+"_epoch_"+str(epoch)+"acc_"
-                                                                    + str(valid_acc)+"loss_"+str(valid_loss)))
-                        print("save best model, valid_acc:{}".format(valid_acc))
-                        improve = "*"
-                        last_improve = total_batch
-                    else:
-                        improve = ""
-                total_batch += 1
-                if total_batch - last_improve > cfg.require_improvement:
-                    # 验证集loss超过1000batch没下降，结束训练
-                    print("No optimization for a long time, auto-stopping...")
-                    flag = True
-                    break
-                if flag:
-                    break
     else:
         train_data = cut_sentence(path_train)
         val_data = cut_sentence(path_test)
@@ -162,53 +120,62 @@ if __name__ == "__main__":
 
         val_dataset = CustomData(val_data)
         val_data_loader = DataLoader(val_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn)
+        model = model_father.Net(len(vocab), 3)
 
-        model = Net(len(vocab), 3).to(device)
-        model.to(device)
+    model.to(device)
+    cross_loss = nn.CrossEntropyLoss()
+    optimizer = optim.AdamW(model.parameters(), lr=cfg.lr)  # 使用Adam优化器
+    lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-5)
 
-        cross_loss = nn.CrossEntropyLoss()
-        optimizer = optim.AdamW(model.parameters(), lr=cfg.lr)  # 使用Adam优化器
-        lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-5)
+    model.train()
 
-        model.train()
-        model_prefix = model.name
+    for epoch in range(1, cfg.max_epochs):
+        for batch in tqdm(train_data_loader, desc=f"Training Epoch {epoch}"):
+            optimizer.zero_grad()
+            if model_name_prefix == "Bert":
+                first_txt, second_txt, labels = batch
+                labels = labels.to(device)
 
-        for epoch in range(1, cfg.max_epochs):
-            for batch in tqdm(train_data_loader, desc=f"Training Epoch {epoch}"):
-                optimizer.zero_grad()
+                inp_first = tokenizer.batch_encode_plus(first_txt, padding=True, return_tensors='pt')
+                inp_second = tokenizer.batch_encode_plus(second_txt, padding=True, return_tensors='pt')
+
+                outputs = model(inp_first["input_ids"].to(device), inp_second["input_ids"].to(device),
+                                inp_first["attention_mask"].to(device), inp_second["attention_mask"].to(device))
+            else:
+
                 first_txt, second_txt, lengths_first, lengths_second, labels = [x.to(device) for x in batch]
-                # print(first_txt.shape, second_txt.shape, labels.shape, lengths.shape)
                 outputs = model(first_txt, second_txt, lengths_first, lengths_second)
-                loss = cross_loss(outputs, labels)
-                # model.zero_grad() # 这种好像也可以
-                loss.backward()
-                optimizer.step()
-                lr_scheduler.step()
-                if total_batch % cfg.display_interval == 0:
-                    # 每多少轮输出在训练集和验证集上的效果
-                    true = labels.data.cpu()
-                    predic = torch.max(outputs.data, 1)[1].cpu()
-                    # print(predic)
-                    train_acc = metrics.accuracy_score(true, predic)
-                    valid_acc, valid_loss = evaluate(model, val_data_loader, device)
-                    msg = 'Iter: {0:>6},  Train Loss: {1:>5.2},  Train Acc: {2:>6.2%},  Val Loss: {3:>5.2},  Val Acc: {' \
-                          '4:>6.2%} '
-                    print(msg.format(total_batch, loss.item(), train_acc, valid_loss, valid_acc))
-                    if valid_acc > valid_best_acc:
-                        valid_best_acc = valid_acc
-                        valid_best_loss = valid_loss
-                        torch.save(model.state_dict(), os.path.join(cfg.save_path, model_prefix+"_epoch_"+str(epoch)+"acc_"
-                                                                    + str(valid_acc)+"loss_"+str(valid_loss)))
-                        print("save best model, valid_acc:{}".format(valid_acc))
-                        improve = "*"
-                        last_improve = total_batch
-                    else:
-                        improve = ""
-                total_batch += 1
-                if total_batch - last_improve > cfg.require_improvement:
-                    # 验证集loss超过 1000 batch没下降，结束训练
-                    print("No optimization for a long time, auto-stopping...")
-                    flag = True
-                    break
-                if flag:
-                    break
+
+            loss = cross_loss(outputs, labels)
+            # model.zero_grad() # 这种好像也可以
+            loss.backward()
+            optimizer.step()
+            lr_scheduler.step()
+            if total_batch % cfg.display_interval == 0:
+                # 每多少轮输出在训练集和验证集上的效果
+                true = labels.data.cpu()
+                predic = torch.max(outputs.data, 1)[1].cpu()
+                train_acc = metrics.accuracy_score(true, predic)
+                valid_acc, valid_loss = evaluate(model, val_data_loader, device, use_bert)
+                msg = 'Iter: {0:>6},  Train Loss: {1:>5.2},  Train Acc: {2:>6.2%},  Val Loss: {3:>5.2},  ' \
+                      'Val Acc: {4:>6.2%} '
+                print(msg.format(total_batch, loss.item(), train_acc, valid_loss, valid_acc))
+                if valid_acc > valid_best_acc:
+                    valid_best_acc = valid_acc
+                    valid_best_loss = valid_loss
+                    torch.save(model.state_dict(), os.path.join(cfg.save_path, model.name + "_epoch_" + str(epoch) +
+                                                                "acc_" + str(valid_acc) + "loss_" + str(valid_loss)))
+                    print("save best model, valid_acc:{}".format(valid_acc))
+                    improve = "*"
+                    last_improve = total_batch
+                else:
+                    improve = ""
+            total_batch += 1
+            if total_batch - last_improve > cfg.require_improvement:
+                # 验证集loss超过 1000 batch没下降，结束训练
+                print("No optimization for a long time, auto-stopping...")
+                flag = True
+                break
+            if flag:
+                break
+

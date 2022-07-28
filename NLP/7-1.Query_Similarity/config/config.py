@@ -1,5 +1,11 @@
 import os
-
+import sys
+sys.path.append("../")
+from models.DSSM import Net
+from models.LSTMBasic import Net
+from models.LSTMBid import Net
+from models.LSTMBidAtten import Net
+from models.LSTMMultiLayerBidAttn import Net
 # 'number of epochs to train'
 max_epochs = 200
 
