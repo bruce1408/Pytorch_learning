@@ -18,9 +18,11 @@ def read_json(path):
     return total_data
 
 
-def write_json(labels, time):
+def write_json(labels, time, model_merge):
     # 写json文件，本示例代码从测试集KUAKE-QQR_test.json读取数据数据，将预测后的数据写入到KUAKE-QQR_test_pred.json：
+    model_merge_str = "multi_models_predict" if model_merge else "single_model_predict"
     with open('./data/KUAKE-QQR_test.json') as input_data, open('./data/outputs/KUAKE-QQR_test_pred_best_' +
+                                                                model_merge_str +
                                                                 str(time) + '.json', 'w') as output_data:
         json_content = json.load(input_data)
         # 逐条读取记录，并将预测好的label赋值

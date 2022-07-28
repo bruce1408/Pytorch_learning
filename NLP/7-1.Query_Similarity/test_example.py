@@ -1,7 +1,7 @@
 import os
 import torch.optim as optim
 from importlib import import_module
-file = "/Users/bruce/Downloads/requirements.txt"
+file = "./requirements.txt"
 
 # with open(file, "r") as f:
 #     txt = f.read()

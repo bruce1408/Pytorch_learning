@@ -104,9 +104,7 @@ def predict_result(models, device, bertModel=False):
                     predic = torch.max(outputs.data, 1)[1].cpu().numpy()
                     predict_all = np.append(predict_all, predic)
 
-            # labels = predict_all.flatten()
             merge_labels.append(predict_all.flatten())
-            # write_json(labels, timestr)
 
     if not model_merge:
         # labels = merge_labels.flatten()
@@ -119,7 +117,7 @@ def predict_result(models, device, bertModel=False):
         # labels_all = np.append(labels_all, np.array(label))
         # print(np.array(total_labels).shape)
         print("multi models to predict result...")
-    write_json(labels.astype(int), timestr)
+    write_json(labels.astype(int), timestr, model_merge)
 
 
 if __name__ == "__main__":
@@ -128,8 +126,6 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # 模型融合预测
-    model_merge = False
-
     models = [
         # "DSSM_epoch_4acc_0.643125loss_46.79949390888214",
         "LSTMBasic_epoch_1acc_0.643125loss_44.17954781651497",  # 0.6429
@@ -137,6 +133,7 @@ if __name__ == "__main__":
         # "LSTMMultiLayerBidAttn_epoch_1acc_0.64loss_46.53512938320637",
         # "LSTMBasic_epoch_1acc_0.638125loss_44.325793623924255"
     ]
+
     predict_result(models, device, bertModel=False)
 
 
