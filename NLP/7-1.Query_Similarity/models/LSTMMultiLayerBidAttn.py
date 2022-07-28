@@ -37,7 +37,7 @@ class Net(nn.Module):
         # [batch_size, n_hidden * num_directions(=2), 1]
         context = torch.bmm(lstm_output.transpose(1, 2), soft_attn_weights).view(lstm_output.shape[0], -1, 1).squeeze(2)
         # print("context: ", context.shape)
-        return context, soft_attn_weights.data.numpy()  # context : [batch_size, n_hidden * num_directions(=2)]
+        return context, soft_attn_weights.data.cpu().numpy()  # context : [batch_size, n_hidden * num_directions(=2)]
 
     def forward(self, a, b, lengths_a, lengths_b):
         a = self.embed(a)

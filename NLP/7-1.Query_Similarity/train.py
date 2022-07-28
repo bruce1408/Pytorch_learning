@@ -50,7 +50,7 @@ def evaluate(model, data_iter, device, bertModel=False, test=False):
 
             else:
                 first_txt, second_txt, lengths_first, lengths_second, labels = [x.to(device) for x in batch]
-                outputs = model(first_txt, second_txt, lengths_first, lengths_second)
+                outputs = model(first_txt, second_txt, lengths_first.to('cpu'), lengths_second.to('cpu'))
             loss = cross_loss(outputs, labels)
 
             loss_total += loss.item()
@@ -64,7 +64,7 @@ def evaluate(model, data_iter, device, bertModel=False, test=False):
 
 
 parser = argparse.ArgumentParser(description='similarity pair')
-parser.add_argument('--model', type=str, default='Bert', help='choose a model: "DSSM", "LSTMBasic",'
+parser.add_argument('--model', type=str, default='DSSM', help='choose a model: "DSSM", "LSTMBasic",'
                                                               ' "LSTMBid", "LSTMBidAtten",'
                                                               ' "LSTMMultiLayerBidAttn", "Bert"')
 args = parser.parse_args()
@@ -144,7 +144,7 @@ if __name__ == "__main__":
             else:
 
                 first_txt, second_txt, lengths_first, lengths_second, labels = [x.to(device) for x in batch]
-                outputs = model(first_txt, second_txt, lengths_first, lengths_second)
+                outputs = model(first_txt, second_txt, lengths_first.to("cpu"), lengths_second.to("cpu"))
 
             loss = cross_loss(outputs, labels)
             # model.zero_grad() # 这种好像也可以
@@ -157,14 +157,18 @@ if __name__ == "__main__":
                 predic = torch.max(outputs.data, 1)[1].cpu()
                 train_acc = metrics.accuracy_score(true, predic)
                 valid_acc, valid_loss = evaluate(model, val_data_loader, device, use_bert)
+                model.train()
                 msg = 'Iter: {0:>6},  Train Loss: {1:>5.2},  Train Acc: {2:>6.2%},  Val Loss: {3:>5.2},  ' \
                       'Val Acc: {4:>6.2%} '
                 print(msg.format(total_batch, loss.item(), train_acc, valid_loss, valid_acc))
                 if valid_acc > valid_best_acc:
                     valid_best_acc = valid_acc
                     valid_best_loss = valid_loss
-                    torch.save(model.state_dict(), os.path.join(cfg.save_path, model.name + "_epoch_" + str(epoch) +
-                                                                "acc_" + str(valid_acc) + "loss_" + str(valid_loss)))
+
+                    # 模型保存命名
+                    save_name = os.path.join(cfg.save_path, model.name + "_" + str(device) + "_epoch_" + str(epoch) +
+                                             "_acc_" + str(valid_acc) + "loss_" + str(valid_loss))
+                    torch.save(model.state_dict(), save_name)
                     print("save best model, valid_acc:{}".format(valid_acc))
                     improve = "*"
                     last_improve = total_batch
