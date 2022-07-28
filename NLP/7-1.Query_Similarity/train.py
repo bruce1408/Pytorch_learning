@@ -75,7 +75,7 @@ if __name__ == "__main__":
     path_train = "data/KUAKE-QQR_train.json"
     path_test = "data/KUAKE-QQR_dev.json"
     randomSeed(0)
-    # there are multi models choose
+    # there are some models to choose
     models_names = ["DSSM", "LSTMBasic", "LSTMBid", "LSTMBidAtten", "LSTMMultiLayerBidAttn", "Bert"]
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
