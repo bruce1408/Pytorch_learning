@@ -82,7 +82,7 @@ if __name__ == "__main__":
     total_batch = 0
     valid_best_acc = 0.63
     # dev_best_loss = float('inf')
-    last_improve = 0  # 记录上次验证集loss下降的batch数
+    last_improve = 0  # 记录上次验证集loss下降的batch数目
     flag = False  # 记录是否很久没有效果提升
     use_bert = False
     # 目录存在的时候不会创建
