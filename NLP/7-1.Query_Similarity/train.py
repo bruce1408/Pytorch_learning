@@ -39,8 +39,8 @@ def evaluate(model, data_iter, device, bertModel=False, test=False):
             if bertModel:
                 first_txt, second_txt, labels = batch
                 labels = labels.to(device)
-                inp_first = tokenizer.batch_encode_plus(first_txt, pad_to_max_length=True, return_tensors='pt')
-                inp_second = tokenizer.batch_encode_plus(second_txt, pad_to_max_length=True, return_tensors='pt')
+                inp_first = tokenizer.batch_encode_plus(first_txt, padding=True, return_tensors='pt')
+                inp_second = tokenizer.batch_encode_plus(second_txt, padding=True, return_tensors='pt')
 
                 outputs = model(inp_first["input_ids"].to(device), inp_second["input_ids"].to(device),
                                 inp_first["attention_mask"].to(device), inp_second["attention_mask"].to(device))
@@ -107,13 +107,9 @@ if __name__ == "__main__":
 
                 first_txt, second_txt, labels = batch
 
-                inp_first = tokenizer.batch_encode_plus(first_txt, pad_to_max_length=True, return_tensors='pt')
-                inp_second = tokenizer.batch_encode_plus(second_txt, pad_to_max_length=True, return_tensors='pt')
+                inp_first = tokenizer.batch_encode_plus(first_txt, padding=True, return_tensors='pt')
+                inp_second = tokenizer.batch_encode_plus(second_txt, padding=True, return_tensors='pt')
 
-                # print(inp_first["input_ids"].shape, inp_first["attention_mask"].shape)
-                # print(inp_second.shape)
-                # first_txt, second_txt, lengths_first, lengths_second, labels = [x.to(device) for x in batch]
-                # print(first_txt.shape, second_txt.shape, labels.shape, lengths.shape)
                 outputs = model(inp_first["input_ids"].to(device), inp_second["input_ids"].to(device),
                                 inp_first["attention_mask"].to(device), inp_second["attention_mask"].to(device))
 
