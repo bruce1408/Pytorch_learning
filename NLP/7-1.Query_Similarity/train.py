@@ -91,6 +91,7 @@ if __name__ == "__main__":
         val_data_loader = DataLoader(val_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn_bert)
 
         model = ArgModel(cfg.pretrain_path, label_size=3)
+        model.to(device)
         tokenizer = BertTokenizer.from_pretrained(cfg.pretrain_path)
 
         cross_loss = nn.CrossEntropyLoss()
@@ -170,8 +171,8 @@ if __name__ == "__main__":
         val_data_loader = DataLoader(val_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn)
 
         model = Net(len(vocab), 3).to(device)
+        model.to(device)
 
-        # model.to(device)
         cross_loss = nn.CrossEntropyLoss()
         optimizer = optim.AdamW(model.parameters(), lr=cfg.lr)  # 使用Adam优化器
         lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-5)

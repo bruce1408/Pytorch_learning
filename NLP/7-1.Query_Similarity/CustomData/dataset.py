@@ -67,6 +67,13 @@ def collate_fn_bert(examples):
     return first_setence, second_setence, labels
 
 
+def collate_fn_bert_test(examples):
+    first_setence = [ex[0] for ex in examples]
+    second_setence = [ex[1] for ex in examples]
+    # labels = torch.LongTensor([int(ex[2]) for ex in examples])
+    return first_setence, second_setence
+
+
 class Vocab:
     def __init__(self, tokens=None):
         self.idx_to_token = list()

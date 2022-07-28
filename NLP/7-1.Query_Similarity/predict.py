@@ -8,9 +8,11 @@ from sklearn import metrics
 import config.config as cfg
 # from models.DSSM import DSSM
 # from models.LSTMBidAtten import LSTMAttn
+from transformers import BertTokenizer
+from models.Bert import ArgModel
 from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
-from CustomData.dataset import cut_sentence, read_vocab, CustomData, collate_fn_test
+from CustomData.dataset import cut_sentence, read_vocab, CustomData, collate_fn_test, collate_fn_bert_test, BertData
 from utils.json_extra import write_json, read_json
 
 
@@ -36,18 +38,13 @@ def evaluate(model, data_iter, device, test=False):
 
 if __name__ == "__main__":
     test_path = "data/KUAKE-QQR_test.json"
-    test_sentences = cut_sentence(test_path, train=False)
+    test_sentences = cut_sentence(test_path, train=False, bertModel=True)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    timestr = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
-    print(test_sentences.__len__())
-    vocab = read_vocab("./data/vocab")
-    # print(vocab.token_to_idx)
+    # 模型融合预测
+    model_merge = False
 
-    test_data = [(vocab.convert_tokens_to_ids(pairdata[0]), vocab.convert_tokens_to_ids(pairdata[1])) for
-     pairdata in test_sentences]
-    # print(test_data)
-
-    test_dataset = CustomData(test_data)
-    test_data_loader = DataLoader(test_dataset, batch_size=1, collate_fn=collate_fn_test, shuffle=False)
     models = [
         # "DSSM_epoch_4acc_0.643125loss_46.79949390888214",
         "LSTMBasic_epoch_1acc_0.643125loss_44.17954781651497",  # 0.6429
@@ -56,56 +53,116 @@ if __name__ == "__main__":
         # "LSTMBasic_epoch_1acc_0.638125loss_44.325793623924255"
     ]
 
-    model_merge = False
     if len(models) > 1:
         model_merge = True
         print("multi model has found")
 
-    # 预测使用的网络
-    # 纯CNN
-
-    timestr = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     merge_labels = []
-    for modelname in models:
-        model_name_prefix = modelname.split("_")[0]
 
-        model_father = import_module("models."+model_name_prefix)
-        model = model_father.Net(len(vocab), 3)
+    if cfg.use_bert:
+        test_dataset = BertData(test_sentences)
+        test_data_loader = DataLoader(test_dataset, batch_size=1, collate_fn=collate_fn_bert_test)
 
-        # 双向多层LSTM
-        # model = LSTMModel(len(vocab), 3)
+        model = ArgModel(cfg.pretrain_path, label_size=3)
+        model.to(device)
+        tokenizer = BertTokenizer.from_pretrained(cfg.pretrain_path)
 
-        # LSTM加Attention
-        # model = LSTMAttn(len(vocab), 3)
-        model.load_state_dict(torch.load("./checkpoints/"+modelname))
+        model.load_state_dict(torch.load("./checkpoints/" + "modelname"))
         model.eval()
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        # predict_all = np.array([], dtype=int)
         predict_all = np.array([], dtype=int)
         labels_all = np.array([], dtype=int)
 
         with torch.no_grad():
             for batch in tqdm(test_data_loader):
-                first_txt, second_txt, lengths_first, lengths_second = [x.to(device) for x in batch]
+                first_txt, second_txt = batch
+
+                inp_first = tokenizer.batch_encode_plus(first_txt, pad_to_max_length=True, return_tensors='pt')
+                inp_second = tokenizer.batch_encode_plus(second_txt, pad_to_max_length=True, return_tensors='pt')
+
                 # print(first_txt.shape, second_txt.shape, labels.shape, lengths.shape)
-                outputs = model(first_txt, second_txt, lengths_first, lengths_second)
+
+                outputs = model(inp_first["input_ids"].to(device), inp_second["input_ids"].to(device),
+                                inp_first["attention_mask"].to(device), inp_second["attention_mask"].to(device))
+                # outputs = model(first_txt, second_txt, lengths_first, lengths_second)
                 predic = torch.max(outputs.data, 1)[1].cpu().numpy()
                 predict_all = np.append(predict_all, predic)
 
-        # labels = predict_all.flatten()
         merge_labels.append(predict_all.flatten())
+        labels = predict_all.flatten()
         # write_json(labels, timestr)
 
-    if not model_merge:
-        labels = predict_all.flatten()
-        print("single model to predict result...")
+        # if not model_merge:
+        #     labels = predict_all.flatten()
+        #     print("single model to predict result...")
+        # else:
+        #     labels = np.array(merge_labels).reshape((-1, 1596))
+        #     # print(total_labels.shape)
+        #     labels = np.around(np.mean(labels, axis=0))
+        #     # print(len(label))
+        #     # labels_all = np.append(labels_all, np.array(label))
+        #     # print(np.array(total_labels).shape)
+        #     print("multi models to predict result...")
+        # # write_json(labels.astype(int), timestr)
+
     else:
-        labels = np.array(merge_labels).reshape((-1, 1596))
-        # print(total_labels.shape)
-        labels = np.around(np.mean(labels, axis=0))
-        # print(len(label))
-        # labels_all = np.append(labels_all, np.array(label))
-        # print(np.array(total_labels).shape)
-        print("multi models to predict result...")
-    write_json(labels.astype(int), timestr)
+        print(test_sentences.__len__())
+        vocab = read_vocab("./data/vocab")
+        # print(vocab.token_to_idx)
+
+        test_data = [(vocab.convert_tokens_to_ids(pairdata[0]), vocab.convert_tokens_to_ids(pairdata[1])) for
+         pairdata in test_sentences]
+        # print(test_data)
+
+        test_dataset = CustomData(test_data)
+        test_data_loader = DataLoader(test_dataset, batch_size=1, collate_fn=collate_fn_test, shuffle=False)
+
+
+
+        # 预测使用的网络
+        # 纯CNN
+
+        # merge_labels = []
+        for modelname in models:
+            model_name_prefix = modelname.split("_")[0]
+
+            model_father = import_module("models."+model_name_prefix)
+            model = model_father.Net(len(vocab), 3)
+
+            # 双向多层LSTM
+            # model = LSTMModel(len(vocab), 3)
+
+            # LSTM加Attention
+            # model = LSTMAttn(len(vocab), 3)
+            model.load_state_dict(torch.load("./checkpoints/"+modelname))
+            model.eval()
+            device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+            # predict_all = np.array([], dtype=int)
+            predict_all = np.array([], dtype=int)
+            labels_all = np.array([], dtype=int)
+
+            with torch.no_grad():
+                for batch in tqdm(test_data_loader):
+                    first_txt, second_txt, lengths_first, lengths_second = [x.to(device) for x in batch]
+                    # print(first_txt.shape, second_txt.shape, labels.shape, lengths.shape)
+                    outputs = model(first_txt, second_txt, lengths_first, lengths_second)
+                    predic = torch.max(outputs.data, 1)[1].cpu().numpy()
+                    predict_all = np.append(predict_all, predic)
+
+            # labels = predict_all.flatten()
+            merge_labels.append(predict_all.flatten())
+            # write_json(labels, timestr)
+
+        if not model_merge:
+            labels = predict_all.flatten()
+            print("single model to predict result...")
+        else:
+            labels = np.array(merge_labels).reshape((-1, 1596))
+            # print(total_labels.shape)
+            labels = np.around(np.mean(labels, axis=0))
+            # print(len(label))
+            # labels_all = np.append(labels_all, np.array(label))
+            # print(np.array(total_labels).shape)
+            print("multi models to predict result...")
+        write_json(labels.astype(int), timestr)

@@ -20,7 +20,7 @@ def read_json(path):
 
 def write_json(labels, time):
     # 写json文件，本示例代码从测试集KUAKE-QQR_test.json读取数据数据，将预测后的数据写入到KUAKE-QQR_test_pred.json：
-    with open('./data/KUAKE-QQR_test.json') as input_data, open('./data/outputs/KUAKE-QQR_test_pred_best_725' +
+    with open('./data/KUAKE-QQR_test.json') as input_data, open('./data/outputs/KUAKE-QQR_test_pred_best_' +
                                                                 str(time) + '.json', 'w') as output_data:
         json_content = json.load(input_data)
         # 逐条读取记录，并将预测好的label赋值
@@ -39,12 +39,15 @@ if __name__ == "__main__":
     # a = ["我", "们", "被", "天", "男", "好", "张", "长", "被", "景"]
     # b = Vocab(a)
     # print(b.token_to_idx)
-    train_data = read_json("data/KUAKE-QQR_train.json")
-    print(train_data.__len__())
-    #
-    # dev_data = read_json("data/KUAKE-QQR_dev.json")
-    # print(dev_data.__len__(), dev_data)
-    #
-    test_data = read_json("data/KUAKE-QQR_test.json")
-    print(test_data.__len__(), test_data)
+    # train_data = read_json("data/KUAKE-QQR_train.json")
+    # print(train_data.__len__())
+    # #
+    # # dev_data = read_json("data/KUAKE-QQR_dev.json")
+    # # print(dev_data.__len__(), dev_data)
+    # #
+    # test_data = read_json("data/KUAKE-QQR_test.json")
+    # print(test_data.__len__(), test_data)
+
+    import time
+    print(time.localtime())
 

@@ -6,10 +6,11 @@ from transformers import BertModel, BertTokenizer, AdamW, BertForSequenceClassif
 
 
 class ArgModel(nn.Module):
-    def __init__(self, pre_train_path, label_size=3):
+    def __init__(self, pre_train_path, label_size=3, dropout=0.3):
         super(ArgModel, self).__init__()
         self.first_bert = Net(pre_train_path, label_size)
         self.second_bert = Net(pre_train_path, label_size)
+        self.dropout = nn.Dropout(dropout)
 
         self.label_size = label_size
         self.fc = nn.Linear(3 * 768, self.label_size)
@@ -24,7 +25,7 @@ class ArgModel(nn.Module):
         concat_results = torch.cat((first_output, second_output, first_output - second_output), dim=1)
         # print(concat_results.size())
 
-        outputs = self.fc(concat_results)
+        outputs = self.dropout(self.fc(concat_results))
         return outputs
 
 
