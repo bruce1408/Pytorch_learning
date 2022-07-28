@@ -9,7 +9,7 @@ import torch
 from models.LSTMBasic import Net
 from models.LSTMBidAtten import Net
 from models.LSTMMultiLayerBidAttn import Net
-from models.Bert import ArgModel
+from models.Bert import Net
 import torch.nn as nn
 from config import config as cfg
 from torch.autograd import Variable
@@ -90,7 +90,7 @@ if __name__ == "__main__":
         train_data_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn_bert, shuffle=True)
         val_data_loader = DataLoader(val_dataset, batch_size=cfg.batch_size, collate_fn=collate_fn_bert)
 
-        model = ArgModel(cfg.pretrain_path, label_size=3)
+        model = Net(cfg.pretrain_path, label_size=3)
         model.to(device)
         tokenizer = BertTokenizer.from_pretrained(cfg.pretrain_path)
 
@@ -123,8 +123,6 @@ if __name__ == "__main__":
                 lr_scheduler.step()
                 if total_batch % cfg.display_interval == 0:
                     # 每多少轮输出在训练集和验证集上的效果
-                    # msg = 'Iter: {0:>6},  Train Loss: {1:>5.2}'
-                    # print(msg.format(total_batch, loss.item()))
                     true = labels.data.cpu()
                     predic = torch.max(outputs.data, 1)[1].cpu()
                     # print(predic)
@@ -152,7 +150,6 @@ if __name__ == "__main__":
                 if flag:
                     break
     else:
-
         train_data = cut_sentence(path_train)
         val_data = cut_sentence(path_test)
         print("loading the vocab from local file...")
@@ -176,10 +173,6 @@ if __name__ == "__main__":
         model.train()
         model_prefix = model.name
 
-        # if os.path.exists(cfg.save_path):
-        #     print("save model path exist!")
-        # else:
-        #     os.mkdir(cfg.save_path)
         for epoch in range(1, cfg.max_epochs):
             for batch in tqdm(train_data_loader, desc=f"Training Epoch {epoch}"):
                 optimizer.zero_grad()
@@ -193,8 +186,6 @@ if __name__ == "__main__":
                 lr_scheduler.step()
                 if total_batch % cfg.display_interval == 0:
                     # 每多少轮输出在训练集和验证集上的效果
-                    # msg = 'Iter: {0:>6},  Train Loss: {1:>5.2}'
-                    # print(msg.format(total_batch, loss.item()))
                     true = labels.data.cpu()
                     predic = torch.max(outputs.data, 1)[1].cpu()
                     # print(predic)
@@ -215,7 +206,7 @@ if __name__ == "__main__":
                         improve = ""
                 total_batch += 1
                 if total_batch - last_improve > cfg.require_improvement:
-                    # 验证集loss超过1000batch没下降，结束训练
+                    # 验证集loss超过 1000 batch没下降，结束训练
                     print("No optimization for a long time, auto-stopping...")
                     flag = True
                     break

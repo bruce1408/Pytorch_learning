@@ -5,11 +5,11 @@ import torch.nn.functional as F
 from transformers import BertModel, BertTokenizer, AdamW, BertForSequenceClassification, BertConfig
 
 
-class ArgModel(nn.Module):
+class Net(nn.Module):
     def __init__(self, pre_train_path, label_size=3, dropout=0.3):
-        super(ArgModel, self).__init__()
-        self.first_bert = Net(pre_train_path, label_size)
-        self.second_bert = Net(pre_train_path, label_size)
+        super(Net, self).__init__()
+        self.first_bert = Bert(pre_train_path, label_size)
+        self.second_bert = Bert(pre_train_path, label_size)
         self.dropout = nn.Dropout(dropout)
 
         self.label_size = label_size
@@ -29,13 +29,13 @@ class ArgModel(nn.Module):
         return outputs
 
 
-class Net(nn.Module):
+class Bert(nn.Module):
     """
     Bert
     """
 
     def __init__(self, pretrain_path, label_size, dropout=0.2):
-        super(Net, self).__init__()
+        super(Bert, self).__init__()
         self.config = BertConfig.from_pretrained(pretrain_path, num_labels=label_size)
         self.bert = BertModel.from_pretrained(pretrain_path, config=self.config)
         self.name = "Bert"
@@ -69,6 +69,6 @@ if __name__ == "__main__":
     mask1 = torch.tensor([[1, 1, 1, 1, 1]])
     mask2 = torch.tensor([[1, 1, 1, 1, 1]])
 
-    models = ArgModel(pre_train_path=pretrain_path, label_size=3)
+    models = Net(pre_train_path=pretrain_path, label_size=3)
     outputs = models(a1, a2, mask1, mask2)
     print(outputs.shape)
