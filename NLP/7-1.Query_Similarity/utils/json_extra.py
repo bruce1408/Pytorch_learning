@@ -1,6 +1,10 @@
 import os
 import json
+# import matplotlib as plt
+import matplotlib.pyplot as plt
+
 # from CustomData.dataset import Vocab
+from wordcloud import WordCloud
 
 
 # 读json文件（以训练集为例）：
@@ -41,7 +45,9 @@ if __name__ == "__main__":
     # a = ["我", "们", "被", "天", "男", "好", "张", "长", "被", "景"]
     # b = Vocab(a)
     # print(b.token_to_idx)
-    # train_data = read_json("data/KUAKE-QQR_train.json")
+    train_data = read_json("../data/KUAKE-QQR_train.json")
+    total_sentence = [eachpair[1] for eachpair in train_data] + [eachpair[1] for eachpair in train_data]
+    print(total_sentence)
     # print(train_data.__len__())
     # #
     # # dev_data = read_json("data/KUAKE-QQR_dev.json")
@@ -51,5 +57,16 @@ if __name__ == "__main__":
     # print(test_data.__len__(), test_data)
 
     import time
-    print(time.localtime())
+    # print(time.localtime())
+    import matplotlib as mpl
+    mpl.rcParams['font.sans-serif'] = [u'SimHei']  # FangSong/黑体 FangSong/KaiTi
+    mpl.rcParams['axes.unicode_minus'] = False
+    cloud = WordCloud(width=1440, height=1080, font_path="../../../Reference/simhei.ttf").generate(" ".join(total_sentence))
+    plt.figure(figsize=(20, 15))
+    plt.imshow(cloud)
+    plt.axis('off')
+    plt.savefig('./医学问题对中文词云.jpg')
+
+    plt.show()
+    # plt.savefig('./医学问题对中文词云.png')
 

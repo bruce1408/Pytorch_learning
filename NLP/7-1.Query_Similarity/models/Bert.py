@@ -22,6 +22,8 @@ class Net(nn.Module):
         # print('first output: ', first_output.shape)
         second_output = self.second_bert(second_sentence, second_sentence_mask)
 
+        # second_output = self.first_bert(second_sentence, second_sentence_mask)
+
         concat_results = torch.cat((first_output, second_output, first_output - second_output), dim=1)
         # print(concat_results.size())
 
