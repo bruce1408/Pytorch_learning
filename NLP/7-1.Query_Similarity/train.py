@@ -2,10 +2,12 @@ import os
 from importlib import import_module
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import numpy as np
-import random
+import random, time
 from sklearn import metrics
 import torch
 import argparse
+from models.label_smooth import LabelSmoothingLoss
+from models.FGM import FGM
 from models.DSSM import Net
 from models.LSTMBasic import Net
 from models.LSTMBid import Net
@@ -51,7 +53,8 @@ def evaluate(model, data_iter, device, bertModel=False, test=False):
             else:
                 first_txt, second_txt, lengths_first, lengths_second, labels = [x.to(device) for x in batch]
                 outputs = model(first_txt, second_txt, lengths_first.to('cpu'), lengths_second.to('cpu'))
-            loss = cross_loss(outputs, labels)
+            # loss = cross_loss(outputs, labels)
+            loss = label_smoothing(outputs, labels)
 
             loss_total += loss.item()
             labels = labels.data.cpu().numpy()
@@ -123,11 +126,13 @@ if __name__ == "__main__":
         model = model_father.Net(len(vocab), 3)
 
     model.to(device)
-    cross_loss = nn.CrossEntropyLoss()
+    # cross_loss = nn.CrossEntropyLoss()
+    label_smoothing = LabelSmoothingLoss(3, 0.01)
     optimizer = optim.AdamW(model.parameters(), lr=cfg.lr)  # 使用Adam优化器
     lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-5)
 
     model.train()
+    fgm = FGM(model)
 
     for epoch in range(1, cfg.max_epochs):
         for batch in tqdm(train_data_loader, desc=f"Training Epoch {epoch}"):
@@ -139,6 +144,7 @@ if __name__ == "__main__":
                 inp_first = tokenizer.batch_encode_plus(first_txt, padding=True, return_tensors='pt')
                 inp_second = tokenizer.batch_encode_plus(second_txt, padding=True, return_tensors='pt')
 
+                fgm.attack()
                 outputs = model(inp_first["input_ids"].to(device), inp_second["input_ids"].to(device),
                                 inp_first["attention_mask"].to(device), inp_second["attention_mask"].to(device))
             else:
@@ -146,8 +152,10 @@ if __name__ == "__main__":
                 first_txt, second_txt, lengths_first, lengths_second, labels = [x.to(device) for x in batch]
                 outputs = model(first_txt, second_txt, lengths_first.to("cpu"), lengths_second.to("cpu"))
 
-            loss = cross_loss(outputs, labels)
+            # loss = cross_loss(outputs, labels)
+            loss = label_smoothing(outputs, labels)
             # model.zero_grad() # 这种好像也可以
+            fgm.restore()
             loss.backward()
             optimizer.step()
             lr_scheduler.step()
@@ -166,7 +174,9 @@ if __name__ == "__main__":
                     valid_best_loss = valid_loss
 
                     # 模型保存命名
-                    save_name = os.path.join(cfg.save_path, model.name + "_" + str(device) + "_epoch_" + str(epoch) +
+                    timestr = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
+                    save_name = os.path.join(cfg.save_path, model.name + "_" + str(device) + "_" + \
+                                             timestr + "_epoch_" + str(epoch) +
                                              "_acc_" + str(valid_acc) + "loss_" + str(valid_loss))
                     torch.save(model.state_dict(), save_name)
                     print("save best model, valid_acc:{}".format(valid_acc))
