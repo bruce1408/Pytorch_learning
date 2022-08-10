@@ -12,8 +12,8 @@ from models.DSSM import Net
 from models.LSTMBasic import Net
 from models.LSTMBid import Net
 from models.LSTMBidAtten import Net
-from models.LSTMMultiLayerBidAttn import Net
-from models.Bert import Net
+# from models.LSTMMultiLayerBidAttn import Net
+# from models.Bert import Net
 import torch.nn as nn
 from config import config as cfg
 from torch.utils.data import DataLoader
@@ -132,7 +132,6 @@ if __name__ == "__main__":
     lr_scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=5, eta_min=1e-5)
 
     model.train()
-    fgm = FGM(model)
 
     for epoch in range(1, cfg.max_epochs):
         for batch in tqdm(train_data_loader, desc=f"Training Epoch {epoch}"):
@@ -144,7 +143,6 @@ if __name__ == "__main__":
                 inp_first = tokenizer.batch_encode_plus(first_txt, padding=True, return_tensors='pt')
                 inp_second = tokenizer.batch_encode_plus(second_txt, padding=True, return_tensors='pt')
 
-                fgm.attack()
                 outputs = model(inp_first["input_ids"].to(device), inp_second["input_ids"].to(device),
                                 inp_first["attention_mask"].to(device), inp_second["attention_mask"].to(device))
             else:
@@ -155,9 +153,13 @@ if __name__ == "__main__":
             # loss = cross_loss(outputs, labels)
             loss = label_smoothing(outputs, labels)
             # model.zero_grad() # 这种好像也可以
-            fgm.restore()
             loss.backward()
+            fgm = FGM(model)
+            fgm.attack()
+            fgm.restore()
+
             optimizer.step()
+            optimizer.zero_grad()
             lr_scheduler.step()
             if total_batch % cfg.display_interval == 0:
                 # 每多少轮输出在训练集和验证集上的效果
