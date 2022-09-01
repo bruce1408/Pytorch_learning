@@ -4,10 +4,15 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 import torch.nn.functional as F
-import matplotlib.pyplot as plt
-
+# import matplotlib.pyplot as plt
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '0,1,2,3'
 dtype = torch.FloatTensor
 
+if torch.cuda.is_available():
+    print("use cuda run")
+else:
+    print("no cuda")
 # Bi-LSTM(Attention) Parameters
 embedding_dim = 2
 n_hidden = 5  # number of hidden units in one cell
@@ -113,11 +118,11 @@ if predict[0][0] == 0:
 else:
     print(test_text, "is Good Mean!!")
 
-fig = plt.figure(figsize=(6, 3))  # [batch_size, n_step]
-ax = fig.add_subplot(1, 1, 1)
-ax.matshow(attention, cmap='viridis')
-ax.set_xticklabels([''] + ['first_word', 'second_word', 'third_word'], fontdict={'fontsize': 14}, rotation=90)
-ax.set_yticklabels([''] + ['batch_1', 'batch_2', 'batch_3', 'batch_4', 'batch_5', 'batch_6'], fontdict={'fontsize': 14})
-plt.show()
+# fig = plt.figure(figsize=(6, 3))  # [batch_size, n_step]
+# ax = fig.add_subplot(1, 1, 1)
+# ax.matshow(attention, cmap='viridis')
+# ax.set_xticklabels([''] + ['first_word', 'second_word', 'third_word'], fontdict={'fontsize': 14}, rotation=90)
+# ax.set_yticklabels([''] + ['batch_1', 'batch_2', 'batch_3', 'batch_4', 'batch_5', 'batch_6'], fontdict={'fontsize': 14})
+# plt.show()
 
 

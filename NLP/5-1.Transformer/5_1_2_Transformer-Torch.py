@@ -4,7 +4,11 @@ from random import *
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
+import os
 
+os.environ['CUDA_VISIBLES_DEVICES'] = '0, 2,3'
+if torch.cuda.is_available():
+    print("multi cuda")
 print("torch version: ", torch.__version__)
 
 dtype = torch.FloatTensor
@@ -173,8 +177,7 @@ class DecoderLayer(nn.Module):
 
     def forward(self, dec_inputs, enc_outputs, dec_self_attn_mask, dec_enc_attn_mask):
         # 第一部分decoder基于掩码的注意力机制
-        dec_outputs, dec_self_attn = self.dec_self_attn(
-            dec_inputs, dec_inputs, dec_inputs, dec_self_attn_mask)
+        dec_outputs, dec_self_attn = self.dec_self_attn(dec_inputs, dec_inputs, dec_inputs, dec_self_attn_mask)
 
         # decoder 和 encoder 级联部分的柱注意力机制
         dec_outputs, dec_enc_attn = self.dec_enc_attn(
