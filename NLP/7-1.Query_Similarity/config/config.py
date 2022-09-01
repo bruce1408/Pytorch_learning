@@ -12,7 +12,7 @@ max_epochs = 200
 start_epoch = 1
 
 use_bert = True
-pretrain_path = "/Users/bruce/PycharmProjects/cail2020/pretrain_model/ERNIE_1.0_max-len-512-pytorch"
+pretrain_path = "/home/cuidongdong/ERNIE_1.0_max-len-512-pytorch"
 
 datasets = "xx"
 

@@ -1,6 +1,6 @@
 import os
 from importlib import import_module
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2,3'
 import numpy as np
 import random, time
 from sklearn import metrics
@@ -67,7 +67,7 @@ def evaluate(model, data_iter, device, bertModel=False, test=False):
 
 
 parser = argparse.ArgumentParser(description='similarity pair')
-parser.add_argument('--model', type=str, default='DSSM', help='choose a model: "DSSM", "LSTMBasic",'
+parser.add_argument('--model', type=str, default='Bert', help='choose a model: "DSSM", "LSTMBasic",'
                                                               ' "LSTMBid", "LSTMBidAtten",'
                                                               ' "LSTMMultiLayerBidAttn", "Bert"')
 args = parser.parse_args()

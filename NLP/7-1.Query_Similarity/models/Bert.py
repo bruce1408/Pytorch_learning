@@ -59,7 +59,7 @@ class Bert(nn.Module):
 
 
 if __name__ == "__main__":
-    pretrain_path = "/Users/bruce/PycharmProjects/cail2020/pretrain_model/ERNIE_1.0_max-len-512-pytorch"
+    pretrain_path = "/home/cuidongdong/ERNIE_1.0_max-len-512-pytorch"
     model = Net(pretrain_path, 3)
     # for name, param in model.named_parameters():
     #     print(name)
