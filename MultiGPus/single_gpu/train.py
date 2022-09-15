@@ -1,7 +1,7 @@
 import os
 import time
 import datetime
-os.environ["CUDA_VISIBLE_DEVICES"] = "0, 1,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -47,10 +47,11 @@ def main():
     classes = ('plane', 'car', 'bird', 'cat', 'deer',
                'dog', 'frog', 'horse', 'ship', 'truck')
 
-    print('==> Making model..')
+    print('==> Making single model..')
 
     net = pyramidnet()
-    net = nn.DataParallel(net)
+    # 这个就是可以多卡的关键
+    # net = nn.DataParallel(net)
     net = net.to(device)
     num_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
     print('The number of parameters of model is', num_params)
