@@ -17,7 +17,6 @@ epochs = 5
 learning_rate = 0.001
 gamma = 0.96
 
-
 trainData = DogCat('../../Dataset/dogs_cats/train')
 valData = DogCat("../../Dataset/dogs_cats/train", train=False, test=True)
 
@@ -29,7 +28,7 @@ def get_acc(pred, label):
     total = pred.shape[0]
     _, pred_label = pred.max(1)
     num_correct = (pred_label == label).sum().item()
-    return num_correct/total
+    return num_correct / total
 
 
 def train(model, epoch, lr):
@@ -48,7 +47,8 @@ def train(model, epoch, lr):
         if index % 100 == 0 and index is not 0:
             lr.step()
         train_acc = get_acc(out, label)
-        print("Epoch:%d [%d|%d] loss:%f acc:%f, lr:%f" % (epoch, index, len(trainloader), loss.mean(), train_acc, lr.get_lr()[0]))
+        print("Epoch:%d [%d|%d] loss:%f acc:%f, lr:%f" % (
+        epoch, index, len(trainloader), loss.mean(), train_acc, lr.get_lr()[0]))
 
 
 def val(model, epoch):

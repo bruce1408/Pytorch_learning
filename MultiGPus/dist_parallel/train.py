@@ -37,7 +37,7 @@ parser.add_argument('--distributed', action='store_true', help='')
 args = parser.parse_args()
 
 # gpu_devices = ','.join([str(id) for id in args.gpu_devices])
-os.environ["CUDA_VISIBLE_DEVICES"] = "4,5,6,7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1,2"
 
 
 def main():

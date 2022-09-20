@@ -509,7 +509,7 @@ class SwinTransformer(nn.Module):
         fused_window_process (bool, optional): If True, use one kernel to fused window shift & window partition for acceleration, similar for the reversed part. Default: False
     """
 
-    def __init__(self, img_size=224, patch_size=4, in_chans=3, num_classes=1000,
+    def __init__(self, img_size=224, patch_size=4, in_chans=3, num_classes=5,
                  embed_dim=96, depths=[2, 2, 6, 2], num_heads=[3, 6, 12, 24],
                  window_size=7, mlp_ratio=4., qkv_bias=True, qk_scale=None,
                  drop_rate=0., attn_drop_rate=0., drop_path_rate=0.1,
@@ -520,7 +520,7 @@ class SwinTransformer(nn.Module):
         self.num_classes = num_classes
         self.num_layers = len(depths)
         self.embed_dim = embed_dim
-        self.ape = ape
+        self.ape = ape  # false
         self.patch_norm = patch_norm
         self.num_features = int(embed_dim * 2 ** (self.num_layers - 1))
         self.mlp_ratio = mlp_ratio
