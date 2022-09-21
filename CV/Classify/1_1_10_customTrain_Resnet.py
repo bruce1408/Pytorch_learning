@@ -70,7 +70,7 @@ def val(model, epoch):
 
 if __name__ == '__main__':
     model = ResNet50([3, 4, 6, 3], num_classes=2)
-    device = torch.device('cuda:3' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.9)
     lr = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)

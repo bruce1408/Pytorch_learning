@@ -39,8 +39,8 @@ transform_val = transforms.Compose([
     transforms.Normalize(mean, std),
 ])
 
-trainset = CustomData('../../Dataset/dogs_cats/train', transform=transform_train)
-valset = CustomData('../../Dataset/dogs_cats/train', transform=transform_val,
+trainset = CustomData('/home/cuidongdong/data/dogs_cats/train', transform=transform_train)
+valset = CustomData('/home/cuidongdong/data/dogs_cats/train', transform=transform_val,
                     train=False,
                     val=True,
                     test=False,
@@ -89,23 +89,30 @@ def update_lr(optimizer, lr):
 
 
 def train(model, epoch):
+    blue = lambda x: '\033[94m' + x + '\033[0m'
     model.train()
     optimizer.zero_grad()
-    scheduler.step()
+
     for batch_idx, (img, label) in enumerate(trainloader):
         image = img.cuda()
         label = label.cuda()
         optimizer.zero_grad()
         out = model(image)
-        print('the out shape is: ', out.shape)
+        # print('the out shape is: ', out.shape)
         # print(a1.shape, a2.shape, out.shape)
         loss = criterion(out, label)
         loss.backward()
 
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
         optimizer.step()
+        scheduler.step()
+        # 显示进度条的另外一种写法, lambda 是str连接起来的
         sys.stdout.write('\033[1;36m \r>>Train Epoch:%d [%d|%d] loss:%f, lr:%f \033[0m' %
                          (epoch, batch_idx, len(trainloader), loss.mean(), scheduler.get_lr()[0]))
+
+        # print('\r Test %s: %f   ***  %s: %f' % (blue('Accuracy'), epoch, blue('Best Accuracy'), batch_idx))\
+        # sys.stdout.write("\r train Epoch: %d [%d|%d] loss:%f, lr:%f " % (epoch, batch_idx, len(trainloader), loss.mean(),
+        #                  scheduler.get_lr()[0]))
         sys.stdout.flush()
     sys.stdout.write('\n')
     sys.stdout.flush()
@@ -134,7 +141,7 @@ def val(model, epoch):
 if __name__ == '__main__':
     # model = Net()
     # model = Inception_v1(num_classes=2)
-    model = ResNet50([3, 4, 6, 3], num_classes=2)
+    model = ResNet50([3, 4, 6, 3], num_classes=2).cuda()
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
     criterion = nn.CrossEntropyLoss()

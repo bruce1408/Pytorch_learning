@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 import torch.backends.cudnn as cudnn
-
+# os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2"
 import torchvision
 import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR10
@@ -23,36 +23,38 @@ from tensorboardX import SummaryWriter
 
 parser = argparse.ArgumentParser(description='cifar10 classification models')
 parser.add_argument('--lr', default=0.1, help='')
-parser.add_argument('--resume', default=None, help='')
-parser.add_argument('--batch_size', type=int, default=768, help='')
+parser.add_argument('--resume', default=None, help='断点训练')
+parser.add_argument('--batch_size', type=int, default=32, help='')
 parser.add_argument('--num_workers', type=int, default=4, help='')
-parser.add_argument("--gpu_devices", type=int, nargs='+', default=None, help="")
+parser.add_argument("--gpu_devices", type=int, nargs='+', default=[4, 5], help="gpu设备编号")
 
-parser.add_argument('--gpu', default=None, type=int, help='GPU id to use.')
+parser.add_argument('--gpu', default=2, type=int, help='GPU id to use.')
 parser.add_argument('--dist-url', default='tcp://127.0.0.1:3456', type=str, help='')
-parser.add_argument('--dist-backend', default='nccl', type=str, help='')
+parser.add_argument('--dist-backend', default='nccl', type=str, help='GPU通信方式用nccl')
 parser.add_argument('--rank', default=0, type=int, help='')
-parser.add_argument('--world_size', default=1, type=int, help='')
+parser.add_argument('--world_size', default=1, type=int, help='总共的进程数目')
 parser.add_argument('--distributed', action='store_true', help='')
 args = parser.parse_args()
 
-# gpu_devices = ','.join([str(id) for id in args.gpu_devices])
-os.environ["CUDA_VISIBLE_DEVICES"] = "1,2"
+gpu_devices = ','.join([str(id) for id in args.gpu_devices])
+os.environ["CUDA_VISIBLE_DEVICES"] = gpu_devices
 
 
 def main():
     args = parser.parse_args()
 
     ngpus_per_node = torch.cuda.device_count()
-
+    print("has gpu nums: ", ngpus_per_node)
     args.world_size = ngpus_per_node * args.world_size
     mp.spawn(main_worker, nprocs=ngpus_per_node, args=(ngpus_per_node, args))
 
 
 def main_worker(gpu, ngpus_per_node, args):
+    print("main worker: ", gpu)
     args.gpu = gpu
     ngpus_per_node = torch.cuda.device_count()
     print("Use GPU: {} for training".format(args.gpu))
+    print(args.gpu, args.rank)
 
     args.rank = args.rank * ngpus_per_node + gpu
     dist.init_process_group(backend=args.dist_backend, init_method=args.dist_url,
@@ -75,11 +77,10 @@ def main_worker(gpu, ngpus_per_node, args):
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
 
-    dataset_train = CIFAR10(root='/home/cuidongdong/data', train=True, download=False,
-                            transform=transforms_train)
+    dataset_train = CIFAR10(root='/datasets/cdd_data/', train=True, download=False, transform=transforms_train)
     train_sampler = torch.utils.data.distributed.DistributedSampler(dataset_train)
-    train_loader = DataLoader(dataset_train, batch_size=args.batch_size,
-                              shuffle=(train_sampler is None), num_workers=args.num_workers,
+    train_loader = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=(train_sampler is None),
+                              num_workers=args.num_workers,
                               sampler=train_sampler)
 
     # there are 10 classes so the dataset name is cifar-10
@@ -95,7 +96,6 @@ def main_worker(gpu, ngpus_per_node, args):
 
 def train(net, criterion, optimizer, train_loader, device):
     net.train()
-
     train_loss = 0
     correct = 0
     total = 0
@@ -122,7 +122,8 @@ def train(net, criterion, optimizer, train_loader, device):
 
         batch_time = time.time() - start
 
-        if batch_idx % 20 == 0:
+        # 不会重复打印
+        if batch_idx % 20 == 0 and dist.get_rank() == 0:
             print('Epoch: [{}/{}]| loss: {:.3f} | acc: {:.3f} | batch time: {:.3f}s '.format(
                 batch_idx, len(train_loader), train_loss / (batch_idx + 1), acc, batch_time))
 

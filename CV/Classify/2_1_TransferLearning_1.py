@@ -65,8 +65,8 @@ transform_val = transforms.Compose([
 ])
 
 # 生成训练集和验证集
-trainset = CustomData('../../Dataset/dogs_cats/train', transform=transform_train)
-valset = CustomData('../../Dataset/dogs_cats/train', transform=transform_val, train=False, val=True)
+trainset = CustomData('/datasets/cdd_data/dogs_cats/train', transform=transform_train)
+valset = CustomData('/datasets/cdd_data/dogs_cats/train', transform=transform_val, train=False, val=True)
 # 将训练集和验证集放到 DataLoader 中去，shuffle 进行打乱顺序（在多个 epoch 的情况下）
 # num_workers 加载数据用多少的子线程（windows不能用这个参数）
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchsize, shuffle=True, num_workers=num_workers)
@@ -81,12 +81,14 @@ class Net(nn.Module):
         """
         super(Net, self).__init__()
         # 去掉model的最后1层
+        print(model)
         self.resnet_layer = nn.Sequential(*list(model.children())[:-1])
         print('self resnet layers: \n', self.resnet_layer)
         self.Linear_layer = nn.Linear(512, 2)  # 加上一层参数修改好的全连接层
 
     def forward(self, x):
         x = self.resnet_layer(x)
+        print(x.shape)
         x = x.view(x.size(0), -1)
         x = self.Linear_layer(x)
         return x
@@ -101,7 +103,6 @@ def get_acc(output, label):
 
 def train(epoch):
     print('\nEpoch: %d' % epoch)
-    #     scheduler.step()
     model.train()
     for batch_idx, (img, label) in enumerate(trainloader):  # 迭代器，一次迭代 batch_size 个数据进去
         optimizer.zero_grad()
@@ -142,7 +143,7 @@ if __name__ == '__main__':
     model = Net(resnet)  # 修改全连接层
     model = model.to(device)  # 放到 GPU 上跑
     optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)  # 设置训练细节
-    criterion = nn.CrossEntropyLoss()  # 分类问题用交叉熵普遍
+    criterion = nn.CrossEntropyLoss()  # 分类问题普遍用交叉熵
     for epoch in range(20):
         train(epoch)
         val(epoch)

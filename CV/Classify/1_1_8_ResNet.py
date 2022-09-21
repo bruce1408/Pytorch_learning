@@ -97,7 +97,9 @@ class ResNet50(nn.Module):
 
 if __name__ == "__main__":
     net = ResNet50([3, 4, 6, 3])
-    if torch.cuda.is_available():
-        summary(net.cuda(), (3, 224, 224))
-    else:
-        summary(net, (3, 224, 224))
+    # if torch.cuda.is_available():
+    #     summary(net.cuda(), (3, 224, 224))
+    # else:
+    #     summary(net, (3, 224, 224))
+    x = torch.randn(2, 3, 224, 224)
+    output = net(x)
