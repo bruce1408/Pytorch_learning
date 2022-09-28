@@ -34,6 +34,7 @@ parser.add_argument('--dist-backend', default='nccl', type=str, help='GPU通信�
 parser.add_argument('--rank', default=0, type=int, help='')
 parser.add_argument('--world_size', default=1, type=int, help='总共的进程数目')
 parser.add_argument('--distributed', action='store_true', help='')
+parser.add_argument("--output", default="./dist_output", help="the path of save model")
 args = parser.parse_args()
 
 gpu_devices = ','.join([str(id) for id in args.gpu_devices])
@@ -42,7 +43,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = gpu_devices
 
 def main():
     args = parser.parse_args()
-
+    os.makedirs(args.output, exist_ok=True)
     ngpus_per_node = torch.cuda.device_count()
     print("has gpu nums: ", ngpus_per_node)
     args.world_size = ngpus_per_node * args.world_size
@@ -91,6 +92,12 @@ def main_worker(gpu, ngpus_per_node, args):
     optimizer = optim.SGD(net.parameters(), lr=args.lr,
                           momentum=0.9, weight_decay=1e-4)
 
+    if len(os.listdir(args.output)) != 0:
+        print("pretrained model has exist!")
+        checkpoints = torch.load(os.path.join(args.output, "last.pth"), map_location="cpu")
+        state_dict = checkpoints['model']
+        net.load_state_dict(state_dict)
+        optimizer.load_state_dict(checkpoints["optimizer"])
     train(net, criterion, optimizer, train_loader, args.gpu)
 
 
@@ -126,6 +133,14 @@ def train(net, criterion, optimizer, train_loader, device):
         if batch_idx % 20 == 0 and dist.get_rank() == 0:
             print('Epoch: [{}/{}]| loss: {:.3f} | acc: {:.3f} | batch time: {:.3f}s '.format(
                 batch_idx, len(train_loader), train_loss / (batch_idx + 1), acc, batch_time))
+        if batch_idx % 100 == 0 and dist.get_rank() == 0:
+            state = {
+                "model": net.state_dict(),
+                "batch": batch_idx,
+                "optimizer": optimizer.state_dict(),
+            }
+            torch.save(state, os.path.join(args.output, "last.pth"))
+            # print("model has been saved!")
 
     elapse_time = time.time() - epoch_start
     elapse_time = datetime.timedelta(seconds=elapse_time)

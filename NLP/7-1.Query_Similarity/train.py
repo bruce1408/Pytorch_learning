@@ -180,6 +180,7 @@ if __name__ == "__main__":
                     save_name = os.path.join(cfg.save_path, model.name + "_" + str(device) + "_" + \
                                              timestr + "_epoch_" + str(epoch) +
                                              "_acc_" + str(valid_acc) + "loss_" + str(valid_loss))
+                    # 只保存权重即可
                     torch.save(model.state_dict(), save_name)
                     print("save best model, valid_acc:{}".format(valid_acc))
                     improve = "*"

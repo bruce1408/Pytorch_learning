@@ -102,7 +102,7 @@ class AttnDecoderRNN(nn.Module):
         rnn_input = self.embedding(word_input).view(1, 1, -1)  # S=1 x B x I
         rnn_output, hidden = self.gru(rnn_input, last_hidden)
 
-        # Calculate attention from current RNN state and all encoder outputs;
+        # Calculate_quantity attention from current RNN state and all encoder outputs;
         # apply to encoder outputs
         attn_weights = self.get_att_weight(
             rnn_output.squeeze(0), encoder_hiddens)
@@ -125,7 +125,7 @@ class AttnDecoderRNN(nn.Module):
         # Create variable to store attention energies
         attn_scores = cuda_variable(torch.zeros(seq_len))  # B x 1 x S
 
-        # Calculate energies for each encoder hidden
+        # Calculate_quantity energies for each encoder hidden
         for i in range(seq_len):
             attn_scores[i] = self.get_att_score(hidden, encoder_hiddens[i])
 

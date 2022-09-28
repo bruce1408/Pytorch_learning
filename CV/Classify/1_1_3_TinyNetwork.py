@@ -163,5 +163,6 @@ if __name__ == '__main__':
     for epoch in range(epochs):
         train(model, epoch)
         val(model, epoch)
+        # 只保存模型权重，如果是model则就是保存整个模型
         torch.save(model.state_dict(), save_path)
 

@@ -432,7 +432,7 @@ def init_weights(m):
 model.apply(init_weights)
 
 
-# Calculate the number of parameters. We get an increase of almost 50% in the amount of parameters from the last model.
+# Calculate_quantity the number of parameters. We get an increase of almost 50% in the amount of parameters from the last model.
 
 
 def count_parameters(model):
