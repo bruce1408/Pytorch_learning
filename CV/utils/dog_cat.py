@@ -76,7 +76,6 @@ class DogCat(data.Dataset):
                     normalize
                 ])
 
-
     def __getitem__(self, index):
         """
         一次返回一张图片的数据
@@ -94,5 +93,6 @@ class DogCat(data.Dataset):
         return len(self.imgs)
 
 
-trainData = DogCat('../../Dataset/dogs_cats/train')
-print(trainData[0])
+if __name__=="__main__":
+    trainData = DogCat('../../Dataset/dogs_cats/train')
+    print(trainData[0])

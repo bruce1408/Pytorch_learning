@@ -19,14 +19,14 @@ import torch.utils.data.distributed
 
 from model import pyramidnet
 import argparse
-from tensorboardX import SummaryWriter
+# from tensorboardX import SummaryWriter
 
 parser = argparse.ArgumentParser(description='cifar10 classification models')
 parser.add_argument('--lr', default=0.1, help='')
 parser.add_argument('--resume', default=None, help='断点训练')
 parser.add_argument('--batch_size', type=int, default=32, help='')
 parser.add_argument('--num_workers', type=int, default=4, help='')
-parser.add_argument("--gpu_devices", type=int, nargs='+', default=[4, 5], help="gpu设备编号")
+parser.add_argument("--gpu_devices", type=int, nargs='+', default=[0, 1], help="gpu设备编号")
 
 parser.add_argument('--gpu', default=2, type=int, help='GPU id to use.')
 parser.add_argument('--dist-url', default='tcp://127.0.0.1:3456', type=str, help='')
@@ -69,7 +69,7 @@ def main_worker(gpu, ngpus_per_node, args):
     args.num_workers = int(args.num_workers / ngpus_per_node)
     net = torch.nn.parallel.DistributedDataParallel(net, device_ids=[args.gpu])
     num_params = sum(p.numel() for p in net.parameters() if p.requires_grad)
-    print('The number of parameters of model is', num_params)
+    # print('The number of parameters of model is', num_params)
 
     print('==> Preparing data..')
     transforms_train = transforms.Compose([
@@ -77,8 +77,10 @@ def main_worker(gpu, ngpus_per_node, args):
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
-
-    dataset_train = CIFAR10(root='/datasets/cdd_data/', train=True, download=False, transform=transforms_train)
+    # dataset_train = []
+    # if dist.get_rank() == 0:
+    #     print(0)
+    dataset_train = CIFAR10(root='/home/cuidongdong', train=True, download=False, transform=transforms_train)
     train_sampler = torch.utils.data.distributed.DistributedSampler(dataset_train)
     train_loader = DataLoader(dataset_train, batch_size=args.batch_size, shuffle=(train_sampler is None),
                               num_workers=args.num_workers,

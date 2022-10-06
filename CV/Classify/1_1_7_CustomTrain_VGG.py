@@ -15,13 +15,18 @@ torch.cuda.manual_seed_all(seed)
 torch.backends.cudnn.benchmark = True
 
 # parameters
-os.environ['CUDA_VISIBLES_DEVICES'] = '2,3'
-batchsize = 32
+os.environ['CUDA_VISIBLES_DEVICES'] = '0'
+batchsize = 64
 num_works = 4
-epochs = 1
-learning_rate = 0.0001
+epochs = 30
+learning_rate = 0.001
 gamma = 0.96
-save_path = "./model_cat_dog.pt"
+save_path = "./model_cat_dog_lr.pth"
+
+useGpu=False
+
+if torch.cuda.is_available():
+    useGpu = True
 
 transforms_train = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -45,8 +50,8 @@ transform_test = transforms.Compose([
     transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
 ])
 
-trainData = DogCat('../../Dataset/dogs_cats/train')
-valData = DogCat("../../Dataset/dogs_cats/train", train=False, test=True)
+trainData = DogCat('/datasets/cdd_data/dogs_cats/train')
+valData = DogCat("/datasets/cdd_data/dogs_cats/train", train=False, test=True)
 # testData = CustomData("/raid/bruce/datasets/dogs_cats/train", transform=transform_test, train=False, val=False)
 
 trainloader = torch.utils.data.DataLoader(trainData, batch_size=batchsize, shuffle=True, num_workers=num_works)
@@ -78,10 +83,9 @@ def train(model, epoch, lr):
         loss = criterion(out, label)
         loss.backward()
         optimizer.step()
-        if index % 100 == 0 and index is not 0:
-            lr.step()
+        # if index % 100 == 0 and index is not 0:
         train_acc = get_acc(out, label)
-        print("Epoch:%d [%d|%d] loss:%f acc:%f, lr:%f" % (epoch, index, len(trainloader), loss.mean(), train_acc, lr.get_lr()[0]))
+        print("Epoch:%d [%d|%d] loss:%f acc:%f, lr:%f" % (epoch, index, len(trainloader), loss.mean(), train_acc, lr.get_last_lr()[0]))
 
 
 def val(model, epoch):
@@ -107,10 +111,15 @@ if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # also use cuda: Num
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=0.9)
-    lr = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma, last_epoch=-1)
+    lr = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[1, 2, 3], last_epoch=-1)
     criterion = nn.CrossEntropyLoss()
     for epoch in range(epochs):
         train(model, epoch, lr)
         val(model, epoch)
-        # lr.step()
-    torch.save(model.state_dict(), save_path)
+        lr.step()
+    # torch.save(model.state_dict(), save_path)
+        torch.save({
+            'model': model.state_dict(),
+            'epoch': epoch,
+            'lr': lr},
+            save_path)

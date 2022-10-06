@@ -6,7 +6,7 @@ import torch
 import torchvision.transforms as transforms
 
 # 默认输入网络的图片大小
-IMAGE_SIZE = 200
+IMAGE_SIZE = 224
 
 # 定义一个转换关系，用于将图像数据转换成PyTorch的Tensor形式
 dataTransform = transforms.Compose([
