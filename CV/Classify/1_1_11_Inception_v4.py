@@ -1,12 +1,10 @@
 import os
 import torch
 import torch.nn as nn
-import torchvision.transforms as transforms
 from CV.utils.dog_cat import DogCat
 
-from CV.utils import Inception_v1
 import torch.utils.data as data
-from CV.utils.inception_advance import Inception_v1
+from CV.Classify.inception_advance import Inception_v1
 seed = 0
 torch.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)

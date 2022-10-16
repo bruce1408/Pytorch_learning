@@ -1,6 +1,6 @@
 import torch
 
-pthfile = '/home/cuidongdong/BEVDet/outputs_mobilenetv2_1/bevdet_mobilenetv2/epoch_37.pth'  # faster_rcnn_ckpt.pth
+pthfile = '/home/cuidongdong/epoch_8.pth'  # faster_rcnn_ckpt.pth
 net = torch.load(pthfile, map_location=torch.device('cpu'))  # 由于模型原本是用GPU保存的，但我这台电脑上没有GPU，需要转化到CPU上
 
 # print(type(net))  # 类型是 dict
@@ -78,15 +78,16 @@ def calculateParameters(modelpath, layerprefix=None, wholeModel=True):
             total += net["state_dict"][layername].numel()
     return total
 
-# param = calculateParameters(pthfile, "img_backbone")
-# print(param)
+
+param = calculateParameters(pthfile, "img_backbone")
+print(param)
 #
 # param1 = calculateParameters(pthfile, "img_bev_encoder_backbone")
 # print(param1)
 
 # param2 = calculateParameters1(pthfile)
 # print(param2)
-net["optimizer"]["param_groups"][0]["lr"] = 2e-5
+# net["optimizer"]["param_groups"][0]["lr"] = 2e-5
 
 # torch.save({
 #     "state_dict": net['state_dict'],
@@ -95,7 +96,7 @@ net["optimizer"]["param_groups"][0]["lr"] = 2e-5
 # }, "/datasets/cdd_data/lr_change_mobilenetv2.pth")
 
 
-net = torch.load("/datasets/cdd_data/lr_change_mobilenetv2.pth", map_location=torch.device('cpu'))  # 由于模型原本是用GPU保存的，但我这台电脑上没有GPU，需要转化到CPU上
-print('='*12, net['optimizer']['param_groups'][0])
-print('='*12+"param_group", net['optimizer']['param_groups'][0]['lr'])
-print(net)
+# net = torch.load("/datasets/cdd_data/lr_change_mobilenetv2.pth", map_location=torch.device('cpu'))  # 由于模型原本是用GPU保存的，但我这台电脑上没有GPU，需要转化到CPU上
+# print('='*12, net['optimizer']['param_groups'][0])
+# print('='*12+"param_group", net['optimizer']['param_groups'][0]['lr'])
+# print(net)

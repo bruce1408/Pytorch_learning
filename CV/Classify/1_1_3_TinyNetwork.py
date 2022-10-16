@@ -5,12 +5,9 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 # from torchsummary import summary
 # from dataset.Custom import CustomData
-from torchvision.models import vgg11
 from CV.utils.DataSet_train_val_test import CustomData
-from CV.utils.AlexNet import AlexNet
-from CV.utils.VGGNet import VGGNet16
 from CV.utils.ResNet import ResNet50
-from CV.utils.Inception_v1 import Inception_v1
+
 # from utils.Custom import CustomData
 
 # parameters

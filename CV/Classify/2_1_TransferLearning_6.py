@@ -1,14 +1,12 @@
-import math
 import torch
 import torch.nn as nn
-import math, sys, os
+import sys, os
 import torch.utils.model_zoo as model_zoo
-import torch.nn.functional as F
 from torchsummary import summary
 from CV.utils.DataSet_train_val_test import CustomData
 import torchvision.transforms as transforms
 from torchvision.models import resnet50
-from CV.utils.ResNet_advance import Resnet50
+from CV.Classify.ResNet_advance import Resnet50
 """
 使用官方预训练好的神经网络来加载权重, 自定义一个神经网络B,然后把预训练好的权重赋值给B网络进行训练.
 """
