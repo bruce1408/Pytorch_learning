@@ -93,6 +93,6 @@ class DogCat(data.Dataset):
         return len(self.imgs)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     trainData = DogCat('../../Dataset/dogs_cats/train')
     print(trainData[0])
