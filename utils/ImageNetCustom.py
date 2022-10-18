@@ -48,23 +48,17 @@ class ImageNetCustom(data.Dataset):  # 新建一个数据集类，并且需要�
                 self.list_label.append(self.label2idx[name])
 
     def __getitem__(self, item):  # 重载data.Dataset父类方法，获取数据集中数据内容
-        global L
-        if self.mode == 'train' or self.mode == "val":  # 训练集模式下需要读取数据集的image和label
-            img = Image.open(self.list_img[item])  # 打开图片
-            if img.mode != 'L':
-                L = img.convert('L')
-            L = L.convert('RGB')
-            # 将图像转为数组
-            rgb_array = np.asarray(L)
-            # 将数组转换为图像
-            rgb_image = Image.fromarray(rgb_array)
-            label = self.list_label[item]  # 获取image对应的label
-            return self.transform(rgb_image), torch.LongTensor([label])  # 将image和label转换成PyTorch形式并返回
-        elif self.mode == 'val':  # 测试集只需读取image
-            img = Image.open(self.list_img[item])
-            return self.transform(img)  # 只返回image
+        img = Image.open(self.list_img[item])  # 打开图片
+        if img.mode != 'L':
+            gray_pic = img.convert("L")
+            rgb_pic = gray_pic.convert("RGB")
         else:
-            print('None')
+            rgb_pic = img.convert('RGB')
+            # 将数组转换为图像
+        img = Image.fromarray(np.asarray(rgb_pic))
+        # print(img.mode)
+        label = self.list_label[item]  # 获取image对应的label
+        return self.transform(img), torch.LongTensor([label])  # 将image和label转换成PyTorch形式并返回
 
     def __len__(self):
         return self.data_size  # 返回数据集大小
@@ -103,6 +97,11 @@ if __name__ == "__main__":
     test_size = len(train_data) - train_size
     train_dataset, val_dataset = torch.utils.data.random_split(train_data, [train_size, test_size])
 
-    for dat in train_data:
-        print(data[0].shape)
-        break
+    for data in train_dataset:
+        if data[0].shape[0] == 1:
+            print(1)
+        elif data[0].shape[0] == 4:
+            print(4)
+        else:
+            pass
+

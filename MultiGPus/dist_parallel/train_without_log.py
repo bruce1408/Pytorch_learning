@@ -20,7 +20,7 @@ import torch.utils.data.distributed
 from model import pyramidnet
 import argparse
 # from tensorboardX import SummaryWriter
-
+from CV.utils.logger import Logger
 parser = argparse.ArgumentParser(description='cifar10 classification models')
 parser.add_argument('--lr', default=0.1, help='')
 parser.add_argument('--resume', default=None, help='断点训练')

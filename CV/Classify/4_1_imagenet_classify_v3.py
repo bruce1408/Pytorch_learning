@@ -252,7 +252,6 @@ def main_worker(gpu, ngpus_per_node, args):
         #         transforms.ToTensor(),
         #         normalize,
         #     ]))
-        from CV.utils.ImageNetCustom import ImageNetCustom
         path = "/data/cdd_data/imagenet_data"
         # writer = SummaryWriter(args.model_name + '_2logs')
         IMAGE_SIZE = 224
@@ -337,7 +336,7 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args):
         images = images.to(device, non_blocking=True)
         target = target.to(device, non_blocking=True)
 
-        # compute output
+        # compute
         output = model(images)
         target = target.squeeze(1)
         loss = criterion(output, target)
@@ -377,6 +376,7 @@ def validate(val_loader, model, criterion, args):
 
                 # compute output
                 output = model(images)
+
                 loss = criterion(output, target)
 
                 # measure accuracy and record loss
@@ -393,7 +393,7 @@ def validate(val_loader, model, criterion, args):
                     progress.display(i + 1)
 
     batch_time = AverageMeter('Time', ':6.3f', Summary.NONE)
-    losses = AverageMeter('Loss', ':.4e', Summary.NONE)
+    losses = AverageMeter('Loss', ':.5', Summary.NONE)
     top1 = AverageMeter('Acc@1', ':6.2f', Summary.AVERAGE)
     top5 = AverageMeter('Acc@5', ':6.2f', Summary.AVERAGE)
     progress = ProgressMeter(

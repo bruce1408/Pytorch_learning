@@ -3,16 +3,16 @@ import torch.utils.data as data
 from PIL import Image
 import torch
 import sys
-# sys.path.append("../")
+sys.path.append("../..")
 import argparse
 import torch.nn as nn
-from CV.utils.logger import Logger
+from utils.logger import Logger
 from torch.utils.tensorboard import SummaryWriter
 import torchvision.transforms as transforms
 # from mmdet.models.backbones.efficientnet import EfficientNet
 from mmdet.models.backbones.mobilenet_v2 import MobileNetV2
 from mmdet.models.backbones.resnet import ResNet
-from CV.utils.ImageNetCustom import ImageNetCustom
+from utils.ImageNetCustom import ImageNetCustom
 import torch.distributed as dist
 import torch.multiprocessing as mp
 import torch.utils.data.distributed
@@ -46,7 +46,7 @@ def parse_args():
 
     parser.add_argument("--gpu_devices", type=int, nargs='+', default=[0, 1, 2, 3, 4, 5], help="gpu设备编号")
     parser.add_argument('--num_workers', type=int, default=6, help='')
-    parser.add_argument('--batch_size', type=int, default=1536, help='')
+    parser.add_argument('--batch_size', type=int, default=6, help='')
     parser.add_argument('--gpu', default=6, type=int, help='GPU id to use.')
     parser.add_argument('--dist-url', default='tcp://127.0.0.1:3456', type=str, help='')
     parser.add_argument('--dist-backend', default='nccl', type=str, help='GPU通信方式用nccl')
@@ -62,7 +62,7 @@ args = parse_args()
 
 gpu_devices = ','.join([str(id) for id in args.gpu_devices])
 os.environ["CUDA_VISIBLE_DEVICES"] = gpu_devices
-log = Logger('imagenet_%s.2log' % args.model_name, level='info')
+log = Logger('imagenet_%s.log' % args.model_name, level='info')
 
 # class CustomData(data.Dataset):
 #     def __init__(self, mode, imgpath):
@@ -118,7 +118,7 @@ def get_acc(pred, label):
     return num_correct/total
 
 
-def train(model, trainloader, epoch, lr_schedule, optimizer, writer, criterion, log, device):
+def train(model, trainloader, epoch, lr_schedule, optimizer, writer, criterion, device):
     model.train()
     global totalCount
     for index, (img, label) in enumerate(trainloader):
@@ -139,11 +139,11 @@ def train(model, trainloader, epoch, lr_schedule, optimizer, writer, criterion, 
         writer.add_scalar("loss", loss, totalCount)
         # log.logger.debug('debug')
         if dist.get_rank() == 0:
-            log.logger.info("Epoch:%d [%d|%d] loss:%f acc:%f, lr:%f" % (epoch, index, len(trainloader),
+            log.logger.info("text: Epoch:%d [%d|%d] loss:%f acc:%f, lr:%f" % (epoch, index, len(trainloader),
                                                                     loss.mean(), train_acc, lr_schedule.get_last_lr()[0]))
 
 
-def val(model, valloader, epoch, log, device):
+def val(model, valloader, epoch, device):
     print('begin to eval')
     model.eval()
     total = 0
@@ -164,12 +164,10 @@ def val(model, valloader, epoch, log, device):
 def main_worker(gpu, ngpus_per_node, args):
     # global model
 
-    # gpu_devices = ','.join([str(id) for id in args.gpu_devices])
-    # print(gpu_devices)
     args.gpu = gpu
     # ngpus_per_node = torch.cuda.device_count()
     print("Use GPU: {} for training".format(args.gpu))
-    print(args.gpu, args.rank)
+    # print(args.gpu, args.rank)
 
     args.rank = args.rank * ngpus_per_node + gpu
 
@@ -186,7 +184,7 @@ def main_worker(gpu, ngpus_per_node, args):
     args.num_workers = int(args.num_workers / ngpus_per_node)
 
     path = "/data/cdd_data/imagenet_data"
-    writer = SummaryWriter(args.model_name + '_2logs')
+    writer = SummaryWriter(args.model_name + '_logs')
 
     train_data = ImageNetCustom("train", path, dataTransform)
     train_size = int(0.8 * len(train_data))
@@ -250,9 +248,6 @@ def main_worker(gpu, ngpus_per_node, args):
                 type='Pretrained', checkpoint="torchvision://mobilenetv2"))
         model = Net("mobilenet_v2", model_sampel)
 
-    # if dist.get_rank() == 0:
-    #     log = Logger('%s.2log' % args.model_name, level='info')
-
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs to train the model with Distributed!")
         # model = nn.DataParallel(model)
@@ -269,9 +264,9 @@ def main_worker(gpu, ngpus_per_node, args):
     criterion = nn.CrossEntropyLoss()
     for epoch in range(1, epochs + 1):
         # train(model, epoch, lr)
-        train(model, trainloader, epoch, lr_schedule, optimizer, writer, criterion, log, args.gpu)
+        train(model, trainloader, epoch, lr_schedule, optimizer, writer, criterion, args.gpu)
         if dist.get_rank() == 0:
-            val(model, valloader, epoch, log, args.gpu)
+            val(model, valloader, epoch, args.gpu)
             torch.save(model, args.model_name + '_2backbone.pth')
         lr_schedule.step()
 
@@ -279,11 +274,13 @@ def main_worker(gpu, ngpus_per_node, args):
 def main():
     args = parse_args()
     # os.makedirs(args.output, exist_ok=True)
-    # ngpus_per_node = torch.cuda.device_count() # 这里这种写法失效了，因为这里调用的包mmcv里面的模型默认使用全部gpu资源
+
+    # 这里这种写法失效了，因为这里调用的包mmcv里面的模型默认使用全部gpu资源
+    # ngpus_per_node = torch.cuda.device_count()
 
     # 显式的设置gpu资源卡数
     ngpus_per_node = 6
-    print("has gpu nums: ", ngpus_per_node)
+    # print("has gpu nums: ", ngpus_per_node)
 
     # world_size表示总进程数，一般几张卡就开几个进程
     args.world_size = ngpus_per_node * args.world_size
