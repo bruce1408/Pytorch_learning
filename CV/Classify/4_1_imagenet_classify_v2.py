@@ -416,7 +416,6 @@ def validate(val_loader, model, criterion, args):
 
                 # compute output
                 output = model(images)
-                # print(output.shape, target.shape)
                 target = target.squeeze(1)
                 loss = criterion(output, target)
 
