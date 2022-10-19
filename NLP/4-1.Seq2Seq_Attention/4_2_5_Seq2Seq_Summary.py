@@ -214,7 +214,7 @@ class EncoderRNN(nn.Module):
 #         word_embedded = self.embedding(word_input).view(1, 1, -1)  # S=1 x B x N
 #         word_embedded = self.dropout(word_embedded)
 #
-#         # Calculate_quantity attention weights and apply to encoder outputs
+#         # Quantity attention weights and apply to encoder outputs
 #         attn_weights = self.attn(last_hidden[-1], encoder_outputs)
 #         context = attn_weights.bmm(encoder_outputs.transpose(0, 1))  # B x 1 x N
 #
@@ -252,7 +252,7 @@ class Attention(nn.Module):
         if USE_CUDA:
             attn_energies = attn_energies.cuda()
 
-        # Calculate_quantity energies for each encoder output
+        # Quantity energies for each encoder output
         for i in range(seq_len):
             attn_energies[i] = self.score(hidden, encoder_outputs[i])
 
@@ -309,7 +309,7 @@ class DecoderRNN(nn.Module):
 
         rnn_output, hidden = self.gru(rnn_input, last_hidden)
 
-        # Calculate_quantity attention from current RNN state and all encoder outputs; apply to encoder outputs
+        # Quantity attention from current RNN state and all encoder outputs; apply to encoder outputs
         attn_weights = self.attn(rnn_output.squeeze(0), encoder_outputs)
         context = attn_weights.bmm(encoder_outputs.transpose(0, 1))  # B x 1 x N
 

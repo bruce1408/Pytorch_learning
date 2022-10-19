@@ -181,7 +181,7 @@ class BahdanauAttnDecoderRNN(nn.Module):
         word_embedded = self.embedding(word_input).view(1, word_input.size(0), -1)  # (1,B,V)
 
         word_embedded = self.dropout(word_embedded)
-        # Calculate_quantity attention weights and apply to encoder outputs
+        # Quantity attention weights and apply to encoder outputs
 
         attn_weights = self.attn(last_hidden[-1], encoder_outputs)
 
