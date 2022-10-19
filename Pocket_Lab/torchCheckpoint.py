@@ -4,6 +4,10 @@ from mmdet.models.backbones.resnet import Bottleneck, BasicBlock
 import torch.utils.checkpoint as checkpoint
 import torchvision.datasets as datasets
 # from mmdet.models import BACKBONES
+import torch
+import torch.nn as nn
+from mmcv.cnn import build_norm_layer
+# from mmdet.models import NECKS
 import torchvision.transforms as transforms
 
 
@@ -58,9 +62,59 @@ class ResNetForBEVDet(nn.Module):
         return feats
 
 
+class FPN_LSS(nn.Module):
+    def __init__(self, in_channels, out_channels, scale_factor=4,
+                 input_feature_index=(0, 2),
+                 norm_cfg=dict(type='BN'),
+                 extra_upsample=2,
+                 lateral=None):
+        super().__init__()
+        self.input_feature_index = input_feature_index
+        self.extra_upsample = extra_upsample is not None
+        self.up = nn.Upsample(scale_factor=scale_factor, mode='bilinear', align_corners=False)
+        # assert norm_cfg['type'] in ['BN', 'SyncBN']
+        channels_factor = 2 if self.extra_upsample else 1
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels * channels_factor, kernel_size=3, padding=1, bias=False),
+            build_norm_layer(norm_cfg, out_channels * channels_factor, postfix=0)[1],
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels * channels_factor, out_channels * channels_factor,
+                      kernel_size=3, padding=1, bias=False),
+            build_norm_layer(norm_cfg, out_channels * channels_factor, postfix=0)[1],
+            nn.ReLU(inplace=True),
+        )
+        if self.extra_upsample:
+            self.up2 = nn.Sequential(
+                nn.Upsample(scale_factor=extra_upsample, mode='bilinear', align_corners=False), # 在进行resnet-r50的时候进行的修改
+                nn.Conv2d(out_channels * channels_factor, out_channels, kernel_size=3, padding=1, bias=False),
+                build_norm_layer(norm_cfg, out_channels, postfix=0)[1],
+                nn.ReLU(inplace=True),
+                nn.Conv2d(out_channels, out_channels, kernel_size=1, padding=0),
+            )
+        self.lateral = lateral is not None
+        if self.lateral:
+            self.lateral_conv = nn.Sequential(
+                nn.Conv2d(lateral, lateral,
+                          kernel_size=1, padding=0, bias=False),
+                build_norm_layer(norm_cfg, lateral, postfix=0)[1],
+                nn.ReLU(inplace=True),
+            )
+
+    def forward(self, feats):
+        x2, x1 = feats[self.input_feature_index[0]], feats[self.input_feature_index[1]]
+        if self.lateral:
+            x2 = self.lateral_conv(x2)
+        x1 = self.up(x1)
+        x1 = torch.cat([x2, x1], dim=1)
+        x = self.conv(x1)
+        if self.extra_upsample:
+            x = self.up2(x)
+        return x
+
+
 if __name__ == "__main__":
     net = ResNetForBEVDet(numC_input=64)
-    train_dataset = datasets.FakeData(2, (3, 224, 224), 100, transforms.ToTensor())
+    # train_dataset = datasets.FakeData(2, (3, 224, 224), 100, transforms.ToTensor())
     traindata = torch.randn([1, 64, 224, 224])
     # print(traindata)
     outputs = net(traindata)
@@ -68,3 +122,10 @@ if __name__ == "__main__":
     print(outputs[0].shape)
     print(outputs[1].shape)
     print(outputs[2].shape)
+    numC_Trans = 64
+    net2 = FPN_LSS(in_channels=numC_Trans * 8 + numC_Trans * 2, out_channels=256)
+    outputs1 = net2(outputs)
+    # out_channels = 256
+    print(outputs1.__len__())
+    print(outputs1[0].shape)
+    # print(outputs1.__len__())

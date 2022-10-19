@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torchsummary import summary
+# from torchsummary import summary
 """
 实现pytorch ResNet50网络结构,实现连接就是不用加卷积的情况
 reference: https://blog.csdn.net/Cheungleilei/article/details/103610799
@@ -42,6 +42,7 @@ class Bottleneck(nn.Module):
 
         x_shortCut = x
         out = self.bottleneck(x)
+        print(out.shape, x.shape)
 
         if self.downsampling:
             x_shortCut = self.downsample(x)
@@ -96,10 +97,14 @@ class ResNet50(nn.Module):
 
 
 if __name__ == "__main__":
-    net = ResNet50([3, 4, 6, 3])
-    # if torch.cuda.is_available():
-    #     summary(net.cuda(), (3, 224, 224))
-    # else:
-    #     summary(net, (3, 224, 224))
     x = torch.randn(2, 3, 224, 224)
-    output = net(x)
+    # net = ResNet50([3, 4, 6, 3])
+    # # if torch.cuda.is_available():
+    # #     summary(net.cuda(), (3, 224, 224))
+    # # else:
+    # #     summary(net, (3, 224, 224))
+    # output = net(x)
+
+    net1 = Bottleneck(3, 64)
+    outputs = net1(x)
+    print(outputs.shape)
