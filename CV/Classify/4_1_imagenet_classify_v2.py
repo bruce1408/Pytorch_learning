@@ -33,7 +33,7 @@ model_names = sorted(name for name in models.__dict__
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 # parser.add_argument('data', metavar='DIR', nargs='?', default='imagenet',
 #                     help='path to dataset (default: imagenet)')
-parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet50',
+parser.add_argument('-a', '--arch', metavar='ARCH', default='mobilenetv2',
                     choices=model_names,
                     help='model architecture: ' +
                          ' | '.join(model_names) +
@@ -44,7 +44,7 @@ parser.add_argument('--epochs', default=30, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=1536, type=int,
+parser.add_argument('-b', '--batch-size', default=936, type=int,
                     metavar='N',
                     help='mini-batch size (default: 256), this is the total '
                          'batch size of all GPUs on the current node when '
@@ -171,7 +171,8 @@ def main_worker(gpu, ngpus_per_node, args):
         model = models.__dict__[args.arch](pretrained=True)
     else:
         print("=> creating model '{}'".format(args.arch))
-        model = models.__dict__[args.arch]()
+        # print(models.__dict__[args.arch])
+        model = models.__dict__[args.arch].MobileNetV2()
 
     if not torch.cuda.is_available() and not torch.backends.mps.is_available():
         print('using CPU, this will be slow')
@@ -229,7 +230,7 @@ def main_worker(gpu, ngpus_per_node, args):
                                 weight_decay=args.weight_decay)
 
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    scheduler = StepLR(optimizer, step_size=30, gamma=0.1)
+    scheduler = StepLR(optimizer, step_size=5, gamma=0.7)
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -325,7 +326,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
         # train for one epoch
         epoch_time = time.time()
-        train(train_loader, model, criterion, optimizer, epoch, device, args, writer)
+        train(train_loader, model, criterion, optimizer, epoch, device, args, writer, scheduler)
         if dist.get_rank() == 0:
             print("epoch_time cost:", time.time() - epoch_time)
 
@@ -351,15 +352,16 @@ def main_worker(gpu, ngpus_per_node, args):
 
     print("train cost time is:", time.time() - training_time)
 
-def train(train_loader, model, criterion, optimizer, epoch, device, args, writer):
+def train(train_loader, model, criterion, optimizer, epoch, device, args, writer, scheduler):
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')
     losses = AverageMeter('Loss', ':.6f')
-    top1 = AverageMeter('Acc@1', ':6.2f')
-    top5 = AverageMeter('Acc@5', ':6.2f')
+    top1 = AverageMeter('Acc@1', ':3.2f')
+    top5 = AverageMeter('Acc@5', ':3.2f')
+    lr = AverageMeter("lr", ":.7f")
     progress = ProgressMeter(
         len(train_loader),
-        [batch_time, data_time, losses, top1, top5],
+        [batch_time, data_time, losses, top1, top5, lr],
         prefix="Epoch: [{}]".format(epoch))
 
     # switch to train mode
@@ -386,6 +388,8 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args, writer
         losses.update(loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
+        lr_ = scheduler.get_last_lr()[0]
+        lr.update(lr_, 1)
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
@@ -512,7 +516,8 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
     def __str__(self):
-        fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
+        # fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'     # 这个打印太啰嗦了
+        fmtstr = '{name}: {val' + self.fmt + '}'
         return fmtstr.format(**self.__dict__)
 
     def summary(self):

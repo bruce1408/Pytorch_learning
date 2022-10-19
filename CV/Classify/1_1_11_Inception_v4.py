@@ -4,7 +4,7 @@ import torch.nn as nn
 from CV.utils.dog_cat import DogCat
 
 import torch.utils.data as data
-from CV.Classify.inception_advance import Inception_v1
+from CV.models.inception_advance import Inception_v1
 seed = 0
 torch.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
