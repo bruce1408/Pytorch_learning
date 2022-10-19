@@ -42,8 +42,8 @@ class Logger(object):
             self.logger.addHandler(sh)
 
             # 往文件里写入handler
-            th = handlers.TimedRotatingFileHandler(filename=filename, backupCount=backCount,
-                                                   encoding='utf-8')
+            # th = handlers.TimedRotatingFileHandler(filename=filename, backupCount=backCount, encoding='utf-8')
+            th = logging.FileHandler(filename, 'a', encoding='utf-8')
             # 设置文件里写入的格式
             th.setFormatter(format_str)
 
