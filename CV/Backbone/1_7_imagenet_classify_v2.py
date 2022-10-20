@@ -33,7 +33,7 @@ model_names = sorted(name for name in models.__dict__
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 # parser.add_argument('data', metavar='DIR', nargs='?', default='imagenet',
 #                     help='path to dataset (default: imagenet)')
-parser.add_argument('-a', '--arch', metavar='ARCH', default='mobilenetv2',
+parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet50',
                     choices=model_names,
                     help='model architecture: ' +
                          ' | '.join(model_names) +
@@ -58,7 +58,9 @@ parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
                     dest='weight_decay')
 parser.add_argument('-p', '--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
-parser.add_argument('--resume', default='', type=str, metavar='PATH',
+parser.add_argument('--resume',
+                    default='/home/cuidongdong/pytorch_learning/CV/Backbone/resnet50/outputs/resnet50.pth',
+                    type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                     help='evaluate model on validation set')
@@ -171,8 +173,9 @@ def main_worker(gpu, ngpus_per_node, args):
         model = models.__dict__[args.arch](pretrained=True)
     else:
         print("=> creating model '{}'".format(args.arch))
-        # print(models.__dict__[args.arch])
-        model = models.__dict__[args.arch].MobileNetV2()
+        print(models.__dict__[args.arch])
+        model = models.__dict__[args.arch]()
+        # model = models.__dict__[args.arch].MobileNetV2()
 
     if not torch.cuda.is_available() and not torch.backends.mps.is_available():
         print('using CPU, this will be slow')
@@ -230,7 +233,7 @@ def main_worker(gpu, ngpus_per_node, args):
                                 weight_decay=args.weight_decay)
 
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    scheduler = StepLR(optimizer, step_size=5, gamma=0.7)
+    scheduler = StepLR(optimizer, step_size=2, gamma=0.7)
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -328,7 +331,7 @@ def main_worker(gpu, ngpus_per_node, args):
         epoch_time = time.time()
         train(train_loader, model, criterion, optimizer, epoch, device, args, writer, scheduler)
         if dist.get_rank() == 0:
-            print("epoch_time cost:", time.time() - epoch_time)
+            log.logger.info("epoch_time cost:", str(time.time() - epoch_time))
 
         # evaluate on validation set
         acc1 = validate(val_loader, model, criterion, args)
@@ -349,8 +352,8 @@ def main_worker(gpu, ngpus_per_node, args):
                 'optimizer': optimizer.state_dict(),
                 'scheduler': scheduler.state_dict()
             }, is_best, args)
-
-    print("train cost time is:", time.time() - training_time)
+    if dist.get_rank() == 0:
+        log.logger.info("train cost time is:", str(time.time() - training_time))
 
 def train(train_loader, model, criterion, optimizer, epoch, device, args, writer, scheduler):
     batch_time = AverageMeter('Time', ':6.3f')
@@ -462,8 +465,8 @@ def validate(val_loader, model, criterion, args):
             aux_val_dataset, batch_size=args.batch_size, shuffle=False,
             num_workers=args.workers, pin_memory=True)
         run_validate(aux_val_loader, len(val_loader))
-
-    progress.display_summary()
+    if dist.get_rank() == 0:
+        progress.display_summary()
 
     return top1.avg
 
@@ -472,7 +475,8 @@ def save_checkpoint(state, is_best, args):
     filename = os.path.join(os.path.join(args.arch, args.work_dir), args.arch+".pth")
     torch.save(state, filename)
     if is_best:
-        shutil.copyfile(filename, 'model_best.pth')
+        shutil.copyfile(filename,
+                        os.path.join(os.path.join(args.arch, args.work_dir), 'model_best.pth'))
 
 
 class Summary(Enum):
@@ -551,7 +555,7 @@ class ProgressMeter(object):
     def display_summary(self):
         entries = [" *"]
         entries += [meter.summary() for meter in self.meters]
-        print(' '.join(entries))
+        log.logger.info(' '.join(entries))
 
     def _get_batch_fmtstr(self, num_batches):
         num_digits = len(str(num_batches // 1))
