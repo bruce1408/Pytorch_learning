@@ -173,7 +173,6 @@ def main_worker(gpu, ngpus_per_node, args):
         model = models.__dict__[args.arch](pretrained=True)
     else:
         print("=> creating model '{}'".format(args.arch))
-        print(models.__dict__[args.arch])
         model = models.__dict__[args.arch]()
         # model = models.__dict__[args.arch].MobileNetV2()
 
@@ -233,12 +232,11 @@ def main_worker(gpu, ngpus_per_node, args):
                                 weight_decay=args.weight_decay)
 
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    scheduler = StepLR(optimizer, step_size=2, gamma=0.7)
+    scheduler = StepLR(optimizer, step_size=2, gamma=0.6)
 
     # optionally resume from a checkpoint
     if args.resume:
-        if os.path.isfile(args.resume):
-            print("=> loading checkpoint '{}'".format(args.resume))
+        if os.path.isfile(args.resume) and dist.get_rank() == 0:
             if args.gpu is None:
                 checkpoint = torch.load(args.resume)
             elif torch.cuda.is_available():
@@ -253,8 +251,7 @@ def main_worker(gpu, ngpus_per_node, args):
             model.load_state_dict(checkpoint['state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer'])
             scheduler.load_state_dict(checkpoint['scheduler'])
-            print("=> loaded checkpoint '{}' (epoch {})"
-                  .format(args.resume, checkpoint['epoch']))
+            print("=> loaded checkpoint '{}' (epoch {})".format(args.resume, checkpoint['epoch']))
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
 
@@ -331,7 +328,7 @@ def main_worker(gpu, ngpus_per_node, args):
         epoch_time = time.time()
         train(train_loader, model, criterion, optimizer, epoch, device, args, writer, scheduler)
         if dist.get_rank() == 0:
-            log.logger.info("epoch_time cost:", str(time.time() - epoch_time))
+            log.logger.info("epoch_time cost: %s" % str(time.time() - epoch_time))
 
         # evaluate on validation set
         acc1 = validate(val_loader, model, criterion, args)
@@ -353,7 +350,7 @@ def main_worker(gpu, ngpus_per_node, args):
                 'scheduler': scheduler.state_dict()
             }, is_best, args)
     if dist.get_rank() == 0:
-        log.logger.info("train cost time is:", str(time.time() - training_time))
+        log.logger.info("train cost time is: %s" % (str(time.time() - training_time)))
 
 def train(train_loader, model, criterion, optimizer, epoch, device, args, writer, scheduler):
     batch_time = AverageMeter('Time', ':6.3f')
@@ -388,6 +385,7 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args, writer
 
         # measure accuracy and record loss
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
+        # log.logger.info("after val the acc: {}-{}".format(acc1, acc5))
         losses.update(loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
@@ -409,15 +407,15 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args, writer
 
 def validate(val_loader, model, criterion, args):
     def run_validate(loader, base_progress=0):
+        total = 0
+        correct = 0
         with torch.no_grad():
             end = time.time()
             for i, (images, target) in enumerate(loader):
                 i = base_progress + i
                 if args.gpu is not None and torch.cuda.is_available():
                     images = images.cuda(args.gpu, non_blocking=True)
-                # if torch.backends.mps.is_available():
-                #     images = images.to('mps')
-                #     target = target.to('mps')
+
                 if torch.cuda.is_available():
                     target = target.cuda(args.gpu, non_blocking=True)
 
@@ -428,10 +426,16 @@ def validate(val_loader, model, criterion, args):
 
                 # measure accuracy and record loss
                 acc1, acc5 = accuracy(output, target, topk=(1, 5))
-                losses.update(loss.item(), images.size(0))
                 top1.update(acc1[0], images.size(0))
                 top5.update(acc5[0], images.size(0))
 
+                _, pred = torch.max(output.data, 1)
+                total += images.shape[0]
+                correct += pred.data.eq(target.data).cpu().sum()
+                # log.logger.info("top1 is: {}, acc 1 is: {}, acc5 is: {}".format((1.0 * correct.numpy() / total),
+                #                                                                 acc1, acc5))
+
+                losses.update(loss.item(), images.size(0))
                 # measure elapsed time
                 batch_time.update(time.time() - end)
                 end = time.time()

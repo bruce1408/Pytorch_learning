@@ -1,11 +1,12 @@
+import os
 import torch
-from torch import nn
+os.environ['CUDA_VISIBLE_DEVICES'] = "6"
 from mmdet.models.backbones.resnet import Bottleneck, BasicBlock
 import torch.utils.checkpoint as checkpoint
 import torchvision.datasets as datasets
 # from mmdet.models import BACKBONES
-import torch
 import torch.nn as nn
+from torchsummary import summary
 from mmcv.cnn import build_norm_layer
 # from mmdet.models import NECKS
 import torchvision.transforms as transforms
@@ -123,9 +124,13 @@ if __name__ == "__main__":
     print(outputs[1].shape)
     print(outputs[2].shape)
     numC_Trans = 64
-    net2 = FPN_LSS(in_channels=numC_Trans * 8 + numC_Trans * 2, out_channels=256)
-    outputs1 = net2(outputs)
+    # net2 = FPN_LSS(in_channels=numC_Trans * 8 + numC_Trans * 2, out_channels=256)
+    # outputs1 = net2(outputs)
     # out_channels = 256
-    print(outputs1.__len__())
-    print(outputs1[0].shape)
     # print(outputs1.__len__())
+    # print(outputs1[0].shape)
+    # print(outputs1.__len__())
+    summary(net, (1, 64, 224, 224))
+
+
+
