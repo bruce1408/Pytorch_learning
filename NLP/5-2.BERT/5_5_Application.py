@@ -17,7 +17,7 @@ nlp_features = pipeline('feature-extraction')
 output = nlp_features('Code Doctor Studio is a Chinese company based in BeiJing.')
 print(np.array(output).shape)  # (Samples, Tokens, Vector Size)(1, 16, 768)
 
-# ############################掩码语言建模
+# 掩码语言建模
 nlp_fill = pipeline("fill-mask")
 # 完型填空任务
 print(nlp_fill.tokenizer.mask_token)
