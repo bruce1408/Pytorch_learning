@@ -7,7 +7,9 @@ import warnings
 from enum import Enum
 import sys
 sys.path.append("../..")
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
+from torch.cuda.amp import autocast as autocast
 from utils.ImageNetCustom import ImageNetCustom
 import torch
 from utils.logger import Logger
@@ -42,14 +44,17 @@ parser.add_argument('-j', '--workers', default=6, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--epochs', default=30, type=int, metavar='N',
                     help='number of total epochs to run')
+
+parser.add_argument("--path", default="/home/cuidongdong/imagenet_data")
+
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=936, type=int,
+parser.add_argument('-b', '--batch-size', default=256, type=int,
                     metavar='N',
                     help='mini-batch size (default: 256), this is the total '
                          'batch size of all GPUs on the current node when '
                          'using Data Parallel or Distributed Data Parallel')
-parser.add_argument('--lr', '--learning-rate', default=0.1, type=float,
+parser.add_argument('--lr', '--learning-rate', default=0.01, type=float,
                     metavar='LR', help='initial learning rate', dest='lr')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
@@ -59,7 +64,7 @@ parser.add_argument('--wd', '--weight-decay', default=1e-4, type=float,
 parser.add_argument('-p', '--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
 parser.add_argument('--resume',
-                    default='/home/cuidongdong/pytorch_learning/CV/Backbone/resnet50/outputs/resnet50.pth',
+                    default='/home/cuidongdong/pytorch-learning/CV/Backbone/resnet50/outputs/resnet50.pth',
                     type=str, metavar='PATH',
                     help='path to latest checkpoint (default: none)')
 parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
@@ -76,9 +81,9 @@ parser.add_argument('--dist_backend', default='nccl', type=str,
                     help='distributed backend')
 parser.add_argument('--seed', default=0, type=int,
                     help='seed for initializing training. ')
-parser.add_argument('--gpu', default=6, type=int,
+parser.add_argument('--gpu', default=4, type=int,
                     help='GPU id to use. 单卡才会使用')
-parser.add_argument("--gpu_devices", type=int, nargs='+', default=[0, 1, 2, 3, 4, 5], help="gpu设备编号")
+parser.add_argument("--gpu_devices", type=int, nargs='+', default=[0, 1, 2, 3], help="gpu设备编号")
 
 parser.add_argument("--work_dir", type=str, default="outputs", help="模型存储路径")
 
@@ -241,13 +246,14 @@ def main_worker(gpu, ngpus_per_node, args):
                 checkpoint = torch.load(args.resume)
             elif torch.cuda.is_available():
                 # Map model to be loaded to specified single gpu.
-                loc = 'cuda:{}'.format(args.gpu)
-                checkpoint = torch.load(args.resume, map_location=loc)
+                # loc = 'cuda:{}'.format(args.gpu)
+                checkpoint = torch.load(args.resume, map_location="cpu")
             args.start_epoch = checkpoint['epoch']
             best_acc1 = checkpoint['best_acc1']
             if args.gpu is not None:
                 # best_acc1 may be from a checkpoint from a different GPU
-                best_acc1 = best_acc1.to(args.gpu)
+                # best_acc1 = best_acc1.to(args.gpu)
+                print("best acc is:", best_acc1)
             model.load_state_dict(checkpoint['state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer'])
             scheduler.load_state_dict(checkpoint['scheduler'])
@@ -286,8 +292,7 @@ def main_worker(gpu, ngpus_per_node, args):
         #     ]))
 
         # 使用自己下载的imagenet数据集
-        path = "/data/cdd_data/imagenet_data"
-        writer = SummaryWriter(args.arch + '_2logs')
+        writer = SummaryWriter(args.arch + 'summaryWriter')
         IMAGE_SIZE = 224
         dataTransform = transforms.Compose([
             transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),  # 尺寸变化
@@ -295,14 +300,15 @@ def main_worker(gpu, ngpus_per_node, args):
             transforms.ToTensor()  # 归一化
         ])
 
-        train_data = ImageNetCustom("train", path, dataTransform)
+        train_data = ImageNetCustom("train", args.path, dataTransform)
         train_size = int(0.8 * len(train_data))
         test_size = len(train_data) - train_size
         train_dataset, val_dataset = torch.utils.data.random_split(train_data, [train_size, test_size])
 
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
-        val_sampler = torch.utils.data.distributed.DistributedSampler(val_dataset, shuffle=False, drop_last=True)
+        # val_sampler = torch.utils.data.distributed.DistributedSampler(val_dataset, shuffle=False, drop_last=True)
+        val_sampler = torch.utils.data.distributed.DistributedSampler(val_dataset, shuffle=False)
     else:
         train_sampler = None
         val_sampler = None
@@ -353,8 +359,8 @@ def main_worker(gpu, ngpus_per_node, args):
         log.logger.info("train cost time is: %s" % (str(time.time() - training_time)))
 
 def train(train_loader, model, criterion, optimizer, epoch, device, args, writer, scheduler):
-    batch_time = AverageMeter('Time', ':6.3f')
-    data_time = AverageMeter('Data', ':6.3f')
+    batch_time = AverageMeter('Batch_Time', ':6.3f')
+    data_time = AverageMeter('Data_processor', ':6.3f')
     losses = AverageMeter('Loss', ':.6f')
     top1 = AverageMeter('Acc@1', ':3.2f')
     top5 = AverageMeter('Acc@5', ':3.2f')
@@ -557,7 +563,7 @@ class ProgressMeter(object):
         log.logger.info('\t'.join(entries))
 
     def display_summary(self):
-        entries = [" *"]
+        entries = ["val: *"]
         entries += [meter.summary() for meter in self.meters]
         log.logger.info(' '.join(entries))
 
