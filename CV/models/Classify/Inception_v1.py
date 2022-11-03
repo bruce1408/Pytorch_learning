@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from torchsummary import summary
 
+__all__=['Inception_v1']
 
 class inception_block(nn.Module):
     """

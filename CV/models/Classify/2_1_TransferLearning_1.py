@@ -1,17 +1,24 @@
-from torchvision.models.resnet import resnet18
 import os
+import time
+
 import torch
 import torch.nn as nn
 import random
+from torchvision.datasets import FakeData
 from PIL import Image
 import torch.utils.data as data
+import argparse
 import torchvision.transforms as transforms
+from torchvision.models.resnet import resnet18
+from apex import amp
+from apex.parallel import DistributedDataParallel
+
 """
 https://cloud.tencent.com/developer/article/1435646
 """
 # parameters
 os.environ['CUDA_VISIBLE_DEVICES'] = '3'
-batchsize = 32
+batchsize = 64
 num_workers = 4
 
 
@@ -65,8 +72,18 @@ transform_val = transforms.Compose([
 ])
 
 # 生成训练集和验证集
-trainset = CustomData('/datasets/cdd_data/dogs_cats/train', transform=transform_train)
-valset = CustomData('/datasets/cdd_data/dogs_cats/train', transform=transform_val, train=False, val=True)
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
+parser.add_argument("--dummy", default=True, type=bool, help="use toy data")
+args = parser.parse_args()
+
+if args.dummy:
+    trainset = FakeData(10000, (3, 224, 224), 2, transforms.ToTensor())
+    valset = FakeData(2000, (3, 224, 224), 2, transforms.ToTensor())
+else:
+    trainset = CustomData('/datasets/cdd_data/dogs_cats/train', transform=transform_train)
+    valset = CustomData('/datasets/cdd_data/dogs_cats/train', transform=transform_val, train=False, val=True)
 # 将训练集和验证集放到 DataLoader 中去，shuffle 进行打乱顺序（在多个 epoch 的情况下）
 # num_workers 加载数据用多少的子线程（windows不能用这个参数）
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchsize, shuffle=True, num_workers=num_workers)
@@ -81,14 +98,14 @@ class Net(nn.Module):
         """
         super(Net, self).__init__()
         # 去掉model的最后1层
-        print(model)
+        # print(model)
         self.resnet_layer = nn.Sequential(*list(model.children())[:-1])
-        print('self resnet layers: \n', self.resnet_layer)
+        # print('self resnet layers: \n', self.resnet_layer)
         self.Linear_layer = nn.Linear(512, 2)  # 加上一层参数修改好的全连接层
 
     def forward(self, x):
         x = self.resnet_layer(x)
-        print(x.shape)
+        # print(x.shape)
         x = x.view(x.size(0), -1)
         x = self.Linear_layer(x)
         return x
@@ -110,7 +127,10 @@ def train(epoch):
         label = label.to(device)
         out = model(image)
         loss = criterion(out, label)
-        loss.backward()
+
+        with amp.scale_loss(loss, optimizer) as scaled_loss:
+            scaled_loss.backward()
+        # loss.backward()
         optimizer.step()
         train_acc = get_acc(out, label)
         print("Epoch:%d [%d|%d] loss:%f acc:%f" % (epoch, batch_idx, len(trainloader), loss.mean(), train_acc))
@@ -140,11 +160,24 @@ if __name__ == '__main__':
     # 修改最后一全连接层输出维度，但是参数全部要更新训练
     resnet = resnet18(pretrained=False, progress=True)  # 直接用 resnet 在 ImageNet 上训练好的参数
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  # 若能使用cuda，则使用cuda
-    model = Net(resnet)  # 修改全连接层
-    model = model.to(device)  # 放到 GPU 上跑
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)  # 设置训练细节
-    criterion = nn.CrossEntropyLoss()  # 分类问题普遍用交叉熵
+
+    # 修改全连接层
+    model = Net(resnet)
+
+    # 放到 GPU 上跑
+    model = model.to(device)
+
+    # 设置优化器训练细节
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=5e-4)
+
+    # apex 加速训练
+    model, optimizer = amp.initialize(model, optimizer, opt_level="O1")
+    model = DistributedDataParallel(model)
+    criterion = nn.CrossEntropyLoss()
+    begin_time = time.time()
     for epoch in range(20):
         train(epoch)
+        print("epoch time: ", time.time() - begin_time)
         val(epoch)
     torch.save(model, 'modelcatdog.pt')  # 保存模型
+    print("train model use time: ", time.time() - begin_time)

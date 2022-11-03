@@ -5,15 +5,13 @@ import shutil
 import time
 import warnings
 from enum import Enum
+import logging
+from logging import handlers
 import sys
 sys.path.append("../..")
 from torch.utils.tensorboard import SummaryWriter
-# from tensorboardX import SummaryWriter
-# from tensorboardX import GlobalSummaryWriter as SummaryWriter
 from torch.cuda.amp import autocast as autocast
-from utils.ImageNetCustom import ImageNetCustom
 import torch
-from utils.logger import Logger
 import torch.backends.cudnn as cudnn
 import torch.distributed as dist
 import torch.multiprocessing as mp
@@ -27,8 +25,12 @@ import torchvision.models as models
 import torchvision.transforms as transforms
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import Subset
-from torchvision.models import mobilenet_v2
-
+import torch.utils.data as data
+from PIL import Image
+import numpy as np
+from collections import defaultdict
+from apex import amp
+from apex.parallel import DistributedDataParallel
 
 model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
@@ -37,11 +39,11 @@ model_names = sorted(name for name in models.__dict__
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 # parser.add_argument('data', metavar='DIR', nargs='?', default='imagenet',
 #                     help='path to dataset (default: imagenet)')
-parser.add_argument('-a', '--arch', metavar='ARCH', default='mobilenet_v2',
+parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet34',
                     choices=model_names,
                     help='model architecture: ' +
                          ' | '.join(model_names) +
-                         ' (default: resnet18), resnet34, resnet50, mobilenetv2, efficientnet-b3')
+                         ' (default: resnet18)')
 parser.add_argument('-j', '--workers', default=6, type=int, metavar='N',
                     help='number of data loading workers (default: 4)')
 parser.add_argument('--epochs', default=30, type=int, metavar='N',
@@ -49,7 +51,10 @@ parser.add_argument('--epochs', default=30, type=int, metavar='N',
 
 parser.add_argument("--path", default="/home/cuidongdong/imagenet_data")
 
-parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
+parser.add_argument('--start-epoch',
+                    default=0,
+                    type=int,
+                    metavar='N',
                     help='manual epoch number (useful on restarts)')
 parser.add_argument('-b', '--batch-size', default=256, type=int,
                     metavar='N',
@@ -104,16 +109,136 @@ args = parser.parse_args()
 gpu_devices = ','.join([str(id) for id in args.gpu_devices])
 os.environ["CUDA_VISIBLE_DEVICES"] = gpu_devices
 os.makedirs(os.path.join(args.arch, args.work_dir), exist_ok=True)
+
+
+# 默认输入网络的图片大小
+IMAGE_SIZE = 224
+
+# 定义一个转换关系，用于将图像数据转换成PyTorch的Tensor形式
+dataTransform = transforms.Compose([
+    transforms.Resize(IMAGE_SIZE),  # 将图像按比例缩放至合适尺寸
+    transforms.CenterCrop((IMAGE_SIZE, IMAGE_SIZE)),  # 从图像中心裁剪合适大小的图像
+    transforms.ToTensor()  # 转换成Tensor形式，并且数值归一化到[0.0, 1.0]，同时将H×W×C的数据转置成C×H×W，这一点很关键
+])
+
+
+def adjust_learning_rate(optimizer, epoch, args):
+    """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
+    lr = args.lr * (0.1**(epoch // 30))
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
+class Logger(object):
+    level_relations = {
+        'debug': logging.DEBUG,
+        'info': logging.INFO,
+        'warning': logging.WARNING,
+        'error': logging.ERROR,
+        'crit': logging.CRITICAL
+    }
+
+    # 日志级别关系映射
+
+    def __init__(self, filename, level='info', when='D', backCount=3,
+                 fmt='%(asctime)s - %(levelname)s: %(message)s'):
+        self.filename = filename
+        self.level = level
+        self.fmt = fmt
+
+        self.logger = logging.getLogger(self.filename)
+        self.logger.propagate = False  # 防止终端重复打印
+
+
+        # 设置日志级别
+        self.logger.setLevel(self.level_relations.get(self.level))
+
+        if not self.logger.handlers:
+            # self.logger.handlers.clear()
+
+            # 设置日志格式
+            format_str = logging.Formatter(self.fmt)
+
+            # 设置屏幕打印
+            sh = logging.StreamHandler()  # 往屏幕上输出
+
+            # 设置打印格式
+            sh.setFormatter(format_str)  # 设置屏幕上显示的格式
+
+            # 把对象加到logger里
+            self.logger.addHandler(sh)
+
+            # 往文件里写入handler
+            # th = handlers.TimedRotatingFileHandler(filename=filename, backupCount=backCount, encoding='utf-8')
+            th = logging.FileHandler(filename, 'a', encoding='utf-8')
+            # 设置文件里写入的格式
+            th.setFormatter(format_str)
+
+            # 添加写入文件的操作
+            self.logger.addHandler(th)
+
+class ImageNetCustom(data.Dataset):  # 新建一个数据集类，并且需要继承PyTorch中的data.Dataset父类
+    # 默认构造函数，传入数据集类别（训练或测试），以及数据集路径
+    def __init__(self, mode, dir, dataTransform=dataTransform):
+        self.mode = mode
+        self.list_img = []  # 新建一个image list，用于存放图片路径，注意是图片路径
+        self.list_label = []  # 新建一个label list，用于存放图片对应猫或狗的标签，其中数值0表示猫，1表示狗
+        self.data_size = 0  # 记录数据集大小
+        self.transform = dataTransform  # 转换关系
+        self.dir = dir
+        self.label2category = defaultdict(list)
+        self.idx2label = dict()
+        self.label2idx = dict()
+
+        self.get_label_map()
+        if self.mode == "train":
+            dir = os.path.join(os.path.join(dir, "ILSVRC/Data/CLS-LOC"), self.mode)
+            for file in os.listdir(dir):  # 遍历dir文件夹
+                for imgpath in os.listdir(os.path.join(dir, file)):
+                    self.list_img.append(os.path.join(os.path.join(dir, file), imgpath))  # 将图片路径和文件名添加至image list
+                    self.data_size += 1  # 数据集增1
+                    name = imgpath.split(sep='_')[0]
+                    self.list_label.append(self.label2idx[name])
+        elif self.mode == "val":
+            dir = os.path.join(os.path.join(dir, "ILSVRC/Data/CLS-LOC"), self.mode)
+            for imgpath in os.listdir(dir):
+                self.list_img.append(os.path.join(dir, imgpath))  # 将图片路径和文件名添加至image list
+                self.data_size += 1  # 数据集增1
+                name = imgpath.split(sep='_')[0]
+                self.list_label.append(self.label2idx[name])
+
+    def __getitem__(self, item):  # 重载data.Dataset父类方法，获取数据集中数据内容
+        img = Image.open(self.list_img[item])  # 打开图片
+        if img.mode != 'L':
+            gray_pic = img.convert("L")
+            rgb_pic = gray_pic.convert("RGB")
+        else:
+            rgb_pic = img.convert('RGB')
+            # 将数组转换为图像
+        img = Image.fromarray(np.asarray(rgb_pic))
+        # print(img.mode)
+        label = self.list_label[item]  # 获取image对应的label
+        return self.transform(img), torch.LongTensor([label])  # 将image和label转换成PyTorch形式并返回
+
+    def __len__(self):
+        return self.data_size  # 返回数据集大小
+
+    def get_label_map(self):
+        # n01558993 robin, American robin, Turdus migratorius
+        count = 0
+        with open(os.path.join(self.dir, "LOC_synset_mapping.txt")) as f:
+            for eachlabel in f:
+                line_list = eachlabel.strip("\n").split(",")
+                label = line_list[0].split(" ")[0]
+                self.idx2label[count] = label
+                count += 1
+                self.label2category[label].append(line_list[0].split(" ")[1])
+                for index in range(1, len(line_list)):
+                    self.label2category[label].append(line_list[index].strip(" "))
+        self.label2idx = {value: key for key, value in self.idx2label.items()}
+        return self.label2category
+
 log = Logger(os.path.join(os.path.join(args.arch, args.work_dir),
                           'torchvision_imagenet_%s.log' % args.arch), level='info')
-
-
-def get_acc(pred, label):
-    total = pred.shape[0]
-    _, pred_label = pred.max(1)
-    num_correct = (pred_label == label).sum().item()
-    return num_correct/total
-
 
 def main():
     args = parser.parse_args()
@@ -189,62 +314,68 @@ def main_worker(gpu, ngpus_per_node, args):
         model = models.__dict__[args.arch]()
         # model = models.__dict__[args.arch].MobileNetV2()
 
-    if not torch.cuda.is_available() and not torch.backends.mps.is_available():
-        print('using CPU, this will be slow')
-    elif args.distributed:
-        # For multiprocessing distributed, DistributedDataParallel constructor
-        # should always set the single device scope, otherwise,
-        # DistributedDataParallel will use all available devices.
-        if torch.cuda.is_available():
-            if args.gpu is not None:
-                print("args.distributed: true", args.gpu)
-                torch.cuda.set_device(args.gpu)
-                model.cuda(args.gpu)
-                # When using a single GPU per process and per
-                # DistributedDataParallel, we need to divide the batch size
-                # ourselves based on the total number of GPUs of the current node.
-                args.batch_size = int(args.batch_size / ngpus_per_node)
-                args.workers = int((args.workers + ngpus_per_node - 1) / ngpus_per_node)
-                model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
-            else:
-                model.cuda()
-
-                # DistributedDataParallel will divide and allocate batch_size to all
-                # available GPUs if device_ids are not set
-                model = torch.nn.parallel.DistributedDataParallel(model)
-    elif args.gpu is not None and torch.cuda.is_available():
-        torch.cuda.set_device(args.gpu)
-        model = model.cuda(args.gpu)
-
-    # elif torch.backends.mps.is_available():
-    #     device = torch.device("mps")
-    #     model = model.to(device)
-    else:
-        # DataParallel will divide and allocate batch_size to all available GPUs
-        if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
-            model.features = torch.nn.DataParallel(model.features)
-            model.cuda()
-        else:
-            model = torch.nn.DataParallel(model).cuda()
-
-    if torch.cuda.is_available():
-        if args.gpu:
-            device = torch.device('cuda:{}'.format(args.gpu))
-        else:
-            device = torch.device("cuda")
-    elif torch.backends.mps.is_available():
-        device = torch.device("mps")
-    else:
-        device = torch.device("cpu")
+    # if not torch.cuda.is_available() and not torch.backends.mps.is_available():
+    #     print('using CPU, this will be slow')
+    # elif args.distributed:
+    #     # For multiprocessing distributed, DistributedDataParallel constructor
+    #     # should always set the single device scope, otherwise,
+    #     # DistributedDataParallel will use all available devices.
+    #     if torch.cuda.is_available():
+    #         if args.gpu is not None:
+    #             print("args.distributed: true", args.gpu)
+    #             torch.cuda.set_device(args.gpu)
+    #             model.cuda(args.gpu)
+    #             # When using a single GPU per process and per
+    #             # DistributedDataParallel, we need to divide the batch size
+    #             # ourselves based on the total number of GPUs of the current node.
+    #             args.batch_size = int(args.batch_size / ngpus_per_node)
+    #             args.workers = int((args.workers + ngpus_per_node - 1) / ngpus_per_node)
+    #             model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu])
+    #         else:
+    #             model.cuda()
+    #
+    #             # DistributedDataParallel will divide and allocate batch_size to all
+    #             # available GPUs if device_ids are not set
+    #             model = torch.nn.parallel.DistributedDataParallel(model)
+    # elif args.gpu is not None and torch.cuda.is_available():
+    #     torch.cuda.set_device(args.gpu)
+    #     model = model.cuda(args.gpu)
+    #
+    # # elif torch.backends.mps.is_available():
+    # #     device = torch.device("mps")
+    # #     model = model.to(device)
+    # else:
+    #     # DataParallel will divide and allocate batch_size to all available GPUs
+    #     if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
+    #         model.features = torch.nn.DataParallel(model.features)
+    #         model.cuda()
+    #     else:
+    #         model = torch.nn.DataParallel(model).cuda()
+    #
+    # if torch.cuda.is_available():
+    #     if args.gpu:
+    #         device = torch.device('cuda:{}'.format(args.gpu))
+    #     else:
+    #         device = torch.device("cuda")
+    # else:
+    #     device = torch.device("cpu")
     # define loss function (criterion), optimizer, and learning rate scheduler
-    criterion = nn.CrossEntropyLoss().to(device)
+
+    # criterion = nn.CrossEntropyLoss().to(device)
+    torch.cuda.set_device(args.gpu)
+    model.cuda()
+    criterion = nn.CrossEntropyLoss().cuda()
+
 
     optimizer = torch.optim.SGD(model.parameters(), args.lr,
                                 momentum=args.momentum,
                                 weight_decay=args.weight_decay)
 
+    model, optimizer = amp.initialize(model, optimizer)
+    model = DistributedDataParallel(model)
+
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
-    scheduler = StepLR(optimizer, step_size=2, gamma=0.6)
+    # scheduler = StepLR(optimizer, step_size=2, gamma=0.6)
 
     # optionally resume from a checkpoint
     if args.resume:
@@ -263,7 +394,7 @@ def main_worker(gpu, ngpus_per_node, args):
                 print("best acc is:", best_acc1)
             model.load_state_dict(checkpoint['state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer'])
-            scheduler.load_state_dict(checkpoint['scheduler'])
+            # scheduler.load_state_dict(checkpoint['scheduler'])
             print("=> loaded checkpoint '{}' (epoch {})".format(args.resume, checkpoint['epoch']))
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
@@ -337,17 +468,17 @@ def main_worker(gpu, ngpus_per_node, args):
     for epoch in range(args.start_epoch, args.epochs):
         if args.distributed:
             train_sampler.set_epoch(epoch)
+        adjust_learning_rate(optimizer, epoch, args)
 
         # train for one epoch
         epoch_time = time.time()
-        train(train_loader, model, criterion, optimizer, epoch, device, args, writer, scheduler)
+        train(train_loader, model, criterion, optimizer, epoch, args, writer)
         if dist.get_rank() == 0:
             log.logger.info("epoch_time cost: %s" % str(time.time() - epoch_time))
 
         # evaluate on validation set
         acc1 = validate(val_loader, model, criterion, args)
 
-        scheduler.step()
 
         # remember best acc@1 and save checkpoint
         is_best = acc1 > best_acc1
@@ -361,12 +492,12 @@ def main_worker(gpu, ngpus_per_node, args):
                 'state_dict': model.state_dict(),
                 'best_acc1': best_acc1,
                 'optimizer': optimizer.state_dict(),
-                'scheduler': scheduler.state_dict()
+                # 'scheduler': scheduler.state_dict()
             }, is_best, args)
     if dist.get_rank() == 0:
         log.logger.info("train cost time is: %s" % (str(time.time() - training_time)))
 
-def train(train_loader, model, criterion, optimizer, epoch, device, args, writer, scheduler):
+def train(train_loader, model, criterion, optimizer, epoch, args, writer):
     batch_time = AverageMeter('Batch_Time', ':6.3f')
     data_time = AverageMeter('Data_processor', ':6.3f')
     losses = AverageMeter('Loss', ':.6f')
@@ -387,8 +518,10 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args, writer
         data_time.update(time.time() - end)
 
         # move data to the same device as model
-        images = images.to(device, non_blocking=True)
-        target = target.to(device, non_blocking=True)
+        # images = images.to(device, non_blocking=True)
+        images = images.cuda()
+        target = target.cuda()
+        # target = target.to(device, non_blocking=True)
 
         # compute
         output = model(images)
@@ -396,21 +529,21 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args, writer
         target = target.squeeze(1)
         loss = criterion(output, target)
         writer.add_scalar("loss", loss, totalCount)
-        acc = get_acc(output, target)
+
         # measure accuracy and record loss
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
         # log.logger.info("after val the acc: {}-{}".format(acc1, acc5))
         losses.update(loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
-        lr_ = scheduler.get_last_lr()[0]
-        lr.update(lr_, 1)
+        # lr_ = scheduler.get_last_lr()[0]
+        # lr.update(lr_, 1)
 
-        writer.add_scalar("acc", acc, totalCount)
-        writer.add_scalar("lr", lr_, totalCount)
         # compute gradient and do SGD step
         optimizer.zero_grad()
-        loss.backward()
+        with amp.scale_loss(loss, optimizer) as scaled_loss:
+            scaled_loss.backward()
+        # loss.backward()
         optimizer.step()
 
         # measure elapsed time
@@ -419,6 +552,7 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args, writer
 
         if i % args.print_freq == 0 and dist.get_rank() == 0:
             progress.display(i + 1)
+
 
 def validate(val_loader, model, criterion, args):
     def run_validate(loader, base_progress=0):
