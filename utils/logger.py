@@ -1,4 +1,5 @@
 import logging
+from termcolor import colored
 from logging import handlers
 
 
@@ -11,10 +12,15 @@ class Logger(object):
         'crit': logging.CRITICAL
     }
 
-    # 日志级别关系映射
 
+    # 日志级别关系映射
     def __init__(self, filename, level='info', when='D', backCount=3,
                  fmt='%(asctime)s - %(levelname)s: %(message)s'):
+
+        # 冗余打印
+        # color_fmt = colored('[%(asctime)s %(name)s]', 'green') + colored('(%(filename)s %(lineno)d)', 'yellow') +
+        # ': %(levelname)s %(message)s'
+        color_fmt = colored('[%(asctime)s]', 'green') + colored('(%(filename)s %(lineno)d)', 'yellow') + ': %(levelname)s %(message)s'
         self.filename = filename
         self.level = level
         self.fmt = fmt
@@ -30,13 +36,13 @@ class Logger(object):
             # self.logger.handlers.clear()
 
             # 设置日志格式
-            format_str = logging.Formatter(self.fmt)
+            print_format_str = logging.Formatter(fmt=color_fmt)
 
             # 设置屏幕打印
             sh = logging.StreamHandler()  # 往屏幕上输出
 
             # 设置打印格式
-            sh.setFormatter(format_str)  # 设置屏幕上显示的格式
+            sh.setFormatter(print_format_str)  # 设置屏幕上显示的格式
 
             # 把对象加到logger里
             self.logger.addHandler(sh)
@@ -44,8 +50,10 @@ class Logger(object):
             # 往文件里写入handler
             # th = handlers.TimedRotatingFileHandler(filename=filename, backupCount=backCount, encoding='utf-8')
             th = logging.FileHandler(filename, 'a', encoding='utf-8')
+
+            log_format_str = logging.Formatter(self.fmt)
             # 设置文件里写入的格式
-            th.setFormatter(format_str)
+            th.setFormatter(log_format_str)
 
             # 添加写入文件的操作
             self.logger.addHandler(th)

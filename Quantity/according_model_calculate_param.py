@@ -27,7 +27,7 @@ def calculateBEVParameters(modelpath, layerprefix=None, wholeModel=True):
     for key in net.keys():
         print(key, net[key].keys())
         print(net['optimizer'].keys())
-        print(net['scheduler']['_last_lr'])
+        # print(net['scheduler']['_last_lr'])
     # 模型的参数名和模型的参数应该是一一对应的
     assert (net['state_dict'].__len__()) == net['state_dict'].keys().__len__()
     total = 0
@@ -53,3 +53,6 @@ if __name__ == "__main__":
     # param = calculateBEVParameters(pthfile, "img_backbone")
     # param = calculateBEVParameters(pthfile, "img_bev_encoder_neck")
     # print(param)
+    path = "/home/cuidongdong/backbone_evaluation/bevdepth4d-r50.pth"
+    param = calculateBEVParameters(path)
+    print(param/1e6)

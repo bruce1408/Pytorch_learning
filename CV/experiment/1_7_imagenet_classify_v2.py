@@ -28,6 +28,8 @@ import torchvision.transforms as transforms
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import Subset
 from torchvision.models import mobilenet_v2
+from efficientnet_pytorch import EfficientNet
+
 
 
 model_names = sorted(name for name in models.__dict__
@@ -37,7 +39,7 @@ model_names = sorted(name for name in models.__dict__
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 # parser.add_argument('data', metavar='DIR', nargs='?', default='imagenet',
 #                     help='path to dataset (default: imagenet)')
-parser.add_argument('-a', '--arch', metavar='ARCH', default='mobilenet_v2',
+parser.add_argument('-a', '--arch', metavar='ARCH', default='efficientnet_b3',
                     choices=model_names,
                     help='model architecture: ' +
                          ' | '.join(model_names) +
@@ -51,7 +53,7 @@ parser.add_argument("--path", default="/home/cuidongdong/imagenet_data")
 
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
                     help='manual epoch number (useful on restarts)')
-parser.add_argument('-b', '--batch-size', default=256, type=int,
+parser.add_argument('-b', '--batch-size', default=128, type=int,
                     metavar='N',
                     help='mini-batch size (default: 256), this is the total '
                          'batch size of all GPUs on the current node when '
@@ -143,7 +145,7 @@ def main():
 
     args.distributed = args.world_size > 1 or args.multiprocessing_distributed
 
-    # 注释全部的gpu资源
+    # 使用可用的gpu资源
     if torch.cuda.is_available():
         ngpus_per_node = torch.cuda.device_count()
     else:
@@ -184,10 +186,18 @@ def main_worker(gpu, ngpus_per_node, args):
     if args.pretrained:
         print("=> using pre-trained model '{}'".format(args.arch))
         model = models.__dict__[args.arch](pretrained=True)
+        # model = models.name(pretrained=True)
+
+        #efficientnet单独
+        # model = EfficientNet. ('efficientnet-b7', override_params={'num_classes': 54})
+
     else:
         print("=> creating model '{}'".format(args.arch))
-        model = models.__dict__[args.arch]()
+        # 常用模型
+        # model = models.__dict__[args.arch]()
         # model = models.__dict__[args.arch].MobileNetV2()
+        # efficientnet单独
+        model = EfficientNet.from_name('efficientnet-b3', num_classes=1000)
 
     if not torch.cuda.is_available() and not torch.backends.mps.is_available():
         print('using CPU, this will be slow')
@@ -215,10 +225,6 @@ def main_worker(gpu, ngpus_per_node, args):
     elif args.gpu is not None and torch.cuda.is_available():
         torch.cuda.set_device(args.gpu)
         model = model.cuda(args.gpu)
-
-    # elif torch.backends.mps.is_available():
-    #     device = torch.device("mps")
-    #     model = model.to(device)
     else:
         # DataParallel will divide and allocate batch_size to all available GPUs
         if args.arch.startswith('alexnet') or args.arch.startswith('vgg'):
