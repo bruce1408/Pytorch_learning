@@ -15,7 +15,6 @@ dataTransform = transforms.Compose([
     transforms.ToTensor()  # 归一化
 ])
 
-
 class Custom(data.Dataset):
     def __init__(self, mode, imgpath):
         self.mode = mode

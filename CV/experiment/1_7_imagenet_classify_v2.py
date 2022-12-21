@@ -100,6 +100,7 @@ parser.add_argument('--multiprocessing_distributed',
                          'multi node data parallel training,使用分布式训练')
 parser.add_argument('--dummy', default=False, help="use fake data to benchmark")
 
+
 best_acc1 = 0
 totalCount = 0
 args = parser.parse_args()
