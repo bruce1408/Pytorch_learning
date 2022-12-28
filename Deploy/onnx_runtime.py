@@ -1,6 +1,7 @@
 import onnxruntime
 import numpy as np
-ort_session = onnxruntime.InferenceSession("srcnn.onnx")
+
+ort_session = onnxruntime.InferenceSession("./models/srcnn.onnx")
 ort_inputs = {'input': input_img}
 ort_output = ort_session.run(['output'], ort_inputs)[0]
 
