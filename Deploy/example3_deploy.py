@@ -61,7 +61,7 @@ class StrangeSuperResolutionNet(nn.Module):
 def init_torch_model(): 
     torch_model = StrangeSuperResolutionNet() 
  
-    state_dict = torch.load('srcnn.pth')['state_dict'] 
+    state_dict = torch.load('./models/srcnn.pth')['state_dict'] 
  
     # Adapt the checkpoint 
     for old_key in list(state_dict.keys()): 

@@ -14,7 +14,7 @@ def download_model():
     """
     urls = ['https://download.openmmlab.com/mmediting/restorers/srcnn/srcnn_x4k915_1x16_1000k_div2k_20200608-4186f232.pth',
             'https://raw.githubusercontent.com/open-mmlab/mmediting/master/tests/data/face/000001.png']
-    names = ['srcnn.pth', 'face.png']
+    names = ['./models/srcnn.pth', 'face.png']
     for url, name in zip(urls, names):
         if not os.path.exists(name):
             open(name, 'wb').write(requests.get(url).content)
@@ -45,7 +45,7 @@ class SuperResolutionNet(nn.Module):
 def init_torch_model(): 
     torch_model = SuperResolutionNet() 
  
-    state_dict = torch.load('./srcnn.pth')['state_dict'] 
+    state_dict = torch.load("./models/srcnn.pth")['state_dict'] 
  
     # Adapt the checkpoint 
     for old_key in list(state_dict.keys()): 
@@ -81,12 +81,11 @@ def export_onnx_model():
     """
     torch.onnx.export PyTorch 自带的把模型转换成 ONNX 格式的函数;
     前三个必选参数：分别是要转换的模型、模型的任意一组输入、导出的 ONNX 文件的文件名
-
     """
     x = torch.randn(1, 3, 256, 256)
     with torch.no_grad():
         torch.onnx.export(model, (x, torch.tensor(3)),
-            "srcnn_2.onnx",
+            "./models/srcnn_2.onnx",
             opset_version=11, # 表示onnx算子集的版本
             input_names=['input'],  # 输入
             output_names=['output'])  # 模型输出

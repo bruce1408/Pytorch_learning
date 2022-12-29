@@ -5,7 +5,7 @@ with torch.no_grad():
     torch.onnx.export(
         model,
         x,
-        "srcnn.onnx",
+        "./models/srcnn.onnx",
         opset_version=11,
         input_names=['input'],
         output_names=['output'])
