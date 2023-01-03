@@ -7,6 +7,7 @@ data/
 *.json
 *.so
 *.o
+*.out
 my_add.egg-info/
 .vscode
 .DS_Store
@@ -25,3 +26,9 @@ compiler_output/
 Pocket_Lab/resnet34/
 Pocket_Lab/resnet34*/
 Pocket_Lab/resnet*/
+#*.cmake
+*.check_cache
+*.cmake
+*.egg-info
+*.egg
+*.log
