@@ -1,6 +1,5 @@
 data/
 *.bak
-*.txt
 *.xml
 *.iml
 *.bin
