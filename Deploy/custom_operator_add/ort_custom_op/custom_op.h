@@ -16,6 +16,7 @@ struct OrtTensorDimensions : std::vector<int64_t> {
     }
 };
 
+// 算子kernel定义，主要实现compute函数
 template <typename T>
 struct GroupNormKernel {
     private:
@@ -30,9 +31,9 @@ struct GroupNormKernel {
     void Compute(OrtKernelContext* context);
 };
 
-
+// 实现一个customOp继承自customOpBase
 struct GroupNormCustomOp : Ort::CustomOpBase<GroupNormCustomOp, GroupNormKernel<float>> {
-    void* CreateKernel(Ort::CustomOpApi api, const OrtKernelInfo* info) { return new GroupNormKernel<float>(api, info); };
+    void* CreateKernel(Ort::CustomOpApi api, const OrtKernelInfo* info) const { return new GroupNormKernel<float>(api, info); };
     const char* GetName() const { return "testgroupnorm"; };
 
     size_t GetInputTypeCount() const { return 4; };

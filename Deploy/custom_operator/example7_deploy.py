@@ -39,7 +39,7 @@ def export_onnx():
 
 
 def onnx_runtime():
-  
+    
     sess = onnxruntime.InferenceSession('my_add.onnx') 
     ort_input = {'a': input1.numpy(), 'b': input1.numpy()}
     ort_output = sess.run(None, ort_input)[0] 

@@ -25,9 +25,14 @@ compiler_output/
 Pocket_Lab/resnet34/
 Pocket_Lab/resnet34*/
 Pocket_Lab/resnet*/
-#*.cmake
+*.cmake
 *.check_cache
 *.cmake
 *.egg-info
 *.egg
 *.log
+*.make
+Makefile*
+*.ts
+*.marks
+*.d

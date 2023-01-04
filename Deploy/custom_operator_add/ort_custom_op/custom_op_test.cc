@@ -4,7 +4,7 @@
 
 typedef const char* PATH_TYPE;
 #define TSTR(X) (X)
-static constexpr PATH_TYPE MODEL_URI = TSTR("../pytorch_custom_op/model.onnx");
+static constexpr PATH_TYPE MODEL_URI = TSTR("/home/cuidongdong/Pytorch_learning/Deploy/custom_operator_add/pytorch_custom_op/model.onnx");
 
 template <typename T>
 bool TestInference(Ort::Env& env, T model_uri,
@@ -31,8 +31,7 @@ OrtCustomOpDomain* custom_op_domain_ptr) {
     }
 
     std::vector<Ort::Value> ort_outputs;
-    ort_outputs = session.Run(Ort::RunOptions{nullptr}, input_names.data(), input_tensors.data(), input_tensors.size(), &output_name, 1);
-
+    ort_outputs = session.Run(Ort::RunOptions{nullptr}, input_names.data(), input_tensors.data(), input_tensors.size(), &output_name, 1);    
 
     Ort::Value output_tensor{nullptr};
     output_tensor = Ort::Value::CreateTensor<float>(memory_info, const_cast<float*>(expected_values_y.data()), expected_values_y.size(), expected_dims_y.data(), expected_dims_y.size());

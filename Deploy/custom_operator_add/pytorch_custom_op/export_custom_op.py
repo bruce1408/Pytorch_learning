@@ -34,10 +34,9 @@ def export_custom_op():
                       custom_opsets={"mydomain": 1})
 
 
+if __name__ == "__main__":
+    torch.ops.load_library(
+        "build/lib.linux-x86_64-cpython-39/custom_group_norm.cpython-39-x86_64-linux-gnu.so")
 
-torch.ops.load_library(
-    "build/lib.linux-x86_64-3.9/custom_group_norm.cpython-39-x86_64-linux-gnu.so")
-
-
-register_custom_op()
-export_custom_op()
+    register_custom_op()
+    export_custom_op()
