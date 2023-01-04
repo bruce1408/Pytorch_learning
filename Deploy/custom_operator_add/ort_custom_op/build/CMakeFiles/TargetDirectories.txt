@@ -1,3 +1,0 @@
-/home/cuidongdong/Pytorch_learning/Deploy/custom_operator_add/ort_custom_op/build/CMakeFiles/customop.dir
-/home/cuidongdong/Pytorch_learning/Deploy/custom_operator_add/ort_custom_op/build/CMakeFiles/edit_cache.dir
-/home/cuidongdong/Pytorch_learning/Deploy/custom_operator_add/ort_custom_op/build/CMakeFiles/rebuild_cache.dir

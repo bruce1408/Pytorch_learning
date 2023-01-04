@@ -21,6 +21,7 @@ venv/
 compiler_output/
 *.bin
 *.npy
+build/
 #*.pth
 Pocket_Lab/resnet34/
 Pocket_Lab/resnet34*/
