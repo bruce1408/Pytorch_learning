@@ -1,7 +1,6 @@
-#include <onnxruntime_cxx_api.h>
 #include <iostream>
-#include <Eigen/Dense>
-#include "custom_op.h"
+#include "Eigen/Dense"
+#include "onnxruntime_cxx_api.h"
 
 using ConstEigenVectorArrayMap = Eigen::Map<const Eigen::Array<float, Eigen::Dynamic, 1>>;
 using EigenVectorArrayMap = Eigen::Map<Eigen::Array<float, Eigen::Dynamic, 1>>;

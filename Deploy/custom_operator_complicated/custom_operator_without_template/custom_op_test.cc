@@ -4,7 +4,7 @@
 
 typedef const char* PATH_TYPE;
 #define TSTR(X) (X)
-static constexpr PATH_TYPE MODEL_URI = TSTR("/home/cuidongdong/Pytorch_learning/Deploy/custom_operator_add/pytorch_custom_op/model.onnx");
+static constexpr PATH_TYPE MODEL_URI = TSTR("/home/cuidongdong/Pytorch_learning/Deploy/custom_operator_complicated/pytorch_custom_op/model.onnx");
 
 template <typename T>
 bool TestInference(Ort::Env& env, T model_uri,

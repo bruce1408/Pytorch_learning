@@ -1,5 +1,5 @@
 #include <iostream>
-#include <onnxruntime_cxx_api.h>
+#include "onnxruntime_cxx_api.h"
 
 struct Input {
     const char* name;
@@ -42,4 +42,4 @@ struct GroupNormCustomOp : Ort::CustomOpBase<GroupNormCustomOp, GroupNormKernel>
     ONNXTensorElementDataType GetOutputType(size_t /*index*/) const { return ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT; };
 };
 
-#include "custom_op.cc"
+include "custom_op.cc"
