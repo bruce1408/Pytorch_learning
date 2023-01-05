@@ -31,7 +31,8 @@ def export_custom_op():
                       opset_version=9,
                     #   example_outputs=None,
                       input_names=["X", "num_groups", "scale", "bias"], output_names=["Y"],
-                      custom_opsets={"mydomain": 1})
+                      custom_opsets={"mydomain": 1}
+                      )
 
 
 if __name__ == "__main__":

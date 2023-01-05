@@ -4,14 +4,17 @@ import torch
 import numpy as np
 import onnxruntime as onnxrt
 from onnxruntime.capi.onnxruntime_pybind11_state import Fail, OrtValueVector, RunOptions
+# from onnxruntime_extensions import get_library_path as _lib_path
 
-X = torch.randn(3, 2, 1, 2)
-num_groups = torch.tensor([2.])
-scale = torch.tensor([1., 1.])
-bias = torch.tensor([0., 0.])
+
+# X = torch.randn(3, 2, 1, 2)
+X = np.random.randn(3, 2, 1, 2).astype(np.float32)
+num_groups = np.array([2.]).astype(np.float32)
+scale = np.array([1., 1.]).astype(np.float32)
+bias = np.array([0., 0.]).astype(np.float32)
 inputs = (X, num_groups, scale, bias)
     
-shared_library = "/home/cuidongdong/Pytorch_learning/Deploy/custom_library_2_without_template/build/bin/libcustomop.so"
+shared_library = "./custom_operator_complicated/custom_operator_without_template/build/liblango.so"
 if not os.path.exists(shared_library):
     raise FileNotFoundError("Unable to find '{0}'".format(shared_library))
 
@@ -22,7 +25,7 @@ available_providers_without_tvm_and_tensorrt = [
     if provider not in {"TvmExecutionProvider", "TensorrtExecutionProvider"}
 ]
 
-custom_op_model = "/home/cuidongdong/Pytorch_learning/Deploy/custom_operator_complicated/pytorch_custom_op/model.onnx"
+custom_op_model = "./custom_operator_complicated/pytorch_custom_op/model.onnx"
 if not os.path.exists(custom_op_model):
     raise FileNotFoundError("Unable to find '{0}'".format(custom_op_model))
 
@@ -42,9 +45,8 @@ input_name_3 = sess1.get_inputs()[3].name
 output_name = sess1.get_outputs()[0].name
 input_0 = np.ones((3, 5)).astype(np.float32)
 input_1 = np.zeros((3, 5)).astype(np.float32)
-res = sess1.run([output_name], {input_name_0: X, 
-                                input_name_1: num_groups, 
-                                input_name_2: scale, 
-                                input_name_3:bias})
+res = sess1.run([output_name], {input_name_0: X, input_name_1: num_groups, input_name_2: scale,  input_name_3:bias})
+
+print(res[0].shape)
 # output_expected = np.ones((3, 5)).astype(np.float32)
 # np.testing.assert_allclose(output_expected, res[0], rtol=1e-05, atol=1e-08)
