@@ -36,4 +36,4 @@ Pocket_Lab/resnet*/
 Makefile*
 *.ts
 *.marks
-*.d
+/Deploy/*
