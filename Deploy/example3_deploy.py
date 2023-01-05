@@ -76,7 +76,7 @@ def init_torch_model():
 model = init_torch_model() 
 factor = torch.tensor([1, 1, 3, 3], dtype=torch.float) 
  
-input_img = cv2.imread('face.png').astype(np.float32) 
+input_img = cv2.imread('./models/face.png').astype(np.float32) 
  
 # HWC to NCHW 
 input_img = np.transpose(input_img, [2, 0, 1]) 
@@ -108,7 +108,9 @@ def onnxruntime():
     # 这里把3倍的上采样改成4倍，也能运行；
     import onnxruntime 
     input_factor = np.array([1, 1, 4, 4], dtype=np.float32) 
-    ort_session = onnxruntime.InferenceSession("srcnn3.onnx") 
+    ort_session = onnxruntime.InferenceSession("./models/srcnn3.onnx") 
+    print(ort_session.get_inputs()[0].name)
+    print(ort_session.get_inputs()[1].name)
     ort_inputs = {'input': input_img, 'factor': input_factor} 
     ort_output = ort_session.run(None, ort_inputs)[0] 
     
@@ -119,7 +121,7 @@ def onnxruntime():
     
 
 if __name__ == "__main__":
-    export_onnx_model()
+    # export_onnx_model()
     
     # 刚刚的工作，实际上是绕过 PyTorch 本身的限制，凭空“捏”出了一个 ONNX 算子。
     # 事实上不仅可以创建现有的 ONNX 算子，还可以定义新的 ONNX 算子以拓展 ONNX 的表达能力。

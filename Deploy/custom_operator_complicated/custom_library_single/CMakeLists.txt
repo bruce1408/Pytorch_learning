@@ -15,7 +15,6 @@ include_directories(/home/cuidongdong/eigen)  # 加载头文件
 include_directories(/home/cuidongdong/install_onnx/usr/local/include)
 include_directories(/home/cuidongdong/install_onnx/usr/local/include/onnxruntime/core/session)
 
-add_library(custom_op SHARED custom_op.cc custom_op.h)
 
 
 # add_executable(customop ${SOURCE} ${HEADER} ${TEST_SOURCE})

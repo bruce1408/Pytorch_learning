@@ -1,5 +1,11 @@
 #include <iostream>
 #include "onnxruntime_cxx_api.h"
+#include "Eigen/Dense"
+
+// 源文件模板
+using ConstEigenVectorArrayMap = Eigen::Map<const Eigen::Array<float, Eigen::Dynamic, 1>>;
+using EigenVectorArrayMap = Eigen::Map<Eigen::Array<float, Eigen::Dynamic, 1>>;
+
 
 struct Input {
     const char* name;
@@ -42,4 +48,4 @@ struct GroupNormCustomOp : Ort::CustomOpBase<GroupNormCustomOp, GroupNormKernel>
     ONNXTensorElementDataType GetOutputType(size_t /*index*/) const { return ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT; };
 };
 
-#include "custom_op.cc"
+// #include "custom_op.cc"
