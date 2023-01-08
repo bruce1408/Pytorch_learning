@@ -1,5 +1,5 @@
 import torch.autograd.Function as Function
-
+import torch
 """ 
 Pytorch 自定义激活函数，都需要继承 torch.autograd.Function 类,
 其内部需要定义两个静态方法【@staticmethod】:forward & backward
