@@ -37,3 +37,4 @@ Makefile*
 *.ts
 *.marks
 /Deploy/*
+/NLP/**/*.txt
