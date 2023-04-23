@@ -17,6 +17,7 @@ __pycache__
 venv/
 #*.onnx
 *.yaml
+*.onnx
 *.param
 compiler_output/
 *.bin
