@@ -39,3 +39,4 @@ Makefile*
 *.marks
 /Deploy/*
 /NLP/**/*.txt
+res.txt
