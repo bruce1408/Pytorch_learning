@@ -11,7 +11,7 @@ from torchvision.models import vgg11_bn
 def calculateBEVParameters(modelpath, layerprefix=None, wholeModel=True):
     """
     # net['state_dict'].__len__()) == net['state_dict'].keys().__len__()
-    # 只有3个key，分别是meta, state_dict, optimizer
+    # 只有3个key: 分别是meta, state_dict, optimizer
     :param modelpath:
     :param layerprefix:
     :param wholeModel:
