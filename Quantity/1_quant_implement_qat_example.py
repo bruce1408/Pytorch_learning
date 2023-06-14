@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+
 # 定义一个简单的全连接神经网络模型
 class SimpleModel(nn.Module):
     def __init__(self):
@@ -11,6 +12,7 @@ class SimpleModel(nn.Module):
     def forward(self, x):
         x = self.fc(x)
         return x
+
 
 # 创建原始模型实例
 model = SimpleModel()

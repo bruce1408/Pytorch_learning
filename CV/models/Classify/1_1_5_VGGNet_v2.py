@@ -143,6 +143,7 @@ class VGGNet16_custom(nn.Module):
 
 if __name__ == '__main__':
     net = VGGNet16()
+    
     if torch.cuda.is_available():
         torch.set_default_tensor_type('torch.cuda.FloatTensor')
 

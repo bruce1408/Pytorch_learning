@@ -16,6 +16,7 @@ my_add.egg-info/
 __pycache__
 venv/
 #*.onnx
+*.pt
 *.yaml
 *.onnx
 *.param
