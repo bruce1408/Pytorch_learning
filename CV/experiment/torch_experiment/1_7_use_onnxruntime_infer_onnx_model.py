@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument('--input_shape', type=list, nargs='+', default=[1, 3, 224, 224])
 
     # label 地址
-    parser.add_argument("--label_path", default="/root/val_torch_cls/synset.txt", help="label path")
+    parser.add_argument("--label_path", default="/root/bdd100k_images/val", help="label path")
     
     # onnx 输出地址
     parser.add_argument('--export_path', default="./torch_official_export_model.onnx", help="pth model convert to onnx name")
@@ -43,8 +43,8 @@ def parse_args():
 def pre_process_img(image_path):
     
     transform = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
+        transforms.Resize(640),
+        transforms.CenterCrop(640),
         transforms.ToTensor(),
         transforms.Normalize(
             mean=[0.485, 0.456, 0.406], 

@@ -89,3 +89,4 @@ def val():
 for epoch in range(1, 10):
     train(epoch)
     val()
+    np.argmax()
