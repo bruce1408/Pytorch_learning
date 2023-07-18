@@ -33,9 +33,8 @@ def parse_args():
     # 验证集 地址
     parser.add_argument('--data_val', default="/root/val", help="val data")
     
-
     args = parser.parse_args()
-
+    
     return args
 
 
