@@ -12,15 +12,7 @@ class ConvTranspose2dModel(nn.Module):
         self.conv2 = nn.Conv2d(16, 256, 3, 2)
 
     def forward(self, inputs):
-            # x1 = self.conv1(inputs)
-            # x2 = self.conv2(x1)
-            # # 带动态输入的 view 或者 reshape 转成 onnx 会有shape/gather/unsqueeze/concat算子。
-            # x2_flatten = x2.view(x2.size(0), -1)
-            # x2_flatten = torch.reshape(x2, (x2.size(0), -1))
-            # print(x2_flatten.shape)
-            # # x2_flatten = torch.flatten(x2, start_dim=1)
-            # x3 = self.fc1(x2_flatten)
-            # x4 = self.fc2(x3)  
+            
             B, C, H, W = inputs.shape
             return B*C*H*W
 

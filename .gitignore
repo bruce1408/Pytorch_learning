@@ -43,3 +43,4 @@ Makefile*
 res.txt
 imagenet_jpg_class_256_crop_224.txt
 *.csv
+__pycache__

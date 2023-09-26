@@ -2,7 +2,7 @@ import torch.onnx
 import torch
 import torch.nn as nn
 
-# gather 就是按照索引去拿值
+# resize 其实就是插值运算按照索引去拿值
 class ConvTranspose2dModel(nn.Module):
     def __init__(self):
         super(ConvTranspose2dModel, self).__init__()

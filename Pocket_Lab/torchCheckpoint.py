@@ -1,5 +1,6 @@
 import os
 import torch
+import onnx
 os.environ['CUDA_VISIBLE_DEVICES'] = "6"
 from mmdet.models.backbones.resnet import Bottleneck, BasicBlock
 import torch.utils.checkpoint as checkpoint
@@ -114,23 +115,28 @@ class FPN_LSS(nn.Module):
 
 
 if __name__ == "__main__":
-    net = ResNetForBEVDet(numC_input=64)
+    net = ResNetForBEVDet(numC_input=3)
     # train_dataset = datasets.FakeData(2, (3, 224, 224), 100, transforms.ToTensor())
-    traindata = torch.randn([1, 64, 224, 224])
+    traindata = torch.randn([1, 3, 224, 224])
     # print(traindata)
     outputs = net(traindata)
     print(outputs.__len__())
     print(outputs[0].shape)
     print(outputs[1].shape)
     print(outputs[2].shape)
-    numC_Trans = 64
-    # net2 = FPN_LSS(in_channels=numC_Trans * 8 + numC_Trans * 2, out_channels=256)
-    # outputs1 = net2(outputs)
-    # out_channels = 256
-    # print(outputs1.__len__())
+    numC_Trans = 3
+    net2 = FPN_LSS(in_channels=numC_Trans * 8 + numC_Trans * 2, out_channels=256)
+    outputs1 = net2(outputs)
+    out_channels = 256
+    print(outputs1.__len__())
     # print(outputs1[0].shape)
     # print(outputs1.__len__())
-    summary(net, (1, 64, 224, 224))
+    
+    model_dir = "/Users/bruce/PycharmProjects/Pytorch_learning/onnx_operator_vis/ONNX_Operators"
+    onnx_file_path = "fpn.onnx"
+    torch.onnx.export(net2, [outputs[0], outputs[1], outputs[2]], os.path.join(model_dir, onnx_file_path), opset_version=11, verbose=True)
+    
+    # summary(net, (1, 64, 224, 224))
 
 
 
