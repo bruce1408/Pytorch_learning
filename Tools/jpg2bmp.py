@@ -45,8 +45,8 @@ def jpgToBmp(src_img_path, dst_img_path, nest_dir=False):
             
             image = cv2.imread(temp_path + "/" + fileName)
             cv2.imwrite(dst_img_path+"/"+newFileName, image)
-            
-        
+    
+
 def multidir_convert_to_bmp(nest_dir):
     src_img_path = "/Users/bruce/Downloads/Datasets/val"
     dst_img_path = "/Users/bruce/Downloads/15_Ti_model_files/val_image_bmp"
@@ -58,8 +58,8 @@ def write_path_to_txt(file_img_path_perfix, img_dir):
         for img_name in sorted(os.listdir(img_dir)):
             # f.write(os.path.join(file_img_path_perfix, img_name)+"\n")
             f.write(img_name+"\n")
-    
-    
+
+
 def generate_imagenet_val_label(img_dir):
     img_dir_list = os.listdir(img_dir)
     img_dir_list = sorted(img_dir_list)
@@ -75,7 +75,7 @@ def generate_imagenet_val_label(img_dir):
     with open("/Users/bruce/PycharmProjects/Pytorch_learning/Tools/val_imagenet_label.txt", "w") as f:
         for key, value in img_name_to_label.items():
             f.write(key + ":" + str(value) + "\n")
-   
+
 
 def compare_res_with_evm_ti(img_txt_evm_res, img_txt_std_res):
     
@@ -99,13 +99,12 @@ def compare_res_with_evm_ti(img_txt_evm_res, img_txt_std_res):
             total_num += 1
 
     print("the total img nums is %d , the right predict num is %d, acc is: %.4f "%(total_num, total_pred_num, total_pred_num / total_num ))
-            
-            
+    
 
 def jpeg_to_bmp(jpeg_path, bmp_path):
     image = cv2.imread(jpeg_path)
     cv2.imwrite(bmp_path, image)
-   
+
 
 def check_img_dir(folder_path):
 
