@@ -18,4 +18,4 @@ def onnx_simplify(path):
 
 
 if __name__=="__main__":
-    onnx_simplify("/Users/bruce/Downloads/5223_bev_trans/20230925/modified_0925_mtn_without_linear_dummy_v5.onnx")
+    onnx_simplify("/Users/bruce/Downloads/15_Ti_model_files/20231008/1008_v3.1_dummy_mtn.onnx")

@@ -1,24 +1,147 @@
 import os
 from PIL import Image
+from tqdm import tqdm
+from shutil import copy
+from PIL import Image
+import cv2
 
 
-def jpgToBmp(imgFile):
-    dst_dir = "/Users/bruce/PycharmProjects/Pytorch_learning/Tools/img_data_ti"
+def jpgToBmp(src_img_path, dst_img_path, nest_dir=False):
+    src_img_path_list = []
+    if nest_dir:
+        img_dir_list = os.listdir(src_img_path)
+        for each_dir in img_dir_list:
+            img_dir_path = os.path.join(src_img_path, each_dir)
+            img_name_list = os.listdir(img_dir_path)
+            img_file_path = [os.path.join(img_dir_path, img_name) for img_name in img_name_list ]
+            src_img_path_list.extend(img_file_path)
+        temp_path = dst_img_path+"/temp"
+        if not os.path.exists(temp_path):
+            os.makedirs(temp_path)
+        src_img_path_list = sorted(src_img_path_list)
+        for each_img_path in src_img_path_list:
+            copy(each_img_path, temp_path)
+    #     for fileName in src_img_path_list:
+            
+    #         if os.path.splitext(fileName)[1] == '.JPEG' or os.path.splitext(fileName)[1] == '.jpg':
+    #             name = os.path.splitext(fileName)[0]
+    #             filename = name.split("/")
 
-    for fileName in os.listdir(imgFile):
+    #             print(filename)
+    #             # newFileName = filename + ".bmp"
+
+    #             img = Image.open(fileName)
+    #             # img.save(dst_img_path+"/"+newFileName)
+    #             # print(newFileName)
+
+    
+    src_img_path_list = os.listdir(temp_path)
+    for fileName in tqdm(src_img_path_list, desc="convert jpg2bmp"):
         if os.path.splitext(fileName)[1] == '.JPEG' or os.path.splitext(fileName)[1] == '.jpg':
             name = os.path.splitext(fileName)[0]
             newFileName = name + ".bmp"
+            # img = Image.open(temp_path + "/" + fileName)
+            # img.save(dst_img_path+"/"+newFileName, format="BMP")
+            
+            image = cv2.imread(temp_path + "/" + fileName)
+            cv2.imwrite(dst_img_path+"/"+newFileName, image)
+            
+        
+def multidir_convert_to_bmp(nest_dir):
+    src_img_path = "/Users/bruce/Downloads/Datasets/val"
+    dst_img_path = "/Users/bruce/Downloads/15_Ti_model_files/val_image_bmp"
+    jpgToBmp(src_img_path, dst_img_path, nest_dir)
 
-            img = Image.open(imgFile + "/" + fileName)
-            img.save(dst_dir+"/"+newFileName)
 
+def write_path_to_txt(file_img_path_perfix, img_dir):
+    with open("/Users/bruce/Downloads/15_Ti_model_files/val_image_bmp.txt", "w") as f:
+        for img_name in sorted(os.listdir(img_dir)):
+            # f.write(os.path.join(file_img_path_perfix, img_name)+"\n")
+            f.write(img_name+"\n")
+    
+    
+def generate_imagenet_val_label(img_dir):
+    img_dir_list = os.listdir(img_dir)
+    img_dir_list = sorted(img_dir_list)
+    # print(img_dir_list)
+    
+    img_name_to_label = {}
+    for index, img_dir_name in enumerate(img_dir_list):
+        img_name_list = os.listdir(os.path.join(img_dir, img_dir_name))
+        for img_name in img_name_list:
+            img_name_to_label[img_name.split(".")[0]] = index
 
-def main():
-    imgFile = "/Users/bruce/Downloads/calib_Ti"
+    print(img_name_to_label)
+    with open("/Users/bruce/PycharmProjects/Pytorch_learning/Tools/val_imagenet_label.txt", "w") as f:
+        for key, value in img_name_to_label.items():
+            f.write(key + ":" + str(value) + "\n")
+   
 
-    jpgToBmp(imgFile)
+def compare_res_with_evm_ti(img_txt_evm_res, img_txt_std_res):
+    
+    total_pred_num = 0
+    total_num = 0
+    img_std_res = {}
+    with open(img_txt_std_res, "r") as f1:
+        for eachline in f1:
+            eachline = eachline.strip("\n")
+            img_name_perfix, gt_label = eachline.split(":")
+            img_std_res[img_name_perfix] = int(gt_label)
+    
+    # print(img_std_res)     
+    with open(img_txt_evm_res) as f:  
+        for eachline in f:
+            eachline = eachline.strip("\n")
+            img_name, label = eachline.split(":")
+            
+            if(img_std_res[img_name.split(".")[0]]  == int(label)):
+                total_pred_num += 1
+            total_num += 1
+
+    print("the total img nums is %d , the right predict num is %d, acc is: %.4f "%(total_num, total_pred_num, total_pred_num / total_num ))
+            
+            
+
+def jpeg_to_bmp(jpeg_path, bmp_path):
+    image = cv2.imread(jpeg_path)
+    cv2.imwrite(bmp_path, image)
+   
+
+def check_img_dir(folder_path):
+
+    # 获取文件夹中的所有文件
+    filenames = os.listdir(folder_path)
+
+    # 遍历文件夹中的每一个文件
+    for filename in filenames:
+        filepath = os.path.join(folder_path, filename)
+
+        # 检查文件是否是图片格式，这里只检查常见的几种格式，可以根据需要增加
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+            try:
+                # 尝试使用 Pillow 打开图片
+                with Image.open(filepath):
+                    pass
+            except Exception as e:
+                print(f"Deleting corrupted image: {filepath} due to {str(e)}")
+                os.remove(filepath)
+
 
 
 if __name__ == '__main__':
-    main()
+    val_dir_path = "/Users/bruce/Downloads/Datasets/val"
+    file_img_path_perfix = "/home/root/nfs_dir/cdd"
+    img_dir = "/Users/bruce/Downloads/15_Ti_model_files/val_image_bmp"
+    # multidir_convert_to_bmp(nest_dir=True)
+    # check_img_dir(img_dir)
+    # Image.open("/Users/bruce/Downloads/15_Ti_model_files/val_image_bmp/ILSVRC2012_val_00036725.bmp")
+
+    # write_path_to_txt(file_img_path_perfix, img_dir)
+    # generate_imagenet_val_label(val_dir_path)
+    
+    # 根据板卡上面的结果进行验证
+    img_txt_std_res = "/Users/bruce/PycharmProjects/Pytorch_learning/Tools/val_imagenet_label.txt"
+    img_txt_evm_res = "/Users/bruce/Downloads/15_Ti_model_files/imagenet_res_sq11.txt"
+    compare_res_with_evm_ti(img_txt_evm_res, img_txt_std_res)
+    
+    
