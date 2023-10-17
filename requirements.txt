@@ -33,7 +33,7 @@ mkl-service==2.3.0
 multidict==6.0.2
 multiprocess==0.70.13
 nltk==3.7
-oauthlib==3.2.1
+oauthlib==3.2.2
 packaging==21.3
 pandas==1.4.3
 Pillow==9.3.0
