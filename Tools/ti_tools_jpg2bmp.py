@@ -105,7 +105,6 @@ def jpeg_to_bmp(jpeg_path, bmp_path):
     image = cv2.imread(jpeg_path)
     cv2.imwrite(bmp_path, image)
 
-
 def check_img_dir(folder_path):
 
     # 获取文件夹中的所有文件
@@ -140,7 +139,6 @@ if __name__ == '__main__':
     
     # 根据板卡上面的结果进行验证
     img_txt_std_res = "/Users/bruce/PycharmProjects/Pytorch_learning/Tools/val_imagenet_label.txt"
-    img_txt_evm_res = "/Users/bruce/Downloads/15_Ti_model_files/imagenet_res_sq11.txt"
+    img_txt_evm_res = "/Users/bruce/Downloads/15_Ti_model_files/imagenet_resnet50_int16.txt"
     compare_res_with_evm_ti(img_txt_evm_res, img_txt_std_res)
-    
     

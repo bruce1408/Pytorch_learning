@@ -18,4 +18,4 @@ def onnx_simplify(path):
 
 
 if __name__=="__main__":
-    onnx_simplify("/Users/bruce/Downloads/15_Ti_model_files/20231008/1008_v3.1_dummy_mtn.onnx")
+    onnx_simplify("/Users/bruce/Chip_test/Cambricon_chip_test_results/onnx_yolop/yolop-320-320.onnx")
