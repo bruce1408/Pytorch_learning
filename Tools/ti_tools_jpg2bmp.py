@@ -4,6 +4,7 @@ from tqdm import tqdm
 from shutil import copy
 from PIL import Image
 import cv2
+import numpy as np
 
 
 def jpgToBmp(src_img_path, dst_img_path, nest_dir=False):
@@ -124,7 +125,10 @@ def check_img_dir(folder_path):
                 print(f"Deleting corrupted image: {filepath} due to {str(e)}")
                 os.remove(filepath)
 
-
+def parse_image(image_path):
+    image_data  = cv2.imread(image_path)
+    print(image_data)
+    return image_data
 
 if __name__ == '__main__':
     val_dir_path = "/Users/bruce/Downloads/Datasets/val"
@@ -139,6 +143,51 @@ if __name__ == '__main__':
     
     # 根据板卡上面的结果进行验证
     img_txt_std_res = "/Users/bruce/PycharmProjects/Pytorch_learning/Tools/val_imagenet_label.txt"
-    img_txt_evm_res = "/Users/bruce/Downloads/15_Ti_model_files/imagenet_resnet50_int16.txt"
-    compare_res_with_evm_ti(img_txt_evm_res, img_txt_std_res)
+    img_txt_evm_res = "/Users/bruce/Downloads/15_Ti_model_files/imagenet_res_resnet34_post1.txt"
+    # compare_res_with_evm_ti(img_txt_evm_res, img_txt_std_res)
     
+    
+    # 图片解析
+    path_image = "/Users/bruce/Downloads/15_Ti_model_files/ILSVRC2012_val_00044292.bmp"
+    img_data = parse_image(path_image)
+    # print(img_data.shape)
+    
+    image_chw = np.transpose(img_data, (2, 0, 1))
+    # print(image_chw.shape)
+    # print(image_chw[0].shape)
+
+    h, w = image_chw[0].shape
+    print(h, w)
+    print(image_chw[0][769][479])
+    print(img_data[:][769][479])
+    with open("image_data_00044292_R_python.txt", "w") as f:
+        for i in range(h):
+            for j in range(w):
+                f.write(str(image_chw[2][i][j])+"\n")
+                
+    
+    from PIL import Image
+    import numpy as np
+
+    # 定义图片的宽度和高度
+    width = 480
+    height = 770
+
+    # 打开图片文件
+    image = Image.open("/Users/bruce/Downloads/15_Ti_model_files/ILSVRC2012_val_00044292.bmp")
+
+    # 读取图片数据
+    image_data = np.array(image)
+
+    # 输出图片数据到控制台
+    for i in range(height):
+        for j in range(width):
+            pixel = image_data[i, j]
+            print(f"Pixel ({j}, {i}): {pixel[0]}, {pixel[1]}, {pixel[2]}")
+
+    # 输出图片数据到文本文件
+    with open("/Users/bruce/CppProjects/CPlusPlusThings/extensions/Opencv_learning/1_1_demo_read_img/image_data_1.txt", 'w') as file:
+        for i in range(height):
+            for j in range(width):
+                file.write(f"{image_data[i, j][0]}\n")
+
