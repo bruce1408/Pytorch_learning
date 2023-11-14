@@ -104,7 +104,6 @@ def compare_res_with_evm_ti(img_txt_evm_res, img_txt_std_res):
             img_name_perfix, gt_label = eachline.split(":")
             img_std_res[img_name_perfix] = int(gt_label)
     
-    # print(img_std_res)     
     with open(img_txt_evm_res) as f:  
         for eachline in f:
             eachline = eachline.strip("\n")
