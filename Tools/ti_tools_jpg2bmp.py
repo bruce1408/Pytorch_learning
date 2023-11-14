@@ -122,7 +122,6 @@ def compare_res_with_evm_ti(img_txt_evm_res, img_txt_std_res):
         #    'the total img nums is {}, the right predict num is {}, acc is: {} \n'.format(total_num, total_pred_num, total_pred_num / total_num )
            '-----------------------------------------------------------------------------', ['yellow', 'bold'])
 
-    # print("the total img nums is %d , the right predict num is %d, acc is: %.4f "%(total_num, total_pred_num, total_pred_num / total_num ))
     # print( 'the total img nums is {}, the right predict num is {}, acc is: {:.3} \n'.format(total_num, total_pred_num, total_pred_num / total_num ))
 
     
