@@ -130,6 +130,7 @@ def jpeg_to_bmp(jpeg_path, bmp_path):
     image = cv2.imread(jpeg_path)
     cv2.imwrite(bmp_path, image)
 
+
 def check_img_dir(folder_path):
 
     # 获取文件夹中的所有文件
