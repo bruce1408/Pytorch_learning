@@ -32,7 +32,6 @@ dataTransform = transforms.Compose([
     transforms.ToTensor()  # 归一化
 ])
 
-
 def parse_args():
     parser = argparse.ArgumentParser(description='Train a detector')
     # 模型选择

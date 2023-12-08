@@ -138,19 +138,23 @@ if __name__ == '__main__':
     # file_img_path_perfix = "/home/root/nfs_dir/cdd"
     # img_dir = "/Users/bruce/Downloads/15_Ti_model_files/val_image_bmp"
     
-    src_img_path = "/Users/bruce/Downloads/15_Ti_model_files/qa_data/lane_imgs"
-    dst_img_path = "/Users/bruce/Downloads/15_Ti_model_files/qa_data/lane_imgs"
+    # ========================================================================
+    src_img_path = "/Users/bruce/Downloads/15_Ti_model_files/laneline_draw_verify_datasets"
+    dst_img_path = "/Users/bruce/Downloads/15_Ti_model_files/laneline_draw_verify_datasets"
     jpgToBmp(src_img_path, dst_img_path, nest_dir=True)
+    # ========================================================================
+    
     # check_img_dir(img_dir)
     # Image.open("/Users/bruce/Downloads/15_Ti_model_files/val_image_bmp/ILSVRC2012_val_00036725.bmp")
-
     # write_path_to_txt(file_img_path_perfix, img_dir)
     # generate_imagenet_val_label(val_dir_path)
     
+    # ========================================================================
     # 根据板卡上面的结果进行验证
-    # img_txt_std_res = "/home/bruce/Documents/Pytorch_learning/Tools/val_imagenet_label.txt"
-    # img_txt_evm_res = "/home/bruce/Downloads/imagenet_res_custom_resnet34.txt"
+    img_txt_std_res = "/Users/bruce/PycharmProjects/Pytorch_learning/Tools/val_imagenet_label.txt"
+    img_txt_evm_res = "/Users/bruce/Downloads/15_Ti_model_files/imagenet_bin_ptq_1127.txt"
     # compare_res_with_evm_ti(img_txt_evm_res, img_txt_std_res)
+    # ========================================================================
     
     
     # 图片解析
