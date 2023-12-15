@@ -5,59 +5,45 @@ from shutil import copy
 from PIL import Image
 import cv2
 import numpy as np
-from termcolor import cprint
+import sys
+curpath = os.path.abspath(os.path.dirname(""))
+sys.path.append(curpath)
+from utils.beautifull_print_terminate import *
 
 
-def print_info(info, _type=None):
-    """_summary_
-    usage:
-    print_info('=> Total {} images to test.'.format(img_txt_evm_res), ['yellow', 'bold'])
-    Args:
-        info (_type_): _description_
-        _type (_type_, optional): _description_. Defaults to None.
-    """
-    if _type is not None:
-        if isinstance(info, str):
-            cprint(info, _type[0], attrs=[_type[1]])
-        elif isinstance(info, list):
-            for i in range(info):
-                cprint(i, _type[0], attrs=[_type[1]])
-    else:
-        print(info)
-        
-        
-        
 def compare_res_with_evm_acc(img_txt_evm_res, img_txt_std_res):
     
     total_pred_num = 0
     total_num = 0
     img_std_res = {}
-    with open(img_txt_std_res, "r") as f1:
-        for eachline in f1:
-            eachline = eachline.strip("\n")
-            img_name_perfix, gt_label = eachline.split(":")
-            img_std_res[img_name_perfix] = int(gt_label)
+    try:
+        with open(img_txt_std_res, "r") as f1:
+            for eachline in f1:
+                eachline = eachline.strip("\n")
+                img_name_perfix, gt_label = eachline.split(":")
+                img_std_res[img_name_perfix] = int(gt_label)
+    except IOError:
+        print_error("can not open file {}".format(img_txt_std_res))
+
+    try:
+        with open(img_txt_evm_res) as f:  
+            for eachline in f:
+                eachline = eachline.strip("\n")
+                img_name, label = eachline.split(":")
+                
+                if(img_std_res[img_name.split(".")[0]]  == int(label)):
+                    total_pred_num += 1
+                total_num += 1
     
-    with open(img_txt_evm_res) as f:  
-        for eachline in f:
-            eachline = eachline.strip("\n")
-            img_name, label = eachline.split(":")
+        print_info_custom('------------------------------------------------------------------------------\n'
+            '|                    ImageNet Dataset Evaluation Results                      |\n'
+            '|                                                                             |\n'
             
-            if(img_std_res[img_name.split(".")[0]]  == int(label)):
-                total_pred_num += 1
-            total_num += 1
+            f'| the total img nums is {total_num}, the right predict num is {total_pred_num}, acc is: {total_pred_num / total_num:.3}    |\n'
+            '-----------------------------------------------------------------------------', ['yellow', 'bold'])
 
-    print_info('------------------------------------------------------------------------------\n'
-           '|                    ImageNet Dataset Evaluation Results                      |\n'
-           '|                                                                             |\n'
-           
-           f'| the total img nums is {total_num}, the right predict num is {total_pred_num}, acc is: {total_pred_num / total_num:.3}    |\n'
-
-        #    'the total img nums is {}, the right predict num is {}, acc is: {} \n'.format(total_num, total_pred_num, total_pred_num / total_num )
-           '-----------------------------------------------------------------------------', ['yellow', 'bold'])
-
-    # print( 'the total img nums is {}, the right predict num is {}, acc is: {:.3} \n'.format(total_num, total_pred_num, total_pred_num / total_num ))
-
+    except IOError:
+        print_error("can not open file {}".format(img_txt_evm_res))
     
 
 def check_img_dir(folder_path):
@@ -92,7 +78,7 @@ if __name__ == '__main__':
     # 根据板卡上面的结果进行验证
     img_txt_std_res = "/Users/bruce/PycharmProjects/Pytorch_learning/Tools/val_imagenet_label.txt"
     img_txt_evm_res = "/Users/bruce/Downloads/15_Ti_model_files/imagenet_bin_ptq_1127.txt"
-    # compare_res_with_evm_acc(img_txt_evm_res, img_txt_std_res)
+    compare_res_with_evm_acc(img_txt_evm_res, img_txt_std_res)
     # ========================================================================
-    # print_info('=> Total {} images to test.'.format(img_txt_evm_res), ['yellow', 'bold'])
+
 
