@@ -6,7 +6,6 @@ import os
 from datetime import datetime
 from typing import Tuple
 import torch
-import mmcv
 from torchvision import transforms
 from torchvision.datasets.folder import default_loader
 # from torchvision import models
@@ -19,7 +18,6 @@ from pathlib import Path
 
 mean = np.array([0.485, 0.456, 0.406], dtype=np.float32).reshape(1, 1, 3)
 std = np.array([0.229, 0.224, 0.225], dtype=np.float32).reshape(1, 1, 3)
-
 def resize_image(srcimg):
     inpWidth = 640
     inpHeight = 640
@@ -44,7 +42,7 @@ def resize_image(srcimg):
     return img, newh, neww, padh, padw
 
 
-def normalize_img(img):  
+def normalize_img(img):  ### c++: https://blog.csdn.net/wuqingshan2010/article/details/107727909
     img = img.astype(np.float32) / 255.0
     img = (img - mean) / std
     return img
@@ -89,6 +87,8 @@ def parse_folder2class():
 def main():
 
     #get dict from folder to class id
+    # folder2class = parse_folder2class()
+
     #transform
     dataset_prefix="val_yolop_v1"
     root_dir = f"/root/bdd100k_images/{dataset_prefix}"
@@ -171,83 +171,14 @@ def calibration_yolop_preprocess(img_dir):
         return img
         save_path = os.path.join("/root/bdd100k_images/val_yolop_v2", img_name)
         cv2.imwrite(save_path, img)
-
-
-def preprocess(img_path_list, single_version=False):
-        # with      label [1,2,4,0,3,5]
-        # without   label [0,1,4,3,2,5]   
-        img_front = cv2.imread(img_path_list[0])
-        img_front = cv2.resize(img_front, (1024, 576))
-        
-
-                  
-        img_front_left = cv2.imread(img_path_list[1])
-        img_front_left = cv2.resize(img_front_left, (512, 288))
-        
-        img_front_right = cv2.imread(img_path_list[4])
-        img_front_right = cv2.resize(img_front_right, (512, 288))
-        
-        img_rear = cv2.imread(img_path_list[3])
-        img_rear = cv2.resize(img_rear, (512, 288))
-        
-        img_rear_left = cv2.imread(img_path_list[2])
-        img_rear_left = cv2.resize(img_rear_left, (512, 288))
-        
-        img_rear_right = cv2.imread(img_path_list[5])
-        img_rear_right = cv2.resize(img_rear_right, (512, 288))
-        
-        
-        image_norm_front = mmcv.imnormalize(img_front,
-                                        mean=np.array([123.675, 116.28, 103.53]),
-                                        std=np.array([58.395, 57.12, 57.375]))
-            
-        
-        image_norm_front_left = mmcv.imnormalize(img_front_left,
-                                    mean=np.array([123.675, 116.28, 103.53]),
-                                    std=np.array([58.395, 57.12, 57.375]))
-        
-        image_norm_front_right = mmcv.imnormalize(img_front_right,
-                                    mean=np.array([123.675, 116.28, 103.53]),
-                                    std=np.array([58.395, 57.12, 57.375]))
-        
-        image_norm_rear = mmcv.imnormalize(img_rear,
-                                    mean=np.array([123.675, 116.28, 103.53]),
-                                    std=np.array([58.395, 57.12, 57.375]))
-        
-        image_norm_rear_left = mmcv.imnormalize(img_rear_left,
-                                    mean=np.array([123.675, 116.28, 103.53]),
-                                    std=np.array([58.395, 57.12, 57.375]))
-        
-        image_norm_rear_right = mmcv.imnormalize(img_rear_right,
-                                    mean=np.array([123.675, 116.28, 103.53]),
-                                    std=np.array([58.395, 57.12, 57.375]))
-
-
-        image_front_data = np.expand_dims(image_norm_front.transpose(2, 0, 1), axis=0)  # np array
-        image_front_left_data = np.expand_dims(image_norm_front_left.transpose(2, 0, 1), axis=0)  # np array
-        image_front_right_data = np.expand_dims(image_norm_front_right.transpose(2, 0, 1), axis=0)  # np array
-        image_rear = np.expand_dims(image_norm_rear.transpose(2, 0, 1), axis=0)  # np array
-        image_rear_left = np.expand_dims(image_norm_rear_left.transpose(2, 0, 1), axis=0)  # np array
-        image_rear_right = np.expand_dims(image_norm_rear_right.transpose(2, 0, 1), axis=0)  # np array    
-        return image_front_data, image_front_left_data, image_front_right_data, image_rear, image_rear_left,image_rear_right
-        
-def calibration_bev_preprocess(root_dir):
     
-    img_dir_list = os.listdir(root_dir)
-    for each_dir in img_dir_list:
-        each_dir_path = os.path.join(root_dir, each_dir)
-        img_name_list = sorted(os.listdir(each_dir_path))
-        img_path_list = [os.path.join(each_dir_path, each_img_name) for each_img_name in img_name_list]
-        print(img_path_list)
-        preprocess(img_path_list)
         
 
 if __name__ == '__main__':
     # main()
-    # temp_path = "/Users/bruce/CppProjects/CPlusPlusThings/extensions/opencv_learning/yolop_img/befe15d9-e3db8d6b.jpg"
+    temp_path = "/Users/bruce/CppProjects/CPlusPlusThings/extensions/opencv_learning/yolop_img/befe15d9-e3db8d6b.jpg"
     # img = cv2.imread("/mnt/share_disk/bruce_cui/Yolop_chip/inference/befe15d9-e3db8d6b.jpg")
     # print(img.shape)
     # calibration_yolop("/root/bdd100k_images/val")
     # calibration_yolop_preprocess("/Users/bruce/CppProjects/CPlusPlusThings/extensions/opencv_learning/yolop_img/")
-    calibration_bev_preprocess("/Users/bruce/Downloads/5223_bev_trans/input_img_5223_calibration_data")
-
+    # print(img.shape)
