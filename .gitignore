@@ -6,6 +6,8 @@ data/
 *.json
 *.so
 *.o
+train
+bilstm_attn_model
 *.out
 my_add.egg-info/
 .vscode
