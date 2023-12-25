@@ -47,25 +47,25 @@ def normalize_img(img):  ### c++: https://blog.csdn.net/wuqingshan2010/article/d
     return img
 
 
-def get_val_transform():
+def get_val_transform(size):
 
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
-    size = (640, 640)
+    # size = (224, 224)
     val_transforms = transforms.Compose([
-        # transforms.Resize(size + 24),
-        # transforms.Resize(size),
-        # transforms.CenterCrop(size),
+        transforms.Resize(size[0] + 24),
+        transforms.Resize(size),
+        transforms.CenterCrop(size),
         transforms.ToTensor(),
         normalize]
-                                        )
+    )
     return val_transforms
 
 
-def transform_one_image(image_path):
+def transform_one_image(image_path, config):
     '''return 1x3x640x640 data'''
     img = default_loader(image_path)
-    transform = get_val_transform()
+    transform = get_val_transform(config.size)
     data = transform(img)
     data = torch.unsqueeze(data, 0)    
     return data
@@ -143,46 +143,69 @@ def calibration_yolop_preprocess(img_dir):
     
         
 
-def convert_img_to_raw(imgs_path, raws_path, nest=False):
+def convert_img_to_raw(config):
 
     """_summary_
         一般分类的网络只有一级目录
         多输入网络是二级目录
     """
-    if nest:
+    if config.nest:
         pass
     else:
-        if not os.path.exists(raws_path): os.makedirs(raws_path)
-        img_name_list = os.listdir(imgs_path)
-        
-
+        if not os.path.exists(config.dst_img_path): os.makedirs(config.dst_img_path)
+        img_name_list = os.listdir(config.ori_img_path)
         count = 0
-        # dst_dir = f"/root/bdd100k_images/{dataset_prefix}_raw"
-        
         
         img_paths = []
         for name in tqdm(img_name_list):
             if name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
-                img_path = os.path.join(imgs_path, name)
-                data = transform_one_image(img_path)
-                dst_path = os.path.join(raws_path, Path(name).stem + ".raw")
+                img_path = os.path.join(config.ori_img_path, name)
+                data = transform_one_image(img_path, config)
+                dst_path = os.path.join(config.dst_img_path, Path(name).stem + ".raw")
                 data.numpy().tofile(dst_path)
                 img_paths.append(dst_path)
                 count += 1
                 if count >= 200: break   
 
-        #save    
-        with open("classification_raw_class.txt", "w") as f:
+           
+        with open(config.img_path_txt, "w") as f:
             for each in img_paths:
                 f.write(f"{each}\n")
+  
+
+def parse_args():
+    """_summary_
+    config the parameters 
+    Returns:
+    """
+    parser = argparse.ArgumentParser(description='convert img .png .jpg .bmp  to raw formate')
+    # 模型选择
+    parser.add_argument('--ori_img_path', 
+                        default="/Users/bruce/Downloads/Datasets/object_detection_datasets", 
+                        help='input image path')
     
+    parser.add_argument('--dst_img_path', 
+                        default="/Users/bruce/Downloads/Datasets/calibration_object_detection_datasets",
+                        help='dst img path to save')
+
+    parser.add_argument('--size', type=list, default=[640, 640], nargs='+', help='img resize')
     
+    parser.add_argument('--img_path_txt', type=str, default="./calibration_yolov5m_without_Norm.txt", help='export txt about img path')
+    
+    parser.add_argument('--nest', type=bool, default=False, help='export txt about img path')
+    
+   
+
+    args = parser.parse_args()
+    
+    return args
+
+
 if __name__ == '__main__':
-    # main()
-    temp_path = "/Users/bruce/CppProjects/CPlusPlusThings/extensions/opencv_learning/yolop_img/befe15d9-e3db8d6b.jpg"
-    classification_imgs_path = "/Users/bruce/Downloads/Datasets/calibration_classification_data_bmp_bin_debug"
-    classification_raws_path = "/Users/bruce/Downloads/Datasets/calibration_classification_raw"
-    convert_img_to_raw(classification_imgs_path, classification_raws_path)
+    config = parse_args()
+    
+    convert_img_to_raw(config)
+    # yolov5_preprocess(config)
     # img = cv2.imread("/mnt/share_disk/bruce_cui/Yolop_chip/inference/befe15d9-e3db8d6b.jpg")
     # print(img.shape)
     # calibration_yolop("/root/bdd100k_images/val")

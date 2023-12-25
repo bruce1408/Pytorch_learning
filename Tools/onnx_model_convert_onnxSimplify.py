@@ -18,4 +18,4 @@ def onnx_simplify(path):
 
 
 if __name__=="__main__":
-    onnx_simplify("/Users/bruce/Downloads/15_Ti_model_files/1107_v3.4_dummy_obs3v_ep30.onnx")
+    onnx_simplify("/Users/bruce/Downloads/Chip_test_models/models/yolov5_model/yolov5m.onnx")
