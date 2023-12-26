@@ -1,8 +1,10 @@
 import cv2
 import os
 import argparse
-
+from tqdm import tqdm
 import numpy as np
+from pathlib import Path
+
 
 def letterbox(img, new_shape=(640, 640), auto=False, scaleFill=False, scaleUp=True):
     """
@@ -45,14 +47,27 @@ def yolov5_preprocess(config):
     
     if not os.path.exists(config.dst_img_path): os.makedirs(config.dst_img_path)
     img_name_list = os.listdir(config.ori_img_path)
-    img0 = img.copy()
-    img = letterbox(img, new_shape=self.img_size)[0]  # 图片预处理
-    img = img[:, :, ::-1].transpose(2, 0, 1)
-    img = np.ascontiguousarray(img).astype(np.float32)
-    img /= 255.0
-    img = np.expand_dims(img, axis=0)
-    assert len(img.shape) == 4
-    return img0, img
+    count = 1
+    img_path_list = []
+    
+    for each_img in tqdm(img_name_list):
+        img_path = os.path.join(config.ori_img_path, each_img)
+        img = cv2.imread(img_path)
+        # ori_img = img.
+        img = letterbox(img, new_shape=config.size)[0]  # 图片预处理
+        img = img[:, :, ::-1].transpose(2, 0, 1)
+        img = np.ascontiguousarray(img).astype(np.float32)
+        img /= 255.0
+        img = np.expand_dims(img, axis=0)
+        assert len(img.shape) == 4
+        dst_path = os.path.join(config.dst_img_path, Path(each_img).stem+".raw")
+        img.tofile(dst_path)
+        img_path_list.append(dst_path)
+        if count > 199: break
+    
+    with open(config.img_path_txt, "w") as f:
+        for eachline in img_path_list:
+            f.write(eachline+"\n")
 
 
 
