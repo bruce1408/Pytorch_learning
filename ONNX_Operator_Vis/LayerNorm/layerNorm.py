@@ -28,7 +28,7 @@ input_data = torch.randn(N, C, H, W)
 # input_data = torch.randn(20, 100, 35, 45)  # 输入形状为(1, 1, 5, 5)
 
 # 导出模型到ONNX格式
-onnx_path = "/root/bruce_cui/onnx_operator_vis/ONNX_Operators/layernorm.onnx"
-torch.onnx.export(model, input_data, onnx_path, verbose=True, opset_version=11)
+onnx_path = "/Users/bruce/Downloads/Chip_test_models/layernorm.onnx"
+torch.onnx.export(model, input_data, onnx_path, verbose=False, opset_version=11)
 
 print("ONNX模型已导出到:", onnx_path)

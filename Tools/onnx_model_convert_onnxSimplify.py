@@ -18,4 +18,4 @@ def onnx_simplify(path):
 
 
 if __name__=="__main__":
-    onnx_simplify("/Users/bruce/Downloads/Chip_test_models/models/yolov5_model/yolov5m.onnx")
+    onnx_simplify("/Users/bruce/Downloads/Chip_test_models/yolov5_modes_experiments/swim-transformer.onnx")
