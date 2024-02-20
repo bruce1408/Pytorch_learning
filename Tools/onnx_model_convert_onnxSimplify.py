@@ -18,4 +18,4 @@ def onnx_simplify(path):
 
 
 if __name__=="__main__":
-    onnx_simplify("/Users/bruce/Downloads/Chip_test_models/yolov5_modes_experiments/swim-transformer.onnx")
+    onnx_simplify("/mnt/share_disk/cdd/layernorm_with_official_opset_17.onnx")
