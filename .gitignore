@@ -49,3 +49,5 @@ __pycache__
 *.txt
 *.bmp
 *.raw
+*.whl
+*.gz
