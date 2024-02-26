@@ -3,6 +3,31 @@ from termcolor import colored, cprint
 
 def print_colored_box_line(title, message, attrs=['bold'], text_color='white', box_color='yellow',box_width=80):
     # 定义方框的宽度为终端的宽度，这里假定为80字符宽
+    # 详细描述代码的参数和功能
+    """
+    print("使用说明：")
+    print("print_colored_box_line(title, message, attrs=['bold'], text_color='white', box_color='yellow',box_width=80)")
+    print("title: 方框的标题")
+    print("message: 方框的消息")
+    print("attrs: 方框的属性，默认为['bold']")
+    print("text_color: 文本颜色，默认为'white'")
+    print("box_color: 方框颜色，默认为'yellow'")
+    print("box_width: 方框宽度，默认为80")
+    print("\n")
+    print("示例：")
+    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='yellow',box_width=80)")
+    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='green',box_width=80)")
+    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='red',box_width=80)")
+    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='blue',box_width=80)")
+    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='magenta',box_width=80)")
+    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='cyan',box_width=80)")
+    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='grey',box_width=80)")
+    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='black',box_width=80)")
+    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='white',box_width=80)")
+    print("\n")
+    打印彩色方框
+    """
+    # 定义方框的宽度为终端的宽度，这里假定为80字符宽
     box_width = 80
     
     # 创建顶部和底部的边框
@@ -27,6 +52,29 @@ def print_colored_box_line(title, message, attrs=['bold'], text_color='white', b
 
 
 def print_colored_box(text, text_background=False, text_color='white', box_color='green', background_color='on_white'):
+    # 添加代码使用说明，以及一些示例
+    """
+    print("使用说明：")
+    print("print_colored_box(text, text_background=False, text_color='white', box_color='green', background_color='on_white')")
+    print("text: 要打印的文本")
+    print("text_background: 是否为文本添加背景色，默认为False")
+    print("text_color: 文本颜色，默认为'white'")
+    print("box_color: 方框颜色，默认为'green'")
+    print("background_color: 文本背景色，默认为'on_white'")
+    print("\n")
+    print("示例：")
+    print("print_colored_box('Hello, World!', text_background=True, text_color='white', box_color='green', background_color='on_white')")
+    print("print_colored_box('Hello, World!', text_background=True, text_color='white', box_color='green', background_color='on_red')")
+    print("print_colored_box('Hello, World!', text_background=True, text_color='white', box_color='green', background_color='on_yellow')")
+    print("print_colored_box('Hello, World!', text_background=True, text_color='white', box_color='green', background_color='on_blue')")
+    print("print_colored_box('Hello, World!', text_background=True, text_color='white', box_color='green', background_color='on_magenta')")
+    print("print_colored_box('Hello, World!', text_background=True, text_color='white', box_color='green', background_color='on_cyan')")
+    print("print_colored_box('Hello, World!', text_background=True, text_color='white', box_color='green', background_color='on_grey')")
+    print("print_colored_box('Hello, World!', text_background=True, text_color='white', box_color='green', background_color='on_black')")
+    print("print_colored_box('Hello, World!', text_background=True, text_color='white', box_color='green', background_color='on_white')")
+    print("\n")
+    打印彩色方框
+    """
     # 测量文本长度，并为方框的左右添加空格
     padded_text = " " + text + " "
     text_length = len(padded_text)
