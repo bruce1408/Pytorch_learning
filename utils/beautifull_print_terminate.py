@@ -1,51 +1,51 @@
-from termcolor import cprint
+# from termcolor import cprint
 
 
-def print_info_custom(info, _type=None):
-    """_summary_
-    usage:
-        print_info('=> Total {} images to test.'.format(img_txt_evm_res), ['yellow', 'bold'])
-        cprint('Bold underline reverse cyan color', 'cyan', attrs=['bold', 'underline', 'reverse'])
-        cprint('Dark blink concealed white color', 'white', attrs=['dark', 'blink', 'concealed'])
-    Args:
-        info (_type_): _description_
-        _type (_type_, optional): _description_. Defaults to None.
-    reference:
-        https://blog.csdn.net/weixin_44751294/article/details/122435752
-    """
+# def print_info_custom(info, _type=None):
+#     """_summary_
+#     usage:
+#         print_info('=> Total {} images to test.'.format(img_txt_evm_res), ['yellow', 'bold'])
+#         cprint('Bold underline reverse cyan color', 'cyan', attrs=['bold', 'underline', 'reverse'])
+#         cprint('Dark blink concealed white color', 'white', attrs=['dark', 'blink', 'concealed'])
+#     Args:
+#         info (_type_): _description_
+#         _type (_type_, optional): _description_. Defaults to None.
+#     reference:
+#         https://blog.csdn.net/weixin_44751294/article/details/122435752
+#     """
     
-    if _type is not None:
-        if isinstance(info, str):
-            cprint(info, _type[0], attrs=[_type[1]])
-        elif isinstance(info, list):
-            for i in range(info):
-                cprint(i, _type[0], attrs=[_type[1]])
-    else:
-        print(info)
+#     if _type is not None:
+#         if isinstance(info, str):
+#             cprint(info, _type[0], attrs=[_type[1]])
+#         elif isinstance(info, list):
+#             for i in range(info):
+#                 cprint(i, _type[0], attrs=[_type[1]])
+#     else:
+#         print(info)
         
 
-def print_info(info):
-    if isinstance(info, str):
-        cprint("[INFO]   {:<15}".format(info), 'green')
+# def print_info(info):
+#     if isinstance(info, str):
+#         cprint("[INFO]   {:<15}".format(info), 'green')
 
-    elif isinstance(info, list):        
-        for i in range(info):
-            cprint("{}".format(i), "green", attrs=['bold'])
+#     elif isinstance(info, list):        
+#         for i in range(info):
+#             cprint("{}".format(i), "green", attrs=['bold'])
 
-def print_error(info):
-    if isinstance(info, str):
-        cprint("[ERROR]  {:<15}".format(info), "red", attrs=['bold'])
-    elif isinstance(info, list):
-        for i in range(info):
-            cprint(i, "red", attrs=['bold'])
+# def print_error(info):
+#     if isinstance(info, str):
+#         cprint("[ERROR]  {:<15}".format(info), "red", attrs=['bold'])
+#     elif isinstance(info, list):
+#         for i in range(info):
+#             cprint(i, "red", attrs=['bold'])
     
     
-def print_log(info):
-    if isinstance(info, str):
-        cprint("[LOG]    {:<15}".format(info), 'yellow') 
-    elif isinstance(info, list):
-        for i in range(info):
-            cprint(i, "yellow")
+# def print_log(info):
+#     if isinstance(info, str):
+#         cprint("[LOG]    {:<15}".format(info), 'yellow') 
+#     elif isinstance(info, list):
+#         for i in range(info):
+#             cprint(i, "yellow")
 
 
 # from termcolor import cprint
@@ -81,9 +81,17 @@ def print_log(info):
 if __name__ == "__main__":
     img_path = "/Users/bruce/PycharmProjects/Pytorch_learning/Tools/val_imagenet_label.txt"
     # print_info_custom("the path is {} ".format(img_path), ['green', 'blink'])
-    print_info("the path is {} ".format(img_path))
-    print_error("error the info")
-    print_log("print the info")
+    # print_info("the path is {} ".format(img_path))
+    # print_error("error the info")
+    # print_log("print the info")
     # cprint("{:<{}}".format("error the log", 10))
+    # from printk import print_colored_box_line, print_colored_box
+    from printk import print_colored_box, print_colored_box_line
+    
+    # print_colored_box()
+    total_count = 132
+    count = 100
+    # print_colored_box_line("ImageNet Dataset Evaluation Results", f"the total img nums is {total_num}, the right predict num is {total_pred_num}, acc is: {total_pred_num / total_num:.3}", ['bold'], 'white', 'yellow', 80)
 
-   
+    print_colored_box('the total img nums is ', text_color='green', box_color='yellow')
+    print_colored_box_line('ImageNet Dataset Evaluation Results', f'the total img nums is {total_count}, the right predict num is {count}, acc is: {count / total_count:.3}')
