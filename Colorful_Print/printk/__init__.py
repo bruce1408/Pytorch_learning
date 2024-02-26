@@ -1,2 +1,1 @@
-from . import print_colored_box_line
-from . import print_colored_box
+from .printk import print_colored_box, print_colored_box_line

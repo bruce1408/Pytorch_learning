@@ -73,7 +73,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
-
+print("="*50)
 word_to_ix = {'hello': 1, 'world': 2}
 embeds = nn.Embedding(7, 5, padding_idx=0)
 hello_idx = torch.LongTensor([word_to_ix['hello']])
@@ -81,7 +81,7 @@ hello_embed = embeds(hello_idx)
 print(hello_embed)
 print(hello_embed.shape)
 print(embeds(torch.LongTensor([1, 4, 3])))
-print(embeds(torch.LongTensor([[1, 4, 3], [2, 3, 1]])).shape)
+print("the two shape is :\n",embeds(torch.LongTensor([[1, 4, 3], [2, 3, 1]])).shape)
 
 inputs = torch.randint(1, 7, (3, 3))
 print(embeds(inputs).shape)
