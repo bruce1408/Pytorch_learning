@@ -1,56 +1,35 @@
-from termcolor import colored, cprint
+# # 导入需要的库
+# import pytest
+# from io import StringIO
+# import sys
+# # 假设你的函数位于一个名为 colored_box.py 的文件中
+# from printk import print_colored_box_line, print_colored_box
 
+# # 测试 print_colored_box_line 函数
+# def test_print_colored_box_line():
+#     # 捕获输出
+#     captured_output = StringIO()
+#     sys.stdout = captured_output
+#     print_colored_box_line('Test Title', 'Test message')
+#     sys.stdout = sys.__stdout__  # 重置输出到正常的标准输出
+#     assert 'Test Title' in captured_output.getvalue()
+#     assert 'Test message' in captured_output.getvalue()
 
-def print_colored_box_line(title, message, attrs=['bold'], text_color='white', box_color='yellow',box_width=80):
-    # 详细描述代码的参数和功能
-    """
-    print("使用说明：")
-    print("print_colored_box_line(title, message, attrs=['bold'], text_color='white', box_color='yellow',box_width=80)")
-    print("title: 方框的标题")
-    print("message: 方框的消息")
-    print("attrs: 方框的属性，默认为['bold']")
-    print("text_color: 文本颜色，默认为'white'")
-    print("box_color: 方框颜色，默认为'yellow'")
-    print("box_width: 方框宽度，默认为80")
-    print("\n")
-    print("示例：")
-    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='yellow',box_width=80)")
-    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='green',box_width=80)")
-    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='red',box_width=80)")
-    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='blue',box_width=80)")
-    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='magenta',box_width=80)")
-    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='cyan',box_width=80)")
-    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='grey',box_width=80)")
-    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='black',box_width=80)")
-    print("print_colored_box_line('Title', 'Hello, World!', attrs=['bold'], text_color='white', box_color='white',box_width=80)")
-    print("\n")
-    打印彩色方框
-    """
-    # 定义方框的宽度为终端的宽度，这里假定为80字符宽
-    box_width = 80
-    
-    # 创建顶部和底部的边框
-    horizontal_border = '+' + '-' * (box_width - 2) + '+'
-    colored_horizontal_border = colored(horizontal_border, box_color, attrs=attrs)
-    
-    # 创建标题和消息文本，使其居中
-    title_text = f"| {title.center(box_width - 4)} |"
-    message_text = f"| {message.center(box_width - 4)} |"
-    
-    # 添加颜色到文本，并使其加粗
-    colored_title = colored(title_text, text_color, 'on_' + box_color, attrs=attrs)
-    colored_message = colored(message_text, text_color, 'on_' + box_color, attrs=attrs)
-    
-    # 打印方框
-    print(colored_horizontal_border)
-    print(colored_title)
-    print(colored_horizontal_border)
-    print(colored_message)
-    print(colored_horizontal_border)
-    
+# # 测试 print_colored_box 函数
+# def test_print_colored_box():
+#     # 捕获输出
+#     captured_output = StringIO()
+#     sys.stdout = captured_output
+#     print_colored_box('Hello, World!')
+#     sys.stdout = sys.__stdout__  # 重置输出到正常的标准输出
+#     assert 'Hello, World!' in captured_output.getvalue()
 
+# # 注意：这些测试假设你的函数能够执行而不抛出任何错误，并且输出中包含了特定的文本。
+# # 实际的打印结果（包括颜色和格式）在这种测试中是不被直接验证的。
+# from ..printk.printk import print_colored_box_line, print_colored_box
 
-def print_colored_box(text, text_background=False, text_color='white', box_color='green', background_color='on_white', attrs=['bold']):
+from termcolor import *
+def print_colored_box(text, text_background=False, text_color='white', box_color='green', background_color='on_white',attrs=['bold']):
     # 添加代码使用说明，以及一些示例
     """
     print("使用说明：")
@@ -74,7 +53,9 @@ def print_colored_box(text, text_background=False, text_color='white', box_color
     print("\n")
     打印彩色方框
     """
-        
+    # if input text is list
+    # 判断输入text是字符串还是list
+    
     if type(text) == list:
         if attrs is None:
             attrs = []
@@ -99,7 +80,6 @@ def print_colored_box(text, text_background=False, text_color='white', box_color
             print(colored_step)
             print(colored("| ", box_color, attrs=attrs) + colored(" " * (max_length - 4), text_color, attrs=attrs) + colored(" |", box_color, attrs=attrs))
             
-        
         # 打印下边框
         print(colored_top_bottom)
         return
@@ -129,3 +109,14 @@ def print_colored_box(text, text_background=False, text_color='white', box_color
     print(colored_top_bottom)
     print(left_border + middle_text + right_border)
     print(colored_top_bottom)
+
+steps = [
+    "1. run qnn-onnx-converter (to generate cpp file)",
+    "2. run qnn-model-lib-generator (to generate .so shared lib)",
+    "3. run qnn-net-run (to collect the statistics)",
+    "4. run qnn-profile-viewer (to view the profiles)"
+]
+
+# 调用函数，这次包含attrs参数以控制样式
+print_colored_box(steps, text_color='green', box_color='yellow')
+print_colored_box("hello world", text_color='green', box_color='yellow')
