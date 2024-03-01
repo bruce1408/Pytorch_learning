@@ -96,6 +96,7 @@ def print_colored_box(text, text_background=False, text_color='white', box_color
             padded_step = step.ljust(max_length - 4)
             # 为文本和边框添加颜色和样式
             colored_step = colored("| ", box_color, attrs=attrs) + colored(padded_step, text_color, attrs=attrs) + colored(" |", box_color, attrs=attrs)
+            print(colored("| ", box_color, attrs=attrs) + colored(" " * (max_length - 4), text_color, attrs=attrs) + colored(" |", box_color, attrs=attrs))
             print(colored_step)
             print(colored("| ", box_color, attrs=attrs) + colored(" " * (max_length - 4), text_color, attrs=attrs) + colored(" |", box_color, attrs=attrs))
             
