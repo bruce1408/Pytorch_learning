@@ -4,6 +4,17 @@ from termcolor import colored, cprint
 def print_colored_box_line(title, message, attrs=['bold'], text_color='white', box_color='yellow',box_width=80):
     # 详细描述代码的参数和功能
     """
+    打印带颜色的文本框，自动调整框的宽度以适应文本长度。
+    
+    参数:
+    - text: 要打印的文本，可以是字符串或字符串列表。
+    - pad_len: 用户指定的输出宽度。
+    - text_color: 文本颜色。
+    - box_color: 边框颜色。
+    - background_color: 文本背景颜色。
+    - attrs: 文本样式属性列表。
+    - text_background: 是否为文本添加背景颜色。
+
     print("使用说明：")
     print("print_colored_box_line(title, message, attrs=['bold'], text_color='white', box_color='yellow',box_width=80)")
     print("title: 方框的标题")
