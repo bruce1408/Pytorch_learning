@@ -40,10 +40,13 @@ print_colored_box_line("警告", "请立即检查系统！", attrs=['bold'], tex
 #### 参数说明
 
 - `text`: 文本框中显示的文本。
-- `text_background`: 布尔值，指定是否为文本添加背景颜色。
+- `pad_len`: 用户指定的输出宽度。
 - `text_color`: 文本的颜色。
 - `box_color`: 边框的颜色。
 - `background_color`: 文本的背景颜色，仅在 `text_background` 为 True 时适用。
+- `text_background`: 布尔值，指定是否为文本添加背景颜色。
+
+
 
 #### 使用示例
 

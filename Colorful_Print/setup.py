@@ -14,7 +14,7 @@ setup(
     # package information
     
     name="printcolorful",
-    version="0.2.5",
+    version="0.2.6",
     packages=find_packages(),
     description="A colorful print tool for python",
     author="bruce_cui",
