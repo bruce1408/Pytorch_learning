@@ -34,7 +34,7 @@ Pocket_Lab/resnet*/
 *.check_cache
 *.cmake
 *.egg-info
-# master
+# master 1
 *.egg
 *.log
 *.make
