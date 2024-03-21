@@ -34,6 +34,7 @@ Pocket_Lab/resnet*/
 *.check_cache
 *.cmake
 *.egg-info
+# master 1
 *.egg
 *.log
 *.make
@@ -46,6 +47,7 @@ res.txt
 imagenet_jpg_class_256_crop_224.txt
 *.csv
 __pycache__
+# master 2
 *.txt
 *.bmp
 *.raw

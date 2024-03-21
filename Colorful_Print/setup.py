@@ -13,8 +13,8 @@ setup(
     long_description_content_type='text/markdown',
     # package information
     
-    name="printcolorful",
-    version="0.2.6",
+    name="printk",
+    version="0.2.7",
     packages=find_packages(),
     description="A colorful print tool for python",
     author="bruce_cui",
