@@ -56,7 +56,7 @@ def print_onnx_input_output(model_path):
 
 if __name__=="__main__":
     # model_path = "/Users/bruce/Downloads/8620_deploy/swin_tiny_patch4_window7_224_224_elementwise_affine.onnx"
-    model_path = "/Users/bruce/Downloads/8620_deploy/Laneline/models/epoch_latest_0302.onnx"
+    model_path = "/Users/bruce/Downloads/obstacle_v1.0.onnx"
     
     onnx_simplify(model_path)
     # print_onnx_input_output(model_path)

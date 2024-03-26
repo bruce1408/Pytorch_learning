@@ -1,5 +1,18 @@
 from termcolor import colored, cprint
+import unicodedata
 
+def get_display_width(text):
+    """
+    计算字符串在终端中的显示宽度。
+    全角字符计为宽度2，半角字符计为宽度1。
+    """
+    width = 0
+    for char in text:
+        if unicodedata.east_asian_width(char) in ('F', 'W', 'A'):
+            width += 2
+        else:
+            width += 1
+    return width
 
 def print_colored_box_line(title, message, attrs=['bold'], text_color='white', box_color='yellow',box_width=80):
     # 详细描述代码的参数和功能
@@ -85,75 +98,15 @@ def print_colored_box(text, bbox_width=40, text_color='white', box_color='green'
     print("\n")
     打印彩色方框
     """
-        
-    # if type(text) == list:
-    #     if attrs is None:
-    #         attrs = []
-    #     # 计算最长的步骤字符串长度
-    #     max_length = max(len(step) for step in text) + 4  # 加4是为了两边的空格和边框
-
-    #     # 生成上下边框
-    #     top_bottom_border = '+' + '-' * (max_length - 2) + '+'
-        
-    #     # 为边框添加颜色
-    #     colored_top_bottom = colored(top_bottom_border, box_color, attrs=attrs)
-
-    #     # 打印上边框
-    #     print(colored_top_bottom)
-        
-
-    # # 打印每个步骤
-    # for step in text:
-    #     # 根据最长的字符串长度，将每个步骤右侧填充空格以对齐
-    #     padded_step = step.ljust(max_length - 4)
-    #     # 为文本和边框添加颜色和样式
-    #     colored_step = colored("| ", box_color, attrs=attrs) + colored(padded_step, text_color, attrs=attrs) + colored(" |", box_color, attrs=attrs)
-    #     print(colored("| ", box_color, attrs=attrs) + colored(" " * (max_length - 4), text_color, attrs=attrs) + colored(" |", box_color, attrs=attrs))
-    #     print(colored_step)
-    #     print(colored("| ", box_color, attrs=attrs) + colored(" " * (max_length - 4), text_color, attrs=attrs) + colored(" |", box_color, attrs=attrs))
-
-            
-        
-    #     # 打印下边框
-    #     print(colored_top_bottom)
-    #     return
-    # # 测量文本长度，并为方框的左右添加空格
-    # padded_text = " " + text + " "
-    # text_length = len(padded_text)
     
-    # # 生成上下边框
-    # top_bottom_border = '+' + '-' * text_length + '+'
-    
-    # # 为边框添加颜色，并使其加粗
-    # colored_top_bottom = colored(top_bottom_border, box_color, attrs=['bold'])
-    
-    # # 生成中间文本行，包括左右边框，文本颜色和加粗
-    # # 注意：由于colored函数不支持直接在文本两侧添加颜色不同的字符，我们需要分开处理
-    # if text_background == True:
-    #     if background_color is not None:
-    #         middle_text = colored(padded_text, text_color, on_color=background_color, attrs=['bold'])
-    #     else:
-    #         middle_text = colored(padded_text, text_color, on_color='on_' + box_color, attrs=['bold'])
-    # else: 
-    #     middle_text = colored(padded_text, text_color, attrs=['bold'])
-    # left_border = colored("|", box_color, attrs=['bold'])
-    # right_border = colored("|", box_color, attrs=['bold'])
-    
-    # 打印彩色方框
-    # print(colored_top_bottom)
-    # print(left_border + middle_text + right_border)
-    # print(colored_top_bottom)
-    
-    if attrs is None:
-        attrs = ['bold']
-    # 对于文本列表，找出最长的文本长度
     if isinstance(text, list):
-        content_width = max(len(item) for item in text) + 2  # 文本两侧各有1个空格
+        content_width = max(get_display_width(item) for item in text)
     else:
-        content_width = len(text) + 2  # 单个文本两侧各有1个空格
+        content_width = get_display_width(text)
 
+    print(content_width)
     # 确定总宽度，考虑到边框的宽度(+2)
-    total_width = max(bbox_width, content_width + 2)
+    total_width = max(pad_len, content_width + 4)
 
     # 生成顶部和底部的边框
     top_bottom_border = '+' + '-' * (total_width - 2) + '+'
@@ -162,11 +115,14 @@ def print_colored_box(text, bbox_width=40, text_color='white', box_color='green'
     if isinstance(text, list):
         for item in text:
             # 确保文本左侧有1个空格，右侧填充至总宽度减去边框宽度和左侧空格
-            line = f" {item} ".ljust(total_width - 2)
+            space_padding = total_width - 2 - get_display_width(item) - 2  # 减去边框和文本两侧的空格
+            line = f" {item} " + " " * space_padding
+            
             print(colored("|", box_color, attrs=attrs) + colored(line, text_color, attrs=attrs, on_color=background_color if text_background else None) + colored("|", box_color, attrs=attrs))
     else:
         # 对于单个文本，处理方式相同
-        line = f" {text} ".ljust(total_width - 2)
+        space_padding = total_width - 2 - get_display_width(text) - 2
+        line = f" {text} " + " " * space_padding
         print(colored("|", box_color, attrs=attrs) + colored(line, text_color, attrs=attrs, on_color=background_color if text_background else None) + colored("|", box_color, attrs=attrs))
 
     print(colored(top_bottom_border, box_color, attrs=attrs))
