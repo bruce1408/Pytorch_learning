@@ -106,7 +106,7 @@ def print_colored_box(text, bbox_width=40, text_color='white', box_color='green'
 
     print(content_width)
     # 确定总宽度，考虑到边框的宽度(+2)
-    total_width = max(pad_len, content_width + 4)
+    total_width = max(bbox_width, content_width + 4)
 
     # 生成顶部和底部的边框
     top_bottom_border = '+' + '-' * (total_width - 2) + '+'
