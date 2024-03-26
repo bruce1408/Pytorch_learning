@@ -104,7 +104,6 @@ def print_colored_box(text, bbox_width=40, text_color='white', box_color='green'
     else:
         content_width = get_display_width(text)
 
-    print(content_width)
     # 确定总宽度，考虑到边框的宽度(+2)
     total_width = max(bbox_width, content_width + 4)
 
