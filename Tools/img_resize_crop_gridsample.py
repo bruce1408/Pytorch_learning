@@ -63,11 +63,12 @@ def visualize_image_operations(image_path):
     plt.subplot(2, 2, 4)
     plt.imshow(rotated_image)
     plt.title(f'Rotated Image by {angle} Degrees')
+    plt.savefig("./person.png")
 
     plt.tight_layout()
     plt.show()
 
 
 # 替换以下路径为你的图片路径
-image_path = "/Users/bruce/PycharmProjects/Pytorch_learning/Deploy/face_torch_3.png"
+image_path = "/mnt/share_disk/bruce_cui/Pytorch_learning/Deploy/face_ort_3.png"
 visualize_image_operations(image_path)

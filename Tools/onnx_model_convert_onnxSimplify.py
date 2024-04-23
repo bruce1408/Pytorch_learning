@@ -13,7 +13,9 @@ def onnx_simplify(path):
     model_simp, check = simplify(onnx_model)
     assert check, "Simplified ONNX model could not be validated"
     
-    output_path = path.split(".")[0] + "_onnxsim." + path.split(".")[-1]
+    # 插入 "_onnxsim" 在 ".onnx" 之前
+    index = path.rfind(".onnx")
+    output_path = path[:index] + "_onnxsim" + path[index:]
     
     onnx.save(model_simp, output_path)
     
@@ -58,7 +60,7 @@ if __name__=="__main__":
     # model_path = "/Users/bruce/Downloads/8620_deploy/swin_tiny_patch4_window7_224_224_elementwise_affine.onnx"
     # model_path = "/Users/bruce/Downloads/obstacle_v1.0.onnx"
     # model_path = "/mnt/share_disk/bruce_cui/onnx_models/laneline_154w_20240320_fastbev.onnx"
-    model_path = "/mnt/share_disk/bruce_cui/onnx_models/laneline_20240330_fastbev_wo_argmax.onnx"
+    model_path = "/mnt/share_disk/bruce_cui/onnx_models/hm_hp370_bev_v2.6_op16_vt_obstacle.onnx"
     # model_path = "/Users/bruce/Downloads/8620_deploy/Laneline/models/epoch_latest_0302.onnx"
     
     onnx_simplify(model_path)
