@@ -60,8 +60,9 @@ if __name__=="__main__":
     # model_path = "/Users/bruce/Downloads/8620_deploy/swin_tiny_patch4_window7_224_224_elementwise_affine.onnx"
     # model_path = "/Users/bruce/Downloads/obstacle_v1.0.onnx"
     # model_path = "/mnt/share_disk/bruce_cui/onnx_models/laneline_154w_20240320_fastbev.onnx"
-    model_path = "/mnt/share_disk/bruce_cui/onnx_models/hm_hp370_bev_v2.6_op16_vt_obstacle.onnx"
+    # model_path = "/mnt/share_disk/bruce_cui/onnx_models/hm_hp370_bev_v2.6_op16_vt_obstacle.onnx"
     # model_path = "/Users/bruce/Downloads/8620_deploy/Laneline/models/epoch_latest_0302.onnx"
+    model_path = "/mnt/share_disk/bruce_cui/onnx_models/obstacle_v1.0.onnx"
     
     onnx_simplify(model_path)
     # print_onnx_input_output(model_path)
