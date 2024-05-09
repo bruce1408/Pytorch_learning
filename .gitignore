@@ -55,3 +55,5 @@ __pycache__
 *.gz
 *.png
 inference_output/
+
+onnx_model_convert_onnxSimplify.py
