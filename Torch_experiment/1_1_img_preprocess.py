@@ -83,7 +83,7 @@ def img_proprecessor_torch_update_pil(image_paths):
         
         img = torch.tensor(img.transpose(2, 0, 1)).unsqueeze(0)  # HWC到CHW，然后增加批次维度
 
-        print("==== pil img and the shape of img ====", img.shape)
+        # print("==== pil img and the shape of img ====", img.shape)
         imgs.append(img)
     return imgs
 
@@ -127,7 +127,7 @@ def img_proprecessor_torch_update_opencv_demo_1(image_paths):
         img = torch.tensor(img.transpose(2, 0, 1)).unsqueeze(0)  # HWC到CHW，然后增加批次维度
 
         # 打印图片的形状
-        print("==== the shape of img ====", img.shape)
+        # print("==== the shape of img ====", img.shape)
         
         imgs.append(img)
 
@@ -179,18 +179,41 @@ def img_proprecessor_torch_update_opencv_demo_2(image_paths):
         img = torch.tensor(img.transpose(2, 0, 1)).unsqueeze(0)  # HWC到CHW，然后增加批次维度
 
         # 打印图片的形状
-        print("==== the shape of img ====", img.shape)
+        # print("==== the shape of img ====", img.shape)
         
         imgs.append(img)
 
     return imgs
 
+
+
+def custom_sort_key(item):
+    custom_sort = ["front_long_camera_record", "front_short_camera_record", "front_middle_camera", "lf_wide_camera", "lr_wide_camera", "rf_wide_camera", "rr_wide_camera"]
+
+    for pattern in custom_sort:
+        if pattern in item:
+            return custom_sort.index(pattern)
+    return len(custom_sort)
+
+
 if __name__ == "__main__":
     
     # os.listdir()
     image_path = "/mnt/share_disk/bruce_cui/infer_vis/8620_mtn/image_datas"
-    image_data_path = [os.path.join(image_path, each_name) for each_name in os.listdir(image_path)]
+    image_list_data = [
+        "front_long_camera_record.jpg",
+        "front_short_camera_record.jpg",
+        "lf_wide_camera_record.jpg",
+        "rf_wide_camera_record.jpg",
+        "rear_middle_camera_record.jpg",
+        "front_fisheye_camera_record.jpg",
+        "left_fisheye_camera_record.jpg",        
+        "right_fisheye_camera_record.jpg"
+    ]
     
+    image_data_path = [os.path.join(image_path, each_name) for each_name in image_list_data]
+    sorted(image_data_path, key=custom_sort_key)
+    print(image_data_path)
     res_mmcv = img_proprecessor_mmcv(image_data_path)
     res_torch_update_pil = img_proprecessor_torch_update_pil(image_data_path)
     res_torch_update_cv1  = img_proprecessor_torch_update_opencv_demo_1(image_data_path)
