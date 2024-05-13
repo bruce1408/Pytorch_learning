@@ -199,7 +199,7 @@ def custom_sort_key(item):
 if __name__ == "__main__":
     
     # os.listdir()
-    image_path = "/mnt/share_disk/bruce_cui/infer_vis/8620_mtn/image_datas"
+    image_path = "/home/bruce_ultra/workspace/CPlusPlusThings/img/image_data"
     image_list_data = [
         "front_long_camera_record.jpg",
         "front_short_camera_record.jpg",
@@ -218,11 +218,11 @@ if __name__ == "__main__":
     res_torch_update_pil = img_proprecessor_torch_update_pil(image_data_path)
     res_torch_update_cv1  = img_proprecessor_torch_update_opencv_demo_1(image_data_path)
     res_torch_update_cv2  = img_proprecessor_torch_update_opencv_demo_2(image_data_path)
-    with open("/mnt/share_disk/bruce_cui/Pytorch_learning/Torch_experiment/mtn_image_cv1_output1.txt", "w") as f:
+    with open("/home/bruce_ultra/workspace/Pytorch_learning/Torch_experiment/mtn_image_cv1_output1.txt", "w") as f:
         for i in res_torch_update_cv1[0].flatten():
             f.write(str(i.item())+"\n");
     
-    with open("/mnt/share_disk/bruce_cui/Pytorch_learning/Torch_experiment/mtn_image_cv1_output7.txt", "w") as f:
+    with open("/home/bruce_ultra/workspace/Pytorch_learning/Torch_experiment/mtn_image_cv1_output7.txt", "w") as f:
         for i in res_torch_update_cv1[7].flatten():
             f.write(str(i.item())+"\n")
     
