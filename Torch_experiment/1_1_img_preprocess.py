@@ -199,7 +199,7 @@ def custom_sort_key(item):
 if __name__ == "__main__":
     
     # os.listdir()
-    image_path = "/mnt/share_disk/bruce_cui/infer_vis/8620_mtn/image_datas"
+    image_path = "/mnt/share_disk/bruce_cui/infer_vis/8620_mtn/mtn_pipeline/image_data"
     image_list_data = [
         "front_long_camera_record.jpg",
         "front_short_camera_record.jpg",
