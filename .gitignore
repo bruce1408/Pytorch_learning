@@ -6,6 +6,7 @@ data/
 *.json
 *.so
 *.o
+*.pth
 train
 bilstm_attn_model
 *.out
