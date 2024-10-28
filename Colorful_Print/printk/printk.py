@@ -74,9 +74,19 @@ def print_colored_box_line(title, message, attrs=['bold'], text_color='white', b
     
 
 
-def print_colored_box(text, bbox_width=40, text_color='white', box_color='green', background_color='on_white', attrs=['bold'], text_background=False):
+def print_colored_box(text, bbox_width=40, text_color='white', box_color='green', background_color='on_white', attrs=['bold'], text_background=False, align='left'):
     # 添加代码使用说明，以及一些示例
     """
+    - text: 要打印的文本，可以是字符串或字符串列表。
+    - pad_len: 用户指定的输出宽度。
+    - pad_len: 用户指定的输出宽度。
+    - text_color: 文本颜色。
+    - box_color: 边框颜色。
+    - background_color: 文本背景颜色。
+    - attrs: 文本样式属性列表。
+    - text_background: 是否为文本添加背景颜色。
+    - align: 文本对齐方式，可以为'left'（默认）、'right'或'center'
+
     print("使用说明：")
     print("print_colored_box(text, text_background=False, text_color='white', box_color='green', background_color='on_white')")
     print("text: 要打印的文本")
@@ -114,14 +124,32 @@ def print_colored_box(text, bbox_width=40, text_color='white', box_color='green'
     if isinstance(text, list):
         for item in text:
             # 确保文本左侧有1个空格，右侧填充至总宽度减去边框宽度和左侧空格
+            # line = f" {item} ".ljust(total_width - 2)
             space_padding = total_width - 2 - get_display_width(item) - 2  # 减去边框和文本两侧的空格
-            line = f" {item} " + " " * space_padding
+            # line = f" {item} " + " " * space_padding
+            if align == 'left':
+                line = f" {item} " + " " * space_padding
+            elif align == 'right':
+                line = " " * space_padding + f" {item} "
+            elif align == 'center':
+                left_padding = space_padding // 2
+                right_padding = space_padding - left_padding
+                line = " " * left_padding + f" {item} " + " " * right_padding
             
             print(colored("|", box_color, attrs=attrs) + colored(line, text_color, attrs=attrs, on_color=background_color if text_background else None) + colored("|", box_color, attrs=attrs))
     else:
         # 对于单个文本，处理方式相同
+        # line = f" {text} ".ljust(total_width - 2)
         space_padding = total_width - 2 - get_display_width(text) - 2
-        line = f" {text} " + " " * space_padding
+        # line = f" {text} " + " " * space_padding
+        if align == 'left':
+            line = f" {text} " + " " * space_padding
+        elif align == 'right':
+            line = " " * space_padding + f" {text} "
+        elif align == 'center':
+            left_padding = space_padding // 2
+            right_padding = space_padding - left_padding
+            line = " " * left_padding + f" {text} " + " " * right_padding
         print(colored("|", box_color, attrs=attrs) + colored(line, text_color, attrs=attrs, on_color=background_color if text_background else None) + colored("|", box_color, attrs=attrs))
 
     print(colored(top_bottom_border, box_color, attrs=attrs))
