@@ -17,3 +17,5 @@ print_colored_box(steps, text_color='green', box_color='yellow')
 print_colored_box("hello world", 60, text_color='green', box_color='yellow')
 print_colored_box("请在此脚本目录运行该脚本")
 print_colored_box_line("警告", "请立即检查系统！", attrs=['bold'], text_color='red', box_color='yellow')
+best_acc = 0.98
+print_colored_box(f"Best val Acc: {best_acc}", attrs=['bold'], text_color='red', box_color='yellow')
