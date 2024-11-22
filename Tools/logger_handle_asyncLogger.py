@@ -20,10 +20,22 @@ class ColoredFormatter(logging.Formatter):
         logging.CRITICAL: Fore.MAGENTA
     }
 
+    # 全变色
     def format(self, record):
         log_message = super().format(record)
         level_color = self.LEVEL_COLOR_MAPPING.get(record.levelno, Fore.WHITE)
         return f"{level_color}{log_message}{Style.RESET_ALL}"
+    
+    # 单独变色
+    # def format(self, record):
+    #     prefix = f"[%(asctime)s %(name)s] (%(filename)s %(lineno)d): %(levelname)s " % record.__dict__
+    #     level_color = self.LEVEL_COLOR_MAPPING.get(record.levelno, '')
+    #     if level_color:
+    #         colored_prefix = f"{level_color}{prefix}{Style.RESET_ALL}"
+    #     else:
+    #         colored_prefix = prefix
+    #     return f"{colored_prefix}{record.msg}"
+    
 
         
 class AsyncLoggerManager:
