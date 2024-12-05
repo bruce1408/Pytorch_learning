@@ -8,7 +8,7 @@ mpl.rcParams['axes.unicode_minus'] = False           # 解决保存图像是负�
 data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 data = np.random.randn(1000)*100
 
-def draw_data_distribution(data):
+def draw_data_distribution(data, save_path):
     # 计算最小值和最大值
     min_value = np.min(data)
     max_value = np.max(data)
@@ -22,17 +22,29 @@ def draw_data_distribution(data):
     print("数据范围:", data_range)
 
     # 绘制直方图
-    plt.hist(data, bins=20)
-    plt.xlabel("数据")
-    plt.ylabel("频数")
-    plt.title("数据直方图")
-    plt.show()
+    # plt.hist(data, bins=20)
+    # plt.xlabel("数据")
+    # plt.ylabel("频数")
+    # plt.title("数据直方图")
+    # plt.show()
+    
+    
 
     # # 绘制箱线图
-    # plt.boxplot(data)
-    # plt.ylabel("数据")
-    # plt.title("数据箱线图")
+    plt.boxplot(data)
+    plt.ylabel("数据")
+    plt.title("数据箱线图")
     # plt.show()
+    
+    # Add a legend
+    plt.legend(loc='best')
+    
+    # Save the plot to a file
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    print(f"Plot saved to {save_path}")
+    plt.close()
+    
 
 
-draw_data_distribution(data)
+save_path = "/mnt/share_disk/bruce_trie/Pytorch_learning/Quantification/res.jpg"
+draw_data_distribution(data, save_path)
